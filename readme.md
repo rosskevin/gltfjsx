@@ -1,5 +1,14 @@
 # GLTFJSX
 
+## Fork differences
+
+- switching to typescript
+- added/updated eslint, prettier configs
+- attempt to allow for pluggability
+- Merge https://github.com/pmndrs/gltfjsx/pull/279 Add options to configure pruning unused vertex attributes
+
+## ---
+
 [![Version](https://img.shields.io/npm/v/gltfjsx?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/gltfjsx) [![Discord Shield](https://img.shields.io/discord/740090768164651008?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=ffffff)](https://discord.gg/ZZjjNvJ)
 
 <https://user-images.githubusercontent.com/2223602/126318148-99da7ed6-a578-48dd-bdd2-21056dbad003.mp4>
