@@ -3,7 +3,7 @@
 import meow from 'meow'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import gltfjsx from './src/gltfjsx.js'
+import gltfjsx from './gltfjsx.js'
 import { readPackageUpSync } from 'read-pkg-up'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -72,7 +72,7 @@ const cli = meow(
       console: { type: 'boolean', shortFlag: 'c' },
       debug: { type: 'boolean', shortFlag: 'D' },
     },
-  }
+  },
 )
 
 const { packageJson } = readPackageUpSync({ cwd: __dirname, normalize: false })
@@ -88,7 +88,8 @@ Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   const file = cli.input[0]
   let nameExt = file.match(/[-_\w\d\s]+[.][\w]+$/i)[0]
   let name = nameExt.split('.').slice(0, -1).join('.')
-  const output = config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
+  const output =
+    config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
   const showLog = (log) => {
     console.info('log:', log)
   }
