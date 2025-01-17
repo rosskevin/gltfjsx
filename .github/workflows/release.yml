@@ -15,15 +15,15 @@ jobs:
       - name: Prepare repository
         run: git fetch --unshallow --tags
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '>=20.0.0'
+          node-version: 'latest'
           cache: 'yarn'
 
       # allow the lock file to change (updating our own workspace versions in monorepo)
       - run: yarn install --no-immutable
-      - run: yarn build
       - run: yarn test
+      - run: yarn build
 
       # commit back the lock file change if it works
       - uses: stefanzweifel/git-auto-commit-action@v4
