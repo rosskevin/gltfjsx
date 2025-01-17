@@ -5179,7 +5179,7 @@ __metadata:
     sharp:
       optional: true
   bin:
-    gltfjsx: ./cli.js
+    gltfjsx: ./dist/cli.js
   languageName: unknown
   linkType: soft
 
