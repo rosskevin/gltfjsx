@@ -3,38 +3,23 @@ import fs from 'fs'
 import path from 'path'
 import transform from './utils/transform.js'
 
-import { GLTFLoader } from './bin/GLTFLoader.js'
-import { DRACOLoader } from './bin/DRACOLoader.js'
-DRACOLoader.getDecoderModule = () => {}
+// import { GLTFLoader } from './bin/GLTFLoader.js'
+// import { DRACOLoader } from './bin/DRACOLoader.js'
+// DRACOLoader.getDecoderModule = () => {}
+
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+
 import parse from './utils/parser.js'
+import { Options } from './types.js'
+import { getFileSize } from './utils/getFileSize.js'
+import { toArrayBuffer } from './utils/toArrayBuffer.js'
 
 const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(new DRACOLoader())
 
-function toArrayBuffer(buf) {
-  var ab = new ArrayBuffer(buf.length)
-  var view = new Uint8Array(ab)
-  for (var i = 0; i < buf.length; ++i) view[i] = buf[i]
-  return ab
-}
-
-function roundOff(value) {
-  return Math.round(value * 100) / 100
-}
-
-function getFileSize(file) {
-  const stats = fs.statSync(file)
-  let fileSize = stats.size
-  let fileSizeKB = roundOff(fileSize * 0.001)
-  let fileSizeMB = roundOff(fileSizeKB * 0.001)
-  return {
-    size: fileSizeKB > 1000 ? `${fileSizeMB}MB` : `${fileSizeKB}KB`,
-    sizeKB: fileSizeKB,
-  }
-}
-
-export default function (file, output, options) {
-  function getRelativeFilePath(file) {
+export default function glftsx(file: string, outputPath: string, options: Options) {
+  function getRelativeFilePath(file: string) {
     const filePath = path.resolve(file)
     const rootPath = options.root ? path.resolve(options.root) : path.dirname(file)
     const relativePath = path.relative(rootPath, filePath) || ''
@@ -43,19 +28,19 @@ export default function (file, output, options) {
   }
 
   return new Promise((resolve, reject) => {
-    async function run(stream) {
+    async function run(stream: fs.WriteStream | undefined = undefined) {
       let size = ''
       // Process GLTF
-      if (output && path.parse(output).ext === '.tsx') options.types = true
+      if (outputPath && path.parse(outputPath).ext === '.tsx') options.types = true
       if (options.transform || options.instance || options.instanceall) {
         const { name } = path.parse(file)
-        const outputDir = path.parse(path.resolve(output ?? file)).dir
+        const outputDir = path.parse(path.resolve(outputPath ?? file)).dir
         const transformOut = path.join(outputDir, name + '-transformed.glb')
         await transform(file, transformOut, options)
         const { size: sizeOriginal, sizeKB: sizeKBOriginal } = getFileSize(file)
         const { size: sizeTransformed, sizeKB: sizeKBTransformed } = getFileSize(transformOut)
         size = `${file} [${sizeOriginal}] > ${transformOut} [${sizeTransformed}] (${Math.round(
-          100 - (sizeKBTransformed / sizeKBOriginal) * 100
+          100 - (sizeKBTransformed / sizeKBOriginal) * 100,
         )}%)`
         file = transformOut
       }
@@ -70,16 +55,16 @@ export default function (file, output, options) {
           if (options.console) console.log(output)
           else stream?.write(output)
           stream?.end()
-          resolve()
+          resolve(void 0)
         },
-        (reason) => console.log(reason)
+        (reason) => console.log(reason),
       )
     }
 
     if (options.console) {
       run()
     } else {
-      const stream = fs.createWriteStream(path.resolve(output))
+      const stream = fs.createWriteStream(path.resolve(outputPath))
       stream.once('open', async () => {
         if (!fs.existsSync(file)) reject(file + ' does not exist.')
         else run(stream)

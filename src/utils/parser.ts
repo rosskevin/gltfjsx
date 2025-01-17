@@ -26,7 +26,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
 
   function uniqueName(attempt, index = 0) {
     const newAttempt = index > 0 ? attempt + index : attempt
-    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined) return newAttempt
+    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined)
+      return newAttempt
     else return uniqueName(attempt, index + 1)
   }
 
@@ -69,7 +70,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     }
   }
 
-  const hasInstances = (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
+  const hasInstances =
+    (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
 
   function sanitizeName(name) {
     return isVarName(name) ? `.${name}` : `['${name}']`
@@ -94,8 +96,12 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
 
   function printTypes(objects, animations) {
     let meshes = objects.filter((o) => o.isMesh && o.__removed === undefined)
-    let bones = objects.filter((o) => o.isBone && !(o.parent && o.parent.isBone) && o.__removed === undefined)
-    let materials = [...new Set(objects.filter((o) => o.material && o.material.name).map((o) => o.material))]
+    let bones = objects.filter(
+      (o) => o.isBone && !(o.parent && o.parent.isBone) && o.__removed === undefined,
+    )
+    let materials = [
+      ...new Set(objects.filter((o) => o.material && o.material.name).map((o) => o.material)),
+    ]
 
     let animationTypes = ''
     if (animations.length) {
@@ -170,8 +176,10 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       if (obj.visible === false) result += `visible={false} `
       if (obj.castShadow === true) result += `castShadow `
       if (obj.receiveShadow === true) result += `receiveShadow `
-      if (obj.morphTargetDictionary) result += `morphTargetDictionary={${node}.morphTargetDictionary} `
-      if (obj.morphTargetInfluences) result += `morphTargetInfluences={${node}.morphTargetInfluences} `
+      if (obj.morphTargetDictionary)
+        result += `morphTargetDictionary={${node}.morphTargetDictionary} `
+      if (obj.morphTargetInfluences)
+        result += `morphTargetInfluences={${node}.morphTargetInfluences} `
       if (obj.intensity && rNbr(obj.intensity)) result += `intensity={${rNbr(obj.intensity)}} `
       //if (obj.power && obj.power !== 4 * Math.PI) result += `power={${rNbr(obj.power)}} `
       if (obj.angle && obj.angle !== Math.PI / 3) result += `angle={${rDeg(obj.angle)}} `
@@ -182,7 +190,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
         result += `up={[${rNbr(obj.up.x)}, ${rNbr(obj.up.y)}, ${rNbr(obj.up.z)},]} `
     }
 
-    if (obj.color && obj.color.getHexString() !== 'ffffff') result += `color="#${obj.color.getHexString()}" `
+    if (obj.color && obj.color.getHexString() !== 'ffffff')
+      result += `color="#${obj.color.getHexString()}" `
     if (obj.position && obj.position.isVector3 && rNbr(obj.position.length()))
       result += `position={[${rNbr(obj.position.x)}, ${rNbr(obj.position.y)}, ${rNbr(obj.position.z)},]} `
     if (
@@ -219,19 +228,29 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       obj.geometry &&
       obj.material &&
       duplicates.geometries[obj.geometry.uuid + obj.material.name] &&
-      duplicates.geometries[obj.geometry.uuid + obj.material.name].count > (options.instanceall ? 0 : 1)
+      duplicates.geometries[obj.geometry.uuid + obj.material.name].count >
+        (options.instanceall ? 0 : 1)
     let animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
   }
 
   function equalOrNegated(a, b) {
-    return (a.x === b.x || a.x === -b.x) && (a.y === b.y || a.y === -b.y) && (a.z === b.z || a.z === -b.z)
+    return (
+      (a.x === b.x || a.x === -b.x) &&
+      (a.y === b.y || a.y === -b.y) &&
+      (a.z === b.z || a.z === -b.z)
+    )
   }
 
   function prune(obj, children, result, oldResult, silent) {
     let { type, animated } = getInfo(obj)
     // Prune ...
-    if (!obj.__removed && !options.keepgroups && !animated && (type === 'group' || type === 'scene')) {
+    if (
+      !obj.__removed &&
+      !options.keepgroups &&
+      !animated &&
+      (type === 'group' || type === 'scene')
+    ) {
       /** Empty or no-property groups
        *    <group>
        *      <mesh geometry={nodes.foo} material={materials.bar} />
@@ -259,9 +278,19 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        *  Solution:
        *    <mesh geometry={nodes.foo} material={materials.bar} />
        */
-      if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
-        if (keys1.length === 1 && keys2.length === 1 && keys1[0] === 'rotation' && keys2[0] === 'rotation') {
-          if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
+      if (
+        obj.children.length === 1 &&
+        getType(first) === type &&
+        equalOrNegated(obj.rotation, first.rotation)
+      ) {
+        if (
+          keys1.length === 1 &&
+          keys2.length === 1 &&
+          keys1[0] === 'rotation' &&
+          keys2[0] === 'rotation'
+        ) {
+          if (options.debug && !silent)
+            console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
           obj.__removed = first.__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
@@ -277,8 +306,17 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        *    <group scale={0.01}>
        *      <mesh geometry={nodes.foo} material={materials.bar} />
        */
-      if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
-        if (keys1.length === 1 && keys2.length > 1 && keys1[0] === 'rotation' && keys2.includes('rotation')) {
+      if (
+        obj.children.length === 1 &&
+        getType(first) === type &&
+        equalOrNegated(obj.rotation, first.rotation)
+      ) {
+        if (
+          keys1.length === 1 &&
+          keys2.length > 1 &&
+          keys1[0] === 'rotation' &&
+          keys2.includes('rotation')
+        ) {
           if (options.debug && !silent)
             console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
           obj.__removed = true
@@ -295,10 +333,12 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        *  Solution:
        *    <mesh geometry={nodes.foo} material={materials.bar} position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
        */
-      const isChildTransformed = keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
+      const isChildTransformed =
+        keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
       const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
       if (obj.children.length === 1 && !first.__removed && !isChildTransformed && !hasOtherProps) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
+        if (options.debug && !silent)
+          console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
         keys1.forEach((key) => obj.children[0][key].copy(obj[key]))
@@ -321,7 +361,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
         if (type !== 'group' && type !== 'object3D') empty.push(o)
       })
       if (!empty.length) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: lack of content)`)
+        if (options.debug && !silent)
+          console.log(`group ${obj.name} removed (aggressive: lack of content)`)
         empty.forEach((child) => (child.__removed = true))
         return ''
       }
@@ -360,7 +401,9 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     } else {
       if (obj.isInstancedMesh) {
         const geo = `${node}.geometry`
-        const mat = obj.material.name ? `materials${sanitizeName(obj.material.name)}` : `${node}.material`
+        const mat = obj.material.name
+          ? `materials${sanitizeName(obj.material.name)}`
+          : `${node}.material`
         type = 'instancedMesh'
         result = `<instancedMesh args={[${geo}, ${mat}, ${!obj.count ? `${node}.count` : obj.count}]} `
       } else {
@@ -371,7 +414,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     }
 
     // Include names when output is uncompressed or morphTargetDictionaries are present
-    if (obj.name.length && (options.keepnames || obj.morphTargetDictionary || animated)) result += `name="${obj.name}" `
+    if (obj.name.length && (options.keepnames || obj.morphTargetDictionary || animated))
+      result += `name="${obj.name}" `
 
     const oldResult = result
     result += handleProps(obj)
@@ -417,7 +461,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       'rot:',
       [obj.rotation.x, obj.rotation.y, obj.rotation.z].map(rNbr),
       'mat:',
-      obj.material ? `${obj.material.name}-${obj.material.uuid.substring(0, 8)}` : ''
+      obj.material ? `${obj.material.name}-${obj.material.uuid.substring(0, 8)}` : '',
     )
     obj.children.forEach((o) => p(o, line + 1))
   }
@@ -500,7 +544,9 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
           options.types ? ": JSX.IntrinsicElements['group']" : ''
         }) {
           ${hasInstances ? 'const instances = React.useContext(context);' : ''} ${
-            hasAnimations ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};` : ''
+            hasAnimations
+              ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};`
+              : ''
           } ${
             !options.instanceall
               ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${
