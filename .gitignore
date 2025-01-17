@@ -12,6 +12,7 @@ package-lock.json
 coverage/
 .idea
 yarn-error.log
+tmp*
 
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .pnp.*
