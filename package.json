@@ -2,6 +2,7 @@
   "name": "gltfjsx",
   "version": "6.5.2",
   "description": "GLTF to JSX converter",
+  "prettier": "@alienfast/prettier-config",
   "scripts": {
     "build": "rollup -c",
     "test": "node src/test"
@@ -33,7 +34,7 @@
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "dependencies": {
     "@gltf-transform/core": "4.1.0",
@@ -63,6 +64,9 @@
     "@gltf-transform/functions": "4.0.8"
   },
   "devDependencies": {
+    "@alienfast/eslint-config": "^5.1.21",
+    "@alienfast/prettier-config": "^1.0.0",
+    "@alienfast/tsconfig": "^1.0.1",
     "@babel/core": "7.23.6",
     "@babel/plugin-proposal-class-properties": "^7.16.0",
     "@babel/plugin-transform-modules-commonjs": "7.23.3",
@@ -75,20 +79,16 @@
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "chalk": "^5.3.0",
+    "eslint": "^9.18.0",
     "fast-glob": "^3.3.2",
     "fs-extra": "^11.2.0",
     "lint-staged": "^13.2.0",
+    "prettier": "^3.4.2",
     "rollup": "^4.9.1",
     "rollup-plugin-size-snapshot": "^0.12.0",
-    "rollup-plugin-terser": "^7.0.2"
-  },
-  "prettier": {
-    "semi": false,
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "jsxBracketSameLine": true,
-    "tabWidth": 2,
-    "printWidth": 120
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -99,5 +99,5 @@
     "type": "opencollective",
     "url": "https://opencollective.com/react-three-fiber"
   },
-  "packageManager": "yarn@4.4.1+sha512.f825273d0689cc9ead3259c14998037662f1dcd06912637b21a450e8da7cfeb4b1965bbee73d16927baa1201054126bc385c6f43ff4aa705c8631d26e12460f1"
+  "packageManager": "yarn@4.6.0"
 }

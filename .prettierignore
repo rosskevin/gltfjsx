@@ -1,0 +1,7 @@
+packages/*/dist
+dist
+*.snap
+packages/ci/test
+packages/ci/cra
+tmp
+.storybook-out
