@@ -3,7 +3,7 @@
 import meow from 'meow'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import gltfjsx from './gltfjsx'
+import gltfjsx from './gltfjsx.js'
 import { readPackageUpSync } from 'read-pkg-up'
 
 const __filename = fileURLToPath(import.meta.url)
