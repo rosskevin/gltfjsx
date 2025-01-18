@@ -359,7 +359,7 @@ export function transformGltfToJsx(
         if (options.debug && !silent) {
           console.log(`group ${obj.name} removed (empty)`)
         }
-        ;(obj as any).__removed = true
+        anyObj.__removed = true
         return children
       }
 
@@ -392,7 +392,7 @@ export function transformGltfToJsx(
           if (options.debug && !silent) {
             console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
           }
-          ;(obj as any).__removed = (first as any).__removed = true
+          anyObj.__removed = (first as any).__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
           return children
@@ -421,7 +421,7 @@ export function transformGltfToJsx(
           if (options.debug && !silent) {
             console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
           }
-          ;(obj as any).__removed = true
+          anyObj.__removed = true
           // Remove rotation from first child
           first.rotation.set(0, 0, 0)
           children = print(first, true)
@@ -475,6 +475,9 @@ export function transformGltfToJsx(
         return ''
       }
     }
+
+    //?
+    return children
   }
 
   function print(obj: Object3D, silent = false) {

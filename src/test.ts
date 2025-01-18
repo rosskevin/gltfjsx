@@ -1,4 +1,4 @@
 import assert from 'node:assert'
-const cli = await import('../cli.js')
+const cli = await import('./cli.js')
 
 assert(cli)

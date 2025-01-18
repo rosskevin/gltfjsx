@@ -35,7 +35,7 @@ const cli = meow(
       --keepmeshes, -j  Do not join compatible meshes
       --keepmaterials, -M Do not palette join materials
       --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
-      --format, -f      Texture format (default: "webp")
+      --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
       --simplify, -S    Mesh simplification (default: false)
         --ratio         Simplifier ratio (default: 0)
         --error         Simplifier error threshold (default: 0.0001)
@@ -66,7 +66,13 @@ const cli = meow(
       keepmeshes: { type: 'boolean', shortFlag: 'j', default: false },
       keepmaterials: { type: 'boolean', shortFlag: 'M', default: false },
       keepattributes: { type: 'boolean', default: false },
-      format: { type: 'string', shortFlag: 'f', default: 'webp' },
+      format: {
+        type: 'string',
+        choices: ['jpeg', 'png', 'webp', 'avif'],
+        isMultiple: false,
+        shortFlag: 'f',
+        default: 'webp',
+      },
       exportdefault: { type: 'boolean', shortFlag: 'E' },
       ratio: { type: 'number', default: 0.75 },
       error: { type: 'number', default: 0.001 },
@@ -74,7 +80,7 @@ const cli = meow(
       debug: { type: 'boolean', shortFlag: 'D' },
     },
   },
-) satisfies { flags: CliOptions }
+) as any /* any needed due to format choices type incompatible */ satisfies { flags: CliOptions }
 
 const packageResult = readPackageUpSync({ cwd: __dirname, normalize: false })
 if (!packageResult) {

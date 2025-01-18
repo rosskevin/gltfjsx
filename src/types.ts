@@ -1,3 +1,5 @@
+import { TextureCompressOptions } from '@gltf-transform/functions'
+
 export interface CliOptions {
   output?: string
   types?: boolean
@@ -20,7 +22,7 @@ export interface CliOptions {
   keepmeshes: boolean
   keepmaterials: boolean
   keepattributes: boolean
-  format: string
+  format: TextureCompressOptions['targetFormat']
   exportdefault?: boolean
   ratio: number
   error: number

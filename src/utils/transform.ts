@@ -21,8 +21,9 @@ import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer
 import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
 import draco3d from 'draco3dgltf'
 import sharp from 'sharp'
+import { Options } from '../types.js'
 
-async function transform(file, output, config = {}) {
+async function transform(file: string, output: string, config: Options) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -48,31 +49,35 @@ async function transform(file, output, config = {}) {
     // This seems problematic ...
     // instance({ min: 5 }),
     flatten(),
-    dequantize() // ...
+    dequantize(), // ...
   )
 
   if (!config.keepmeshes) {
     functions.push(
-      join() // ...
+      join(), // ...
     )
   }
 
   functions.push(
     // Weld vertices
-    weld()
+    weld(),
   )
 
   if (config.simplify) {
     functions.push(
       // Simplify meshes
-      simplify({ simplifier: MeshoptSimplifier, ratio: config.ratio ?? 0, error: config.error ?? 0.0001 })
+      simplify({
+        simplifier: MeshoptSimplifier,
+        ratio: config.ratio ?? 0,
+        error: config.error ?? 0.0001,
+      }),
     )
   }
 
   functions.push(
     resample({ ready: resampleReady, resample: resampleWASM }),
     prune({ keepAttributes: config.keepattributes ?? false, keepLeaves: false }),
-    sparse()
+    sparse(),
   )
 
   if (config.degrade) {
@@ -89,7 +94,7 @@ async function transform(file, output, config = {}) {
         pattern: new RegExp(`^(?!${config.degrade}).*$`),
         targetFormat: config.format,
         resize: [resolution, resolution],
-      })
+      }),
     )
   } else {
     // Keep normal maps near lossless
@@ -105,7 +110,7 @@ async function transform(file, output, config = {}) {
         encoder: sharp,
         targetFormat: 'jpeg',
         resize: [normalResolution, normalResolution],
-      })
+      }),
     )
   }
 
