@@ -5,7 +5,7 @@ import isVarName from './isVarName.js'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { AnimationClip, Group, Material, Mesh, Object3D } from 'three'
 import { Options } from '../types.js'
-import { isMesh } from './isMesh.js'
+import { isMesh, isNotRemoved } from './is.js'
 
 interface TransformGltfToJsxOptions extends Options {
   fileName: string
@@ -52,8 +52,20 @@ export function transformGltfToJsx(
     else return uniqueName(attempt, index + 1)
   }
 
-  function colectDuplicateMaterial(material: Material | Material[]){
-    if (Array.isArray(material)){
+  // material: Material | Material[] can be nested, so we need to flatten it and collect all materials as an array
+  function collectMaterials(material: Material | Material[]): Material[] {
+    const result: Material[] = []
+    if (Array.isArray(material)) {
+      material.forEach((m) => result.concat(collectMaterials(m)), [])
+    } else {
+      result.push(material)
+    }
+    const set = new Set(result)
+    return Array.from(set)
+  }
+
+  function colectDuplicateMaterial(material: Material | Material[]) {
+    if (Array.isArray(material)) {
       material.forEach((m) => colectDuplicateMaterial(m))
     } else {
       if (material.name) {
@@ -69,27 +81,25 @@ export function transformGltfToJsx(
   // collect duplicates
   gltf.scene.traverse((child: Object3D) => {
     if (isMesh(child)) {
-      if (child instanceof Mesh) {
-        // tracking materials
-        colectDuplicateMaterial(child.material)
+      // materials
+      colectDuplicateMaterial(child.material)
 
-        // tracking geometry, but may also be a mesh
-        if (child.geometry) {
-          const key = child.geometry.uuid + (child.material?.name ?? '')
-          if (!duplicates.geometries[key]) {
-            let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
-            name = name.charAt(0).toUpperCase() + name.slice(1)
-            duplicates.geometries[key] = {
-              count: 1,
-              name: uniqueName(name),
-              node: 'nodes' + sanitizeName(child.name),
-            }
-          } else {
-            duplicates.geometries[key].count++
+      // geometry
+      if (child.geometry) {
+        const key = child.geometry.name + child.geometry.uuid /*+ (child.material?.name)*/
+        if (!duplicates.geometries[key]) {
+          let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
+          name = name.charAt(0).toUpperCase() + name.slice(1)
+          duplicates.geometries[key] = {
+            count: 1,
+            name: uniqueName(name),
+            node: 'nodes' + sanitizeName(child.name),
           }
+        } else {
+          duplicates.geometries[key].count++
         }
       }
-    
+    }
   })
 
   // Prune duplicate geometries
@@ -112,25 +122,29 @@ export function transformGltfToJsx(
   }
 
   const rDeg = (n: number) => {
-    const abs = Math.abs(Math.round(parseFloat(n) * 100000))
+    const abs = Math.abs(Math.round(n * 100000))
     for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(parseFloat(Math.PI / i) * 100000))
+      if (abs === Math.round((Math.PI / i) * 100000))
         return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
     }
     for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(parseFloat(Math.PI * i) * 100000))
+      if (abs === Math.round(Math.PI * i * 100000))
         return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
     }
     return rNbr(n)
   }
 
   function printTypes(objects: Object3D[], animations: AnimationClip[]) {
-    let meshes = objects.filter((o) => o.isMesh && o.__removed === undefined)
+    let meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
+    // .isBone isn't in glTF spec. See ._markDefs in GLTFLoader.js
     let bones = objects.filter(
-      (o) => o.isBone && !(o.parent && o.parent.isBone) && o.__removed === undefined,
+      (o) => (o as any).isBone && !(o.parent && (o.parent as any).isBone) && isNotRemoved(o),
     )
     let materials = [
-      ...new Set(objects.filter((o) => o.material && o.material.name).map((o) => o.material)),
+      ...new Set(
+        // TODO validate if this is correct
+        objects.filter((o) => isMesh(o) && collectMaterials(o.material)),
+      ),
     ]
 
     let animationTypes = ''
