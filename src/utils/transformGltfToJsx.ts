@@ -2,11 +2,32 @@ import * as THREE from 'three'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import isVarName from './isVarName.js'
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { AnimationClip, Group, Material, Mesh, Object3D } from 'three'
+import { Options } from '../types.js'
+import { isMesh } from './isMesh.js'
 
-function parse(gltf, { fileName = 'model', ...options } = {}) {
-  if (gltf.isObject3D) {
+interface TransformGltfToJsxOptions extends Options {
+  fileName: string
+  size: string // human readable size
+}
+
+interface Duplicates {
+  names: Record<string, number>
+  materials: Record<string, number>
+  geometries: Record<string, { count: number; name: string; node: string }>
+}
+
+export function transformGltfToJsx(
+  gltfLike: GLTF,
+  { fileName = 'model', ...options }: TransformGltfToJsxOptions,
+) {
+  console.log('parse', gltfLike, options)
+  let gltf: GLTF = gltfLike
+  if ((gltf as any).isObject3D) {
+    console.error('gltf is Object3D, in what case is this?', gltf)
     // Wrap scene in a GLTF Structure
-    gltf = { scene: gltf, animations: [], parser: { json: {} } }
+    gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
   }
 
   const url = (fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName
@@ -14,57 +35,66 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   const hasAnimations = animations.length > 0
 
   // Collect all objects
-  const objects = []
-  gltf.scene.traverse((child) => objects.push(child))
+  const objects: Array<Object3D> = []
+  gltf.scene.traverse((child: Object3D) => objects.push(child))
 
   // Browse for duplicates
-  const duplicates = {
+  const duplicates: Duplicates = {
     names: {},
     materials: {},
     geometries: {},
   }
 
-  function uniqueName(attempt, index = 0) {
+  function uniqueName(attempt: string, index = 0) {
     const newAttempt = index > 0 ? attempt + index : attempt
     if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined)
       return newAttempt
     else return uniqueName(attempt, index + 1)
   }
 
-  gltf.scene.traverse((child) => {
-    if (child.isMesh) {
-      if (child.material) {
-        if (!duplicates.materials[child.material.name]) {
-          duplicates.materials[child.material.name] = 1
+  function colectDuplicateMaterial(material: Material | Material[]){
+    if (Array.isArray(material)){
+      material.forEach((m) => colectDuplicateMaterial(m))
+    } else {
+      if (material.name) {
+        if (!duplicates.materials[material.name]) {
+          duplicates.materials[material.name] = 1
         } else {
-          duplicates.materials[child.material.name]++
+          duplicates.materials[material.name]++
         }
       }
     }
-  })
+  }
 
-  gltf.scene.traverse((child) => {
-    if (child.isMesh) {
-      if (child.geometry) {
-        const key = child.geometry.uuid + child.material?.name ?? ''
-        if (!duplicates.geometries[key]) {
-          let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
-          name = name.charAt(0).toUpperCase() + name.slice(1)
-          duplicates.geometries[key] = {
-            count: 1,
-            name: uniqueName(name),
-            node: 'nodes' + sanitizeName(child.name),
+  // collect duplicates
+  gltf.scene.traverse((child: Object3D) => {
+    if (isMesh(child)) {
+      if (child instanceof Mesh) {
+        // tracking materials
+        colectDuplicateMaterial(child.material)
+
+        // tracking geometry, but may also be a mesh
+        if (child.geometry) {
+          const key = child.geometry.uuid + (child.material?.name ?? '')
+          if (!duplicates.geometries[key]) {
+            let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
+            name = name.charAt(0).toUpperCase() + name.slice(1)
+            duplicates.geometries[key] = {
+              count: 1,
+              name: uniqueName(name),
+              node: 'nodes' + sanitizeName(child.name),
+            }
+          } else {
+            duplicates.geometries[key].count++
           }
-        } else {
-          duplicates.geometries[key].count++
         }
       }
-    }
+    
   })
 
   // Prune duplicate geometries
   if (!options.instanceall) {
-    for (let key of Object.keys(duplicates.geometries)) {
+    for (const key of Object.keys(duplicates.geometries)) {
       const duplicate = duplicates.geometries[key]
       if (duplicate.count === 1) delete duplicates.geometries[key]
     }
@@ -73,28 +103,28 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   const hasInstances =
     (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
 
-  function sanitizeName(name) {
+  function sanitizeName(name: string) {
     return isVarName(name) ? `.${name}` : `['${name}']`
   }
 
-  const rNbr = (number) => {
-    return parseFloat(number.toFixed(Math.round(options.precision || 2)))
+  const rNbr = (n: number) => {
+    return parseFloat(n.toFixed(Math.round(options.precision || 2)))
   }
 
-  const rDeg = (number) => {
-    const abs = Math.abs(Math.round(parseFloat(number) * 100000))
+  const rDeg = (n: number) => {
+    const abs = Math.abs(Math.round(parseFloat(n) * 100000))
     for (let i = 1; i <= 10; i++) {
       if (abs === Math.round(parseFloat(Math.PI / i) * 100000))
-        return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
     }
     for (let i = 1; i <= 10; i++) {
       if (abs === Math.round(parseFloat(Math.PI * i) * 100000))
-        return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
     }
-    return rNbr(number)
+    return rNbr(n)
   }
 
-  function printTypes(objects, animations) {
+  function printTypes(objects: Object3D[], animations: AnimationClip[]) {
     let meshes = objects.filter((o) => o.isMesh && o.__removed === undefined)
     let bones = objects.filter(
       (o) => o.isBone && !(o.parent && o.parent.isBone) && o.__removed === undefined,
@@ -435,7 +465,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     return result
   }
 
-  function printAnimations(animations) {
+  function printAnimations(animations: AnimationClip[]) {
     return animations.length ? `\nconst { actions } = useAnimations(animations, group)` : ''
   }
 
@@ -582,5 +612,3 @@ useGLTF.preload('${url}')`
   })
   return formatted
 }
-
-export default parse

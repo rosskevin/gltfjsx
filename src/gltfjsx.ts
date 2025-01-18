@@ -10,7 +10,7 @@ import transform from './utils/transform.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
-import parse from './utils/parser.js'
+import { transformGltfToJsx } from './utils/transformGltfToJsx.js'
 import { Options } from './types.js'
 import { getFileSize } from './utils/getFileSize.js'
 import { toArrayBuffer } from './utils/toArrayBuffer.js'
@@ -51,7 +51,7 @@ export default function glftsx(file: string, outputPath: string, options: Option
         arrayBuffer,
         '',
         async (gltf) => {
-          const output = await parse(gltf, { fileName: filePath, size, ...options })
+          const output = await transformGltfToJsx(gltf, { fileName: filePath, size, ...options })
           if (options.console) console.log(output)
           else stream?.write(output)
           stream?.end()
