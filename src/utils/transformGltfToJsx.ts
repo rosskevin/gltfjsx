@@ -3,9 +3,18 @@ import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import isVarName from './isVarName.js'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { AnimationClip, Group, Material, Mesh, Object3D } from 'three'
+import {
+  AnimationClip,
+  Euler,
+  Group,
+  Material,
+  Mesh,
+  Object3D,
+  OrthographicCamera,
+  PerspectiveCamera,
+} from 'three'
 import { Options } from '../types.js'
-import { isMesh, isNotRemoved } from './is.js'
+import { isCamera, isInstancedMesh, isLight, isMesh, isNotRemoved, isOrthographicCamera, isPerspectiveCamera, isRemoved } from './is.js'
 
 interface TransformGltfToJsxOptions extends Options {
   fileName: string
@@ -78,6 +87,25 @@ export function transformGltfToJsx(
     }
   }
 
+  function materialCacheKey(material: Material | Material[]) {
+    if (Array.isArray(material)) {
+      const result: string[] = []
+      material.forEach((m) => m.name && result.push(m.name))
+      if(result.length > 0){
+        return result.join('-')
+      }
+      return null
+    } else {
+      return material.name
+    }
+  }
+  
+  function cacheKey(obj: Mesh) {
+    // Was: child.geometry.uuid + (child.material?.name)
+    // but we need to handle arrays of materials according to types
+    return obj.geometry?.uuid + materialCacheKey(obj.material)
+  }
+
   // collect duplicates
   gltf.scene.traverse((child: Object3D) => {
     if (isMesh(child)) {
@@ -86,7 +114,7 @@ export function transformGltfToJsx(
 
       // geometry
       if (child.geometry) {
-        const key = child.geometry.name + child.geometry.uuid /*+ (child.material?.name)*/
+        const key = cacheKey(child)
         if (!duplicates.geometries[key]) {
           let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
           name = name.charAt(0).toUpperCase() + name.slice(1)
@@ -174,7 +202,7 @@ export function transformGltfToJsx(
   }\n${contextType}`
   }
 
-  function getType(obj) {
+  function getType(obj: Object3D) {
     let type = obj.type.charAt(0).toLowerCase() + obj.type.slice(1)
     // Turn object3d's into groups, it should be faster according to the threejs docs
     if (type === 'object3D') type = 'group'
@@ -183,19 +211,18 @@ export function transformGltfToJsx(
     return type
   }
 
-  function handleProps(obj) {
+  function handleProps(obj: Object3D | OrthographicCamera) {
     let { type, node, instanced } = getInfo(obj)
-
+    const anyObj = obj as any
     let result = ''
-    let isCamera = type === 'PerspectiveCamera' || type === 'OrthographicCamera'
     // Handle cameras
-    if (isCamera) {
+    if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
       result += `makeDefault={false} `
       if (obj.zoom !== 1) result += `zoom={${rNbr(obj.zoom)}} `
       if (obj.far !== 2000) result += `far={${rNbr(obj.far)}} `
       if (obj.near !== 0.1) result += `near={${rNbr(obj.near)}} `
     }
-    if (type === 'PerspectiveCamera') {
+    if (isPerspectiveCamera(obj)) {
       if (obj.fov !== 50) result += `fov={${rNbr(obj.fov)}} `
     }
 
@@ -203,39 +230,44 @@ export function transformGltfToJsx(
       // Shadows
       if (type === 'mesh' && options.shadows) result += `castShadow receiveShadow `
 
-      // Write out geometry first
-      if (obj.geometry && !obj.isInstancedMesh) {
-        result += `geometry={${node}.geometry} `
-      }
+      if(isMesh(obj) && !isInstancedMesh(obj)){
+          // Write out geometry first
+          result += `geometry={${node}.geometry} `
 
-      // Write out materials
-      if (obj.material && !obj.isInstancedMesh) {
-        if (obj.material.name) result += `material={materials${sanitizeName(obj.material.name)}} `
-        else result += `material={${node}.material} `
-      }
+        // Write out materials
+        const materialName = materialCacheKey(obj.material)
+          if (materialName) result += `material={materials${sanitizeName(materialName)}} `
+          else result += `material={${node}.material} `
+        }
+     }
 
-      if (obj.instanceMatrix) result += `instanceMatrix={${node}.instanceMatrix} `
-      if (obj.instanceColor) result += `instanceColor={${node}.instanceColor} `
-      if (obj.skeleton) result += `skeleton={${node}.skeleton} `
+      if (isInstancedMesh(obj) ){
+        if( obj.instanceMatrix) result += `instanceMatrix={${node}.instanceMatrix} `
+        if (obj.instanceColor) result += `instanceColor={${node}.instanceColor} `
+      }
+      if (anyObj.skeleton) result += `skeleton={${node}.skeleton} `
       if (obj.visible === false) result += `visible={false} `
       if (obj.castShadow === true) result += `castShadow `
       if (obj.receiveShadow === true) result += `receiveShadow `
-      if (obj.morphTargetDictionary)
-        result += `morphTargetDictionary={${node}.morphTargetDictionary} `
-      if (obj.morphTargetInfluences)
-        result += `morphTargetInfluences={${node}.morphTargetInfluences} `
-      if (obj.intensity && rNbr(obj.intensity)) result += `intensity={${rNbr(obj.intensity)}} `
+      if (anyObj.morphTargetDictionary)
+    {    result += `morphTargetDictionary={${node}.morphTargetDictionary} `}
+      if (anyObj.morphTargetInfluences)
+       { result += `morphTargetInfluences={${node}.morphTargetInfluences} `}
+      if (anyObj.intensity && rNbr(anyObj.intensity)) result += `intensity={${rNbr(anyObj.intensity)}} `
       //if (obj.power && obj.power !== 4 * Math.PI) result += `power={${rNbr(obj.power)}} `
-      if (obj.angle && obj.angle !== Math.PI / 3) result += `angle={${rDeg(obj.angle)}} `
-      if (obj.penumbra && rNbr(obj.penumbra) !== 0) result += `penumbra={${rNbr(obj.penumbra)}} `
-      if (obj.decay && rNbr(obj.decay) !== 1) result += `decay={${rNbr(obj.decay)}} `
-      if (obj.distance && rNbr(obj.distance) !== 0) result += `distance={${rNbr(obj.distance)}} `
-      if (obj.up && obj.up.isVector3 && !obj.up.equals(new THREE.Vector3(0, 1, 0)))
-        result += `up={[${rNbr(obj.up.x)}, ${rNbr(obj.up.y)}, ${rNbr(obj.up.z)},]} `
-    }
+      if (anyObj.angle && anyObj.angle !== Math.PI / 3) result += `angle={${rDeg(anyObj.angle)}} `
+      if (anyObj.penumbra && rNbr(anyObj.penumbra) !== 0) result += `penumbra={${rNbr(anyObj.penumbra)}} `
+      if (anyObj.decay && rNbr(anyObj.decay) !== 1) result += `decay={${rNbr(anyObj.decay)}} `
+      if (anyObj.distance && rNbr(anyObj.distance) !== 0) result += `distance={${rNbr(anyObj.distance)}} `
 
-    if (obj.color && obj.color.getHexString() !== 'ffffff')
-      result += `color="#${obj.color.getHexString()}" `
+
+      if (anyObj.up && anyObj.up.isVector3 && !anyObj.up.equals(new THREE.Vector3(0, 1, 0))){
+        result += `up={[${rNbr(anyObj.up.x)}, ${rNbr(anyObj.up.y)}, ${rNbr(anyObj.up.z)},]} `
+      }
+    
+
+    if (anyObj.color && anyObj.color.getHexString() !== 'ffffff')
+      result += `color="#${anyObj.color.getHexString()}" `
     if (obj.position && obj.position.isVector3 && rNbr(obj.position.length()))
       result += `position={[${rNbr(obj.position.x)}, ${rNbr(obj.position.y)}, ${rNbr(obj.position.z)},]} `
     if (
@@ -243,7 +275,7 @@ export function transformGltfToJsx(
       obj.rotation.isEuler &&
       rNbr(new THREE.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z).length())
     )
-      result += `rotation={[${rDeg(obj.rotation.x)}, ${rDeg(obj.rotation.y)}, ${rDeg(obj.rotation.z)},]} `
+    {  result += `rotation={[${rDeg(obj.rotation.x)}, ${rDeg(obj.rotation.y)}, ${rDeg(obj.rotation.z)},]} `}
     if (
       obj.scale &&
       obj.scale.isVector3 &&
@@ -259,26 +291,25 @@ export function transformGltfToJsx(
       }
     }
     if (options.meta && obj.userData && Object.keys(obj.userData).length)
-      result += `userData={${JSON.stringify(obj.userData)}} `
-
+   {   result += `userData={${JSON.stringify(obj.userData)}} `}
     return result
   }
 
-  function getInfo(obj) {
+  function getInfo(obj: Object3D) {
     let type = getType(obj)
     let node = 'nodes' + sanitizeName(obj.name)
     let instanced =
       (options.instance || options.instanceall) &&
+      isMesh(obj) &&
       obj.geometry &&
       obj.material &&
-      duplicates.geometries[obj.geometry.uuid + obj.material.name] &&
-      duplicates.geometries[obj.geometry.uuid + obj.material.name].count >
-        (options.instanceall ? 0 : 1)
+      duplicates.geometries[cacheKey(obj)] &&
+      duplicates.geometries[cacheKey(obj)].count > (options.instanceall ? 0 : 1)
     let animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
   }
 
-  function equalOrNegated(a, b) {
+  function equalOrNegated(a: Euler, b: Euler) {
     return (
       (a.x === b.x || a.x === -b.x) &&
       (a.y === b.y || a.y === -b.y) &&
@@ -286,11 +317,12 @@ export function transformGltfToJsx(
     )
   }
 
-  function prune(obj, children, result, oldResult, silent) {
+  function prune(obj: Object3D, children: string, result: string, oldResult: string, silent: boolean) {
+    const anyObj = obj as any
     let { type, animated } = getInfo(obj)
     // Prune ...
     if (
-      !obj.__removed &&
+      isNotRemoved(obj) &&
       !options.keepgroups &&
       !animated &&
       (type === 'group' || type === 'scene')
@@ -302,8 +334,8 @@ export function transformGltfToJsx(
        *    <mesh geometry={nodes.foo} material={materials.bar} />
        */
       if (result === oldResult || obj.children.length === 0) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (empty)`)
-        obj.__removed = true
+        if (options.debug && !silent) {console.log(`group ${obj.name} removed (empty)`)}
+        (obj as any).__removed = true
         return children
       }
 
@@ -334,8 +366,8 @@ export function transformGltfToJsx(
           keys2[0] === 'rotation'
         ) {
           if (options.debug && !silent)
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
-          obj.__removed = first.__removed = true
+          {      console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)}
+          (obj as any).__removed = (first as any).__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
           return children
@@ -362,8 +394,8 @@ export function transformGltfToJsx(
           keys2.includes('rotation')
         ) {
           if (options.debug && !silent)
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
-          obj.__removed = true
+         {   console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)}
+          (obj as any).__removed = true
           // Remove rotation from first child
           first.rotation.set(0, 0, 0)
           children = print(first, true)
@@ -380,15 +412,14 @@ export function transformGltfToJsx(
       const isChildTransformed =
         keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
       const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
-      if (obj.children.length === 1 && !first.__removed && !isChildTransformed && !hasOtherProps) {
-        if (options.debug && !silent)
-          console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
+      if (obj.children.length === 1 &&  isNotRemoved(first) && !isChildTransformed && !hasOtherProps) {
+        if (options.debug && !silent)    {console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)}
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
-        keys1.forEach((key) => obj.children[0][key].copy(obj[key]))
+        keys1.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
         // Insert the props into the result string
         children = print(first, true)
-        obj.__removed = true
+        anyObj.__removed = true
         return children
       }
 
@@ -399,7 +430,7 @@ export function transformGltfToJsx(
        * Solution:
        *   (delete the whole sub graph)
        */
-      const empty = []
+      const empty: Array<any> = []
       obj.traverse((o) => {
         const type = getType(o)
         if (type !== 'group' && type !== 'object3D') empty.push(o)
@@ -413,13 +444,14 @@ export function transformGltfToJsx(
     }
   }
 
-  function print(obj, silent = false) {
+  function print(obj: Object3D, silent = false) {
+    const anyObj = obj as any
     let result = ''
     let children = ''
     let { type, node, instanced, animated } = getInfo(obj)
 
     // Check if the root node is useless
-    if (obj.__removed && obj.children.length) {
+    if (isRemoved(obj) && obj.children.length) {
       obj.children.forEach((child) => (result += print(child)))
       return result
     }
@@ -430,9 +462,9 @@ export function transformGltfToJsx(
     }
 
     // Take care of lights with targets
-    if (type.endsWith('Light') && obj.target && obj.children[0] === obj.target) {
+    if (isLight(obj) &&  anyObj.target && obj.children[0] === anyObj.target) {
       return `<${type} ${handleProps(obj)} target={${node}.target}>
-        <primitive object={${node}.target} ${handleProps(obj.target)} />
+        <primitive object={${node}.target} ${handleProps(anyObj.target)} />
       </${type}>`
     }
 
@@ -440,13 +472,14 @@ export function transformGltfToJsx(
     if (obj.children) obj.children.forEach((child) => (children += print(child)))
 
     if (instanced) {
-      result = `<instances.${duplicates.geometries[obj.geometry.uuid + obj.material.name].name} `
-      type = `instances.${duplicates.geometries[obj.geometry.uuid + obj.material.name].name}`
+      result = `<instances.${duplicates.geometries[cacheKey(obj as Mesh)].name} `
+      type = `instances.${duplicates.geometries[cacheKey(obj as Mesh)].name}`
     } else {
-      if (obj.isInstancedMesh) {
+      if (isInstancedMesh(obj)) {
         const geo = `${node}.geometry`
-        const mat = obj.material.name
-          ? `materials${sanitizeName(obj.material.name)}`
+        const materialName = materialCacheKey(obj.material)
+        const mat = materialName
+          ? `materials${sanitizeName(materialName)}`
           : `${node}.material`
         type = 'instancedMesh'
         result = `<instancedMesh args={[${geo}, ${mat}, ${!obj.count ? `${node}.count` : obj.count}]} `
@@ -458,7 +491,7 @@ export function transformGltfToJsx(
     }
 
     // Include names when output is uncompressed or morphTargetDictionaries are present
-    if (obj.name.length && (options.keepnames || obj.morphTargetDictionary || animated))
+    if (obj.name.length && (options.keepnames || anyObj.morphTargetDictionary || animated))
       result += `name="${obj.name}" `
 
     const oldResult = result
@@ -554,6 +587,8 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
         ${
           hasPrimitives || options.types
             ? `import { ${options.types ? 'GLTF,' : ''} ${hasPrimitives ? 'SkeletonUtils' : ''} } from "three-stdlib"`
+import { isSkinnedMesh } from './is';
+
             : ''
         }
         ${options.types ? printTypes(objects, animations) : ''}
