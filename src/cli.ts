@@ -36,7 +36,7 @@ const cli = meow(
     --instance, -i      Instance re-occuring geometry
     --instanceall, -I   Instance every geometry (for cheaper re-use)
     --exportdefault, -E Use default export
-    --transform, -T     Transform the asset for the web (draco, prune, resize)
+    --transform, -T     Apply a series of transformations to the GLTF file via the @gltf-transform libraries
       --resolution, -R  Resolution for texture resizing (default: 1024)
       --keepmeshes, -j  Do not join compatible meshes
       --keepmaterials, -M Do not palette join materials
