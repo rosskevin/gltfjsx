@@ -1,22 +1,11 @@
-import * as THREE from 'three'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
-import isVarName from './isVarName.js'
+import * as THREE from 'three'
+import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import {
-  AnimationClip,
-  Euler,
-  Group,
-  Material,
-  Mesh,
-  Object3D,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Scene,
-} from 'three'
+
 import { Options } from '../types.js'
 import {
-  isCamera,
   isInstancedMesh,
   isLight,
   isMesh,
@@ -25,6 +14,7 @@ import {
   isPerspectiveCamera,
   isRemoved,
 } from './is.js'
+import isVarName from './isVarName.js'
 
 interface TransformGltfToJsxOptions extends Options {
   fileName: string
@@ -55,7 +45,7 @@ export function transformGltfToJsx(
   const hasAnimations = animations.length > 0
 
   // Collect all objects
-  const objects: Array<Object3D> = []
+  const objects: Object3D[] = []
   gltf.scene.traverse((child: Object3D) => objects.push(child))
 
   // Browse for duplicates
@@ -174,12 +164,12 @@ export function transformGltfToJsx(
   }
 
   function printTypes(objects: Object3D[], animations: AnimationClip[]) {
-    let meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
+    const meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
     // .isBone isn't in glTF spec. See ._markDefs in GLTFLoader.js
-    let bones = objects.filter(
+    const bones = objects.filter(
       (o) => (o as any).isBone && !(o.parent && (o.parent as any).isBone) && isNotRemoved(o),
     )
-    let materials = [
+    const materials = [
       ...new Set(
         // TODO validate if this is correct
         objects.filter((o) => isMesh(o) && collectMaterials(o.material)),
@@ -223,7 +213,7 @@ export function transformGltfToJsx(
   }
 
   function handleProps(obj: Object3D | OrthographicCamera) {
-    let { type, node, instanced } = getInfo(obj)
+    const { type, node, instanced } = getInfo(obj)
     const anyObj = obj as any
     let result = ''
     // Handle cameras
@@ -312,16 +302,16 @@ export function transformGltfToJsx(
   }
 
   function getInfo(obj: Object3D) {
-    let type = getType(obj)
-    let node = 'nodes' + sanitizeName(obj.name)
-    let instanced =
+    const type = getType(obj)
+    const node = 'nodes' + sanitizeName(obj.name)
+    const instanced =
       (options.instance || options.instanceall) &&
       isMesh(obj) &&
       obj.geometry &&
       obj.material &&
       duplicates.geometries[cacheKey(obj)] &&
       duplicates.geometries[cacheKey(obj)].count > (options.instanceall ? 0 : 1)
-    let animated = gltf.animations && gltf.animations.length > 0
+    const animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
   }
 
@@ -341,7 +331,7 @@ export function transformGltfToJsx(
     silent: boolean,
   ) {
     const anyObj = obj as any
-    let { type, animated } = getInfo(obj)
+    const { type, animated } = getInfo(obj)
     // Prune ...
     if (
       isNotRemoved(obj) &&
@@ -463,7 +453,7 @@ export function transformGltfToJsx(
        * Solution:
        *   (delete the whole sub graph)
        */
-      const empty: Array<any> = []
+      const empty: any[] = []
       obj.traverse((o) => {
         const type = getType(o)
         if (type !== 'group' && type !== 'object3D') empty.push(o)

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 'use strict'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import meow from 'meow'
-import { fileURLToPath } from 'url'
-import path, { dirname } from 'path'
-import gltfjsx from './gltfjsx.js'
 import { readPackageUpSync } from 'read-pkg-up'
+
+import gltfjsx from './gltfjsx.js'
 import { CliOptions, LogFn } from './types.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -97,8 +99,8 @@ if (cli.input.length === 0) {
 Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   }
   const file = cli.input[0]
-  let extension = path.extname(file)
-  let name = path.basename(file, extension) // extension.split('.').slice(0, -1).join('.')
+  const extension = path.extname(file)
+  const name = path.basename(file, extension) // extension.split('.').slice(0, -1).join('.')
   const outputPath =
     config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
   const log: LogFn = (args: any[]) => {

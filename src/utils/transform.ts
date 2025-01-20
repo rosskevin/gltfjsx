@@ -1,26 +1,26 @@
 import { Logger, NodeIO } from '@gltf-transform/core'
-import {
-  simplify,
-  instance,
-  flatten,
-  dequantize,
-  reorder,
-  join,
-  weld,
-  sparse,
-  dedup,
-  resample,
-  prune,
-  textureCompress,
-  draco,
-  palette,
-  unpartition,
-} from '@gltf-transform/functions'
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
-import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
-import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
+import {
+  dedup,
+  dequantize,
+  draco,
+  flatten,
+  join,
+  palette,
+  prune,
+  reorder,
+  resample,
+  simplify,
+  sparse,
+  textureCompress,
+  unpartition,
+  weld,
+} from '@gltf-transform/functions'
 import draco3d from 'draco3dgltf'
+import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
+import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import sharp from 'sharp'
+
 import { Options } from '../types.js'
 
 async function transform(file: string, output: string, config: Options) {

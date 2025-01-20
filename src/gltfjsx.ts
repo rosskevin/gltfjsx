@@ -1,21 +1,21 @@
 import 'jsdom-global'
-import fs from 'fs'
-import path from 'path'
-import transform from './utils/transform.js'
 
+import fs from 'node:fs'
+import path from 'node:path'
+
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 // import { GLTFLoader } from './bin/GLTFLoader.js'
 // import { DRACOLoader } from './bin/DRACOLoader.js'
 // DRACOLoader.getDecoderModule = () => {}
-
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 
-import { transformGltfToJsx } from './utils/transformGltfToJsx.js'
 import { Options } from './types.js'
 import { getFileSize } from './utils/getFileSize.js'
 import { toArrayBuffer } from './utils/toArrayBuffer.js'
+import transform from './utils/transform.js'
+import { transformGltfToJsx } from './utils/transformGltfToJsx.js'
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('three/addons/jsm/libs/draco/gltf/')
@@ -31,7 +31,6 @@ const gltfLoader = new GLTFLoader()
 // gltfLoader.setDRACOLoader(dracoLoader)  // https://github.com/mrdoob/three.js/issues/26403#issuecomment-2101653981
 gltfLoader.setKTX2Loader(ktx2Loader)
 gltfLoader.setMeshoptDecoder(MeshoptDecoder)
-
 
 export default function glftsx(file: string, outputPath: string, options: Options) {
   function getRelativeFilePath(file: string) {
