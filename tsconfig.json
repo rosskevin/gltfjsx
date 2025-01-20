@@ -8,5 +8,5 @@
     "rootDir": "src"
   },
   "include": ["src", "typings/**/*", "src"],
-  "exclude": ["node_modules", "dist", "src-old"]
+  "exclude": ["node_modules", "dist", "src-old", "test/models"]
 }
