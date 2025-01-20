@@ -21,7 +21,7 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { Options } from '../types.js'
+import { Options } from './types.js'
 
 async function transform(file: string, output: string, config: Options) {
   await MeshoptDecoder.ready

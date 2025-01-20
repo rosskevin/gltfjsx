@@ -6,8 +6,12 @@ import meow from 'meow'
 import { readPackageUpSync } from 'read-pkg-up'
 
 import { gltfjsx } from './gltfjsx.js'
+import { TransformGltfToJsxOptions } from './transformGltfToJsx.js'
 import { CliOptions, LogFn } from './types.js'
-import { TransformGltfToJsxOptions } from './utils/transformGltfToJsx.js'
+
+/**
+ * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.
+ */
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -82,7 +86,7 @@ const cli = meow(
       debug: { type: 'boolean', shortFlag: 'D' },
     },
   },
-) // as any /* any needed due to format choices type incompatible */ satisfies { flags: CliOptions }
+)
 
 const packageResult = readPackageUpSync({ cwd: __dirname, normalize: false })
 if (!packageResult) {

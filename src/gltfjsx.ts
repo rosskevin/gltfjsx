@@ -11,11 +11,16 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 // DRACOLoader.getDecoderModule = () => {}
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+import transform from './transform.js'
+import { transformGltfToJsx } from './transformGltfToJsx.js'
 import { Options } from './types.js'
+import { getRelativeFilePath } from './utils/files.js'
 import { getFileSize } from './utils/getFileSize.js'
 import { toArrayBuffer } from './utils/toArrayBuffer.js'
-import transform from './utils/transform.js'
-import { transformGltfToJsx } from './utils/transformGltfToJsx.js'
+
+/**
+ * No IO in this file, only the main function.
+ */
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('three/addons/jsm/libs/draco/gltf/')
@@ -33,14 +38,6 @@ gltfLoader.setKTX2Loader(ktx2Loader)
 gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 
 export async function gltfjsx(file: string, outputPath: string, options: Options) {
-  function getRelativeFilePath(file: string) {
-    const filePath = path.resolve(file)
-    const rootPath = options.root ? path.resolve(options.root) : path.dirname(file)
-    const relativePath = path.relative(rootPath, filePath) || ''
-    if (process.platform === 'win32') return relativePath.replace(/\\/g, '/')
-    return relativePath
-  }
-
   return new Promise((resolve, reject) => {
     async function run(stream: fs.WriteStream | undefined = undefined) {
       let size = ''
@@ -58,7 +55,7 @@ export async function gltfjsx(file: string, outputPath: string, options: Options
         )}%)`
         file = transformOut
       }
-      const filePath = getRelativeFilePath(file)
+      const filePath = getRelativeFilePath(file, options)
       const data = fs.readFileSync(file)
       const arrayBuffer = toArrayBuffer(data)
       gltfLoader.parse(

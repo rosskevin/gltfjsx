@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
-import { Options } from '../types.js'
+import { Options } from './types.js'
 import {
   isBone,
   isColored,
@@ -23,8 +23,8 @@ import {
   isSpotLight,
   isTargeted,
   setRemoved,
-} from './is.js'
-import isVarName from './isVarName.js'
+} from './utils/is.js'
+import isVarName from './utils/isVarName.js'
 
 export interface TransformGltfToJsxOptions extends Options {
   fileName?: string
