@@ -84,7 +84,7 @@
     "rollup-plugin-terser": "^7.0.2"
   },
   "devDependencies": {
-    "@alienfast/eslint-config": "^5.1.21",
+    "@alienfast/eslint-config": "^5.1.23",
     "@alienfast/prettier-config": "^1.0.0",
     "@alienfast/tsconfig": "^1.0.1",
     "@types/draco3dgltf": "^1.4.3",

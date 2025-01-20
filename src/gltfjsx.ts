@@ -1,4 +1,4 @@
-import 'jsdom-global'
+// import 'jsdom-global' // FIXME unclear why we might need this, so excluding for now
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -32,7 +32,7 @@ const gltfLoader = new GLTFLoader()
 gltfLoader.setKTX2Loader(ktx2Loader)
 gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 
-export default function glftsx(file: string, outputPath: string, options: Options) {
+export async function gltfjsx(file: string, outputPath: string, options: Options) {
   function getRelativeFilePath(file: string) {
     const filePath = path.resolve(file)
     const rootPath = options.root ? path.resolve(options.root) : path.dirname(file)
@@ -76,12 +76,12 @@ export default function glftsx(file: string, outputPath: string, options: Option
     }
 
     if (options.console) {
-      run()
+      void run()
     } else {
       const stream = fs.createWriteStream(path.resolve(outputPath))
       stream.once('open', async () => {
-        if (!fs.existsSync(file)) reject(file + ' does not exist.')
-        else run(stream)
+        if (!fs.existsSync(file)) reject(new Error(file + ' does not exist.'))
+        else run(stream).catch(reject)
       })
     }
   })

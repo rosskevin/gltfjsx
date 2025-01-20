@@ -1,33 +1,33 @@
 import { TextureCompressOptions } from '@gltf-transform/functions'
 
 export interface CliOptions {
-  output?: string
-  types?: boolean
-  keepnames?: boolean
-  keepgroups?: boolean
   bones: boolean
-  shadows?: boolean
-  printwidth: number
-  meta?: boolean
-  precision: number
-  draco?: string
-  root?: string
-  instance?: boolean
-  instanceall?: boolean
-  transform?: boolean
-  resolution: number
-  degrade: string
-  degraderesolution: number
-  simplify: boolean
-  keepmeshes: boolean
-  keepmaterials: boolean
-  keepattributes: boolean
-  format: TextureCompressOptions['targetFormat']
-  exportdefault?: boolean
-  ratio: number
-  error: number
   console?: boolean
   debug?: boolean
+  degrade: string
+  degraderesolution: number
+  draco?: string // unused, left as an option only for the moment if we can solve the draco loader issue in node in the future
+  error: number
+  exportdefault?: boolean
+  format: TextureCompressOptions['targetFormat']
+  instance?: boolean
+  instanceall?: boolean
+  keepattributes: boolean
+  keepgroups?: boolean
+  keepmaterials: boolean
+  keepmeshes: boolean
+  keepnames?: boolean
+  meta?: boolean
+  output?: string
+  precision: number
+  printwidth: number
+  ratio: number
+  resolution: number
+  root?: string
+  shadows?: boolean
+  simplify: boolean
+  transform?: boolean
+  types?: boolean
 }
 
 export type LogFn = (args: any[]) => void
