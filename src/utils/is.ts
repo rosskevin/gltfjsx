@@ -1,14 +1,27 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
+  Bone,
   Camera,
+  Color,
   InstancedMesh,
   Light,
   Material,
   Mesh,
+  Object3D,
   OrthographicCamera,
   PerspectiveCamera,
+  PointLight,
+  Points,
   SkinnedMesh,
   SpotLight,
 } from 'three'
+
+export const isObject3D = (o: any): o is Object3D => (o as any).isObject3D
+
+export const isPoints = (o: any): o is Points => (o as any).isPoints
+
+export const isBone = (o: any): o is Bone => (o as any).isBone
 
 export const isMaterial = (o: any): o is Material => (o as any).isMaterial
 
@@ -21,6 +34,8 @@ export const isInstancedMesh = (o: any): o is InstancedMesh => (o as any).isInst
 export const isLight = (o: any): o is Light => (o as any).isLight
 
 export const isSpotLight = (o: any): o is SpotLight => (o as any).isSpotLight
+
+export const isPointLight = (o: any): o is PointLight => (o as any).isPointLight
 
 export const isCamera = (o: any): o is Camera => (o as any).isCamera
 
@@ -37,3 +52,13 @@ export const isPerspectiveCamera = (o: any): o is PerspectiveCamera =>
 export const isNotRemoved = (o: any): boolean => o.__removed === undefined || !o.__removed
 
 export const isRemoved = (o: any): boolean => o.__removed !== undefined && o.__removed
+
+export const setRemoved = (o: any): void => {
+  o.__removed = true
+}
+
+interface Colored {
+  color: Color
+}
+
+export const isColored = (o: any): o is Colored => (o as any).color !== undefined

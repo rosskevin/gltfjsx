@@ -3,7 +3,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import {
   dedup,
   dequantize,
-  draco,
+  // draco,
   flatten,
   join,
   palette,
@@ -16,7 +16,7 @@ import {
   unpartition,
   weld,
 } from '@gltf-transform/functions'
-import draco3d from 'draco3dgltf'
+// import draco3d from 'draco3dgltf'
 import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import sharp from 'sharp'
@@ -27,8 +27,8 @@ async function transform(file: string, output: string, config: Options) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
-    'draco3d.decoder': await draco3d.createDecoderModule(),
-    'draco3d.encoder': await draco3d.createEncoderModule(),
+    // 'draco3d.decoder': await draco3d.createDecoderModule(),
+    // 'draco3d.encoder': await draco3d.createEncoderModule(),
     'meshopt.decoder': MeshoptDecoder,
     'meshopt.encoder': MeshoptEncoder,
   })
@@ -114,7 +114,7 @@ async function transform(file: string, output: string, config: Options) {
     )
   }
 
-  functions.push(draco())
+  // functions.push(draco())
 
   await document.transform(...functions)
   await io.write(output, document)

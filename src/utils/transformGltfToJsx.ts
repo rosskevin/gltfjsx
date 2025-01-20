@@ -6,13 +6,21 @@ import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { Options } from '../types.js'
 import {
+  isBone,
+  isColored,
   isInstancedMesh,
   isLight,
   isMesh,
   isNotRemoved,
+  isObject3D,
   isOrthographicCamera,
   isPerspectiveCamera,
+  isPointLight,
+  isPoints,
   isRemoved,
+  isSkinnedMesh,
+  isSpotLight,
+  setRemoved,
 } from './is.js'
 import isVarName from './isVarName.js'
 
@@ -34,7 +42,7 @@ export function transformGltfToJsx(
 ) {
   console.log('parse', gltfLike, options)
   let gltf: GLTF = gltfLike
-  if ((gltf as any).isObject3D) {
+  if (isObject3D(gltf)) {
     console.error('gltf is Object3D, in what case is this?', gltf)
     // Wrap scene in a GLTF Structure
     gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
@@ -167,14 +175,24 @@ export function transformGltfToJsx(
     const meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
     // .isBone isn't in glTF spec. See ._markDefs in GLTFLoader.js
     const bones = objects.filter(
-      (o) => (o as any).isBone && !(o.parent && (o.parent as any).isBone) && isNotRemoved(o),
+      (o) => isBone(o) && !(o.parent && isBone(o.parent)) && isNotRemoved(o),
     )
-    const materials = [
+    // TODO validate if this is correct
+    const materials = [...new Set(objects.filter((o) => isMesh(o) && collectMaterials(o.material)))]
+    // eslint-disable-next-line prefer-const
+    let materials2 = [
       ...new Set(
-        // TODO validate if this is correct
-        objects.filter((o) => isMesh(o) && collectMaterials(o.material)),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+        objects.filter((o: any) => o.material && o.material.name).map((o: any) => o.material),
       ),
     ]
+
+    console.log(
+      '!!!!!!!!!!!!!!!!compoare materials collection!!!!!!!!!!!!!!!! size: ',
+      materials.length,
+      'vs old: ',
+      materials2.length,
+    )
 
     let animationTypes = ''
     if (animations.length) {
@@ -214,7 +232,6 @@ export function transformGltfToJsx(
 
   function handleProps(obj: Object3D | OrthographicCamera) {
     const { type, node, instanced } = getInfo(obj)
-    const anyObj = obj as any
     let result = ''
     // Handle cameras
     if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
@@ -246,32 +263,34 @@ export function transformGltfToJsx(
       if (obj.instanceMatrix) result += `instanceMatrix={${node}.instanceMatrix} `
       if (obj.instanceColor) result += `instanceColor={${node}.instanceColor} `
     }
-    if (anyObj.skeleton) result += `skeleton={${node}.skeleton} `
+    if (isSkinnedMesh(obj)) result += `skeleton={${node}.skeleton} `
     if (obj.visible === false) result += `visible={false} `
     if (obj.castShadow === true) result += `castShadow `
     if (obj.receiveShadow === true) result += `receiveShadow `
-    if (anyObj.morphTargetDictionary) {
+    if (isPoints(obj)) {
       result += `morphTargetDictionary={${node}.morphTargetDictionary} `
-    }
-    if (anyObj.morphTargetInfluences) {
       result += `morphTargetInfluences={${node}.morphTargetInfluences} `
     }
-    if (anyObj.intensity && rNbr(anyObj.intensity))
-      result += `intensity={${rNbr(anyObj.intensity)}} `
+    if (isLight(obj)) {
+      if (rNbr(obj.intensity)) result += `intensity={${rNbr(obj.intensity)}} `
+    }
     //if (obj.power && obj.power !== 4 * Math.PI) result += `power={${rNbr(obj.power)}} `
-    if (anyObj.angle && anyObj.angle !== Math.PI / 3) result += `angle={${rDeg(anyObj.angle)}} `
-    if (anyObj.penumbra && rNbr(anyObj.penumbra) !== 0)
-      result += `penumbra={${rNbr(anyObj.penumbra)}} `
-    if (anyObj.decay && rNbr(anyObj.decay) !== 1) result += `decay={${rNbr(anyObj.decay)}} `
-    if (anyObj.distance && rNbr(anyObj.distance) !== 0)
-      result += `distance={${rNbr(anyObj.distance)}} `
-
-    if (anyObj.up && anyObj.up.isVector3 && !anyObj.up.equals(new THREE.Vector3(0, 1, 0))) {
-      result += `up={[${rNbr(anyObj.up.x)}, ${rNbr(anyObj.up.y)}, ${rNbr(anyObj.up.z)},]} `
+    if (isSpotLight(obj)) {
+      if (obj.angle !== Math.PI / 3) result += `angle={${rDeg(obj.angle)}} `
+      if (obj.penumbra && rNbr(obj.penumbra) !== 0) result += `penumbra={${rNbr(obj.penumbra)}} `
     }
 
-    if (anyObj.color && anyObj.color.getHexString() !== 'ffffff')
-      result += `color="#${anyObj.color.getHexString()}" `
+    if (isPointLight(obj) || isSpotLight(obj)) {
+      if (obj.decay && rNbr(obj.decay) !== 1) result += `decay={${rNbr(obj.decay)}} `
+      if (obj.distance && rNbr(obj.distance) !== 0) result += `distance={${rNbr(obj.distance)}} `
+    }
+
+    if (obj.up && obj.up.isVector3 && !obj.up.equals(new THREE.Vector3(0, 1, 0))) {
+      result += `up={[${rNbr(obj.up.x)}, ${rNbr(obj.up.y)}, ${rNbr(obj.up.z)},]} `
+    }
+
+    if (isColored(obj) && obj.color.getHexString() !== 'ffffff')
+      result += `color="#${obj.color.getHexString()}" `
     if (obj.position && obj.position.isVector3 && rNbr(obj.position.length()))
       result += `position={[${rNbr(obj.position.x)}, ${rNbr(obj.position.y)}, ${rNbr(obj.position.z)},]} `
     if (
@@ -330,7 +349,6 @@ export function transformGltfToJsx(
     oldResult: string,
     silent: boolean,
   ) {
-    const anyObj = obj as any
     const { type, animated } = getInfo(obj)
     // Prune ...
     if (
@@ -349,14 +367,14 @@ export function transformGltfToJsx(
         if (options.debug && !silent) {
           console.log(`group ${obj.name} removed (empty)`)
         }
-        anyObj.__removed = true
+        setRemoved(obj)
         return children
       }
 
       // More aggressive removal strategies ...
       const first = obj.children[0]
       const firstProps = handleProps(first)
-      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
+      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g // /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
       const keys1 = [...result.matchAll(regex)].map(([, match]) => match)
       const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
       const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match)
