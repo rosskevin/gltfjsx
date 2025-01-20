@@ -37,6 +37,22 @@ export const isSpotLight = (o: any): o is SpotLight => (o as any).isSpotLight
 
 export const isPointLight = (o: any): o is PointLight => (o as any).isPointLight
 
+interface Decayed {
+  decay: number
+}
+export const isDecayed = (o: any): o is Decayed => (o as any).decay !== undefined
+
+interface Distanced {
+  distance: number
+}
+
+export const isDistanced = (o: any): o is Distanced => (o as any).distance !== undefined
+
+interface Targeted {
+  target: Object3D
+}
+export const isTargeted = (o: any): o is Targeted => (o as any).target !== undefined
+
 export const isCamera = (o: any): o is Camera => (o as any).isCamera
 
 export const isOrthographicCamera = (o: any): o is OrthographicCamera =>
@@ -53,8 +69,8 @@ export const isNotRemoved = (o: any): boolean => o.__removed === undefined || !o
 
 export const isRemoved = (o: any): boolean => o.__removed !== undefined && o.__removed
 
-export const setRemoved = (o: any): void => {
-  o.__removed = true
+export const setRemoved = (o: any, value = true): void => {
+  o.__removed = value
 }
 
 interface Colored {

@@ -8,6 +8,8 @@ import { Options } from '../types.js'
 import {
   isBone,
   isColored,
+  isDecayed,
+  isDistanced,
   isInstancedMesh,
   isLight,
   isMesh,
@@ -15,11 +17,11 @@ import {
   isObject3D,
   isOrthographicCamera,
   isPerspectiveCamera,
-  isPointLight,
   isPoints,
   isRemoved,
   isSkinnedMesh,
   isSpotLight,
+  isTargeted,
   setRemoved,
 } from './is.js'
 import isVarName from './isVarName.js'
@@ -221,7 +223,7 @@ export function transformGltfToJsx(
   }\n${contextType}`
   }
 
-  function getType(obj: Object3D) {
+  function getType(obj: Object3D): string {
     let type = obj.type.charAt(0).toLowerCase() + obj.type.slice(1)
     // Turn object3d's into groups, it should be faster according to the threejs docs
     if (type === 'object3D') type = 'group'
@@ -280,8 +282,11 @@ export function transformGltfToJsx(
       if (obj.penumbra && rNbr(obj.penumbra) !== 0) result += `penumbra={${rNbr(obj.penumbra)}} `
     }
 
-    if (isPointLight(obj) || isSpotLight(obj)) {
+    // SpotLight | PointLight
+    if (isDecayed(obj)) {
       if (obj.decay && rNbr(obj.decay) !== 1) result += `decay={${rNbr(obj.decay)}} `
+    }
+    if (isDistanced(obj)) {
       if (obj.distance && rNbr(obj.distance) !== 0) result += `distance={${rNbr(obj.distance)}} `
     }
 
@@ -320,16 +325,22 @@ export function transformGltfToJsx(
     return result
   }
 
-  function getInfo(obj: Object3D) {
+  function getInfo(obj: Object3D): {
+    type: string
+    node: string
+    instanced: boolean
+    animated: boolean
+  } {
     const type = getType(obj)
     const node = 'nodes' + sanitizeName(obj.name)
-    const instanced =
+    let instanced =
       (options.instance || options.instanceall) &&
       isMesh(obj) &&
       obj.geometry &&
       obj.material &&
       duplicates.geometries[cacheKey(obj)] &&
       duplicates.geometries[cacheKey(obj)].count > (options.instanceall ? 0 : 1)
+    instanced = instanced === undefined ? false : instanced
     const animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
   }
@@ -374,9 +385,9 @@ export function transformGltfToJsx(
       // More aggressive removal strategies ...
       const first = obj.children[0]
       const firstProps = handleProps(first)
-      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g // /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
+      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9.[\]\-, /]*)}/g // original before linting /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
       const keys1 = [...result.matchAll(regex)].map(([, match]) => match)
-      const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
+      // const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
       const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match)
 
       /** Double negative rotations
@@ -400,7 +411,7 @@ export function transformGltfToJsx(
           if (options.debug && !silent) {
             console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
           }
-          anyObj.__removed = (first as any).__removed = true
+          setRemoved(obj, isRemoved(first))
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
           return children
@@ -429,7 +440,7 @@ export function transformGltfToJsx(
           if (options.debug && !silent) {
             console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
           }
-          anyObj.__removed = true
+          setRemoved(obj)
           // Remove rotation from first child
           first.rotation.set(0, 0, 0)
           children = print(first, true)
@@ -457,10 +468,11 @@ export function transformGltfToJsx(
         }
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         keys1.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
         // Insert the props into the result string
         children = print(first, true)
-        anyObj.__removed = true
+        setRemoved(obj)
         return children
       }
 
@@ -479,7 +491,7 @@ export function transformGltfToJsx(
       if (!empty.length) {
         if (options.debug && !silent)
           console.log(`group ${obj.name} removed (aggressive: lack of content)`)
-        empty.forEach((child) => (child.__removed = true))
+        empty.forEach((child) => setRemoved(child))
         return ''
       }
     }
@@ -489,10 +501,10 @@ export function transformGltfToJsx(
   }
 
   function print(obj: Object3D, silent = false) {
-    const anyObj = obj as any
     let result = ''
     let children = ''
-    let { type, node, instanced, animated } = getInfo(obj)
+    const { type: ogType, node, instanced, animated } = getInfo(obj)
+    let type = ogType
 
     // Check if the root node is useless
     if (isRemoved(obj) && obj.children.length) {
@@ -506,9 +518,9 @@ export function transformGltfToJsx(
     }
 
     // Take care of lights with targets
-    if (isLight(obj) && anyObj.target && obj.children[0] === anyObj.target) {
+    if (isLight(obj) && isTargeted(obj) && obj.children[0] === obj.target) {
       return `<${type} ${handleProps(obj)} target={${node}.target}>
-        <primitive object={${node}.target} ${handleProps(anyObj.target)} />
+        <primitive object={${node}.target} ${handleProps(obj.target)} />
       </${type}>`
     }
 
@@ -533,7 +545,8 @@ export function transformGltfToJsx(
     }
 
     // Include names when output is uncompressed or morphTargetDictionaries are present
-    if (obj.name.length && (options.keepnames || anyObj.morphTargetDictionary || animated))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (obj.name.length && (options.keepnames || (obj as any).morphTargetDictionary || animated))
       result += `name="${obj.name}" `
 
     const oldResult = result
@@ -562,7 +575,8 @@ export function transformGltfToJsx(
     if (extras) {
       console.log('extras', extras)
       return (
-        Object.keys(extras)
+        Object.keys(extras as Record<string, any>)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           .map((key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${extras[key]}`)
           .join('\n') + '\n'
       )
@@ -571,6 +585,7 @@ export function transformGltfToJsx(
 
   function p(obj: Object3D, line: number) {
     console.log(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [...new Array(line * 2)].map(() => ' ').join(''),
       obj.type,
       obj.name,
@@ -618,11 +633,13 @@ export function transformGltfToJsx(
   } catch (e) {
     console.log('Error while parsing glTF', e)
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  const parsedExtras = parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)
   const header = `/*
 ${options.header ? options.header : 'Auto-generated by: https://github.com/pmndrs/gltfjsx'} ${
     options.size ? `\nFiles: ${options.size}` : ''
   }
-${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
+${parsedExtras}*/`
   const hasPrimitives = scene.includes('<primitive')
   const result = `${options.types ? `\nimport * as THREE from 'three'` : ''}
         import React from 'react'${hasPrimitives ? '\nimport { useGraph } from "@react-three/fiber"' : ''}
