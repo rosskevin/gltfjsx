@@ -40,7 +40,7 @@ interface Duplicates {
 
 export function createJsx(
   gltfLike: GLTF,
-  { fileName = 'model', ...options }: TransformGltfToJsxOptions,
+  { fileName = 'model', ...options }: Readonly<TransformGltfToJsxOptions>,
 ) {
   console.log('parse', gltfLike, options)
   let gltf: GLTF = gltfLike

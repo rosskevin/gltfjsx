@@ -26,7 +26,7 @@ import { Options } from './types.js'
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
  */
-async function gltfTransform(file: string, output: string, config: Options) {
+async function gltfTransform(file: string, output: string, config: Readonly<Options>) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({

@@ -37,12 +37,12 @@ const gltfLoader = new GLTFLoader()
 gltfLoader.setKTX2Loader(ktx2Loader)
 gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 
-export async function gltf2Jsx(file: string, outputPath: string, options: Options) {
+export async function gltf2Jsx(file: string, outputPath: string, options: Readonly<Options>) {
   return new Promise((resolve, reject) => {
     async function run(stream: fs.WriteStream | undefined = undefined) {
       let size = ''
       // Process GLTF
-      if (outputPath && path.parse(outputPath).ext === '.tsx') options.types = true
+      // if (outputPath && path.parse(outputPath).ext === '.tsx') options.types = true
       if (options.transform || options.instance || options.instanceall) {
         const { name } = path.parse(file)
         const outputDir = path.parse(path.resolve(outputPath ?? file)).dir
