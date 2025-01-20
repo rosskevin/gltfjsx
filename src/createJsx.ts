@@ -38,7 +38,7 @@ interface Duplicates {
   geometries: Record<string, { count: number; name: string; node: string }>
 }
 
-export function transformGltfToJsx(
+export function createJsx(
   gltfLike: GLTF,
   { fileName = 'model', ...options }: TransformGltfToJsxOptions,
 ) {

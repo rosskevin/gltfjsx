@@ -23,7 +23,10 @@ import sharp from 'sharp'
 
 import { Options } from './types.js'
 
-async function transform(file: string, output: string, config: Options) {
+/**
+ * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
+ */
+async function gltfTransform(file: string, output: string, config: Options) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -120,4 +123,4 @@ async function transform(file: string, output: string, config: Options) {
   await io.write(output, document)
 }
 
-export default transform
+export default gltfTransform

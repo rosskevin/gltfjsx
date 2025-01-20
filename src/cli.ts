@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 import meow from 'meow'
 import { readPackageUpSync } from 'read-pkg-up'
 
-import { gltfjsx } from './gltfjsx.js'
-import { TransformGltfToJsxOptions } from './transformGltfToJsx.js'
+import { TransformGltfToJsxOptions } from './createJsx.js'
+import { gltf2Jsx } from './gltf2Jsx.js'
 import { CliOptions, LogFn } from './types.js'
 
 /**
@@ -121,7 +121,7 @@ Command: FIXME FIXME npx gltfjsx@${packageJson.version} ${process.argv.slice(2).
     config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
 
   try {
-    const response = await gltfjsx(file, outputPath, { ...config, log, timeout: 0, delay: 1 })
+    const response = await gltf2Jsx(file, outputPath, { ...config, log, timeout: 0, delay: 1 })
   } catch (e) {
     console.error(e)
   }
