@@ -1,0 +1,1 @@
+1.  Remove global-jsdom (from src, not tests) and PR self -> globalThis to GLTFLoader
