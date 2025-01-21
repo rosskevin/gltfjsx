@@ -28,18 +28,20 @@ gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 /**
  * Read a GLTF file and return the GLTF object.
  */
-export async function readGLTF(modelFilename: string) {
+export async function readGLTF(modelFilename: string): Promise<GLTF> {
   const modelBuffer = readFileToArrayBuffer(modelFilename)
   let modelGLTF: GLTF
-  gltfLoader.parse(
-    modelBuffer,
-    '',
-    async (gltf) => {
-      modelGLTF = gltf
-    },
-    (reason: ErrorEvent) => {
-      console.log(reason)
-      throw new Error(reason.message)
-    },
-  )
+  return new Promise((resolve, reject) => {
+    gltfLoader.parse(
+      modelBuffer,
+      '',
+      async (gltf) => {
+        resolve(gltf)
+      },
+      (reason: ErrorEvent) => {
+        console.log(reason)
+        reject(new Error(reason.message))
+      },
+    )
+  })
 }

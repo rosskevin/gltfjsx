@@ -1,7 +1,15 @@
 import { TextureCompressOptions } from '@gltf-transform/functions'
 
 interface BaseOptions {
-  console?: boolean
+  console: boolean
+  debug: boolean
+  draco?: string // unused, left as an option only for the moment if we can solve the draco loader issue in node in the future
+
+  // transform related
+  instance?: boolean
+  instanceall?: boolean
+  keepgroups?: boolean
+  keepnames?: boolean
 }
 
 export interface TransformOptions extends BaseOptions {
@@ -9,46 +17,100 @@ export interface TransformOptions extends BaseOptions {
   degraderesolution: number
   error: number
   format: TextureCompressOptions['targetFormat']
-  instance?: boolean
-  instanceall?: boolean
+
   keepattributes: boolean
-  keepgroups?: boolean
   keepmaterials: boolean
   keepmeshes: boolean
-  keepnames?: boolean
   ratio: number
   resolution: number
   simplify: boolean
 }
 
-export interface CliOptions extends TransformOptions {
-  bones: boolean
-  debug?: boolean
-  draco?: string // unused, left as an option only for the moment if we can solve the draco loader issue in node in the future
-  exportdefault?: boolean
-  meta?: boolean
-  outputSrc?: string
-  // outputModel?: string
-  precision: number
-  printwidth: number
-  root?: string
-  shadows?: boolean
-  transform?: boolean
-  types?: boolean
+export function pickOptions(options: CliOptions): {
+  transformOptions: TransformOptions
+  createJsxOptions: CreateJsxOptions
+} {
+  const {
+    console,
+    debug,
+    degrade,
+    degraderesolution,
+    draco,
+    error,
+    format,
+    instance,
+    instanceall,
+    keepattributes,
+    keepgroups,
+    keepmaterials,
+    keepmeshes,
+    keepnames,
+    ratio,
+    resolution,
+    simplify,
+    // cliOnly
+    outputSrc,
+    transform,
+    // rest are createJsxOptions
+    ...other
+  } = options
+
+  const transformOptions: TransformOptions = {
+    console,
+    debug,
+    degrade,
+    degraderesolution,
+    error,
+    format,
+    instance,
+    instanceall,
+    keepattributes,
+    keepgroups,
+    keepmaterials,
+    keepmeshes,
+    keepnames,
+    ratio,
+    resolution,
+    simplify,
+  }
+
+  return {
+    transformOptions,
+    createJsxOptions: {
+      ...other,
+      console,
+      debug,
+      draco,
+      instance,
+      instanceall,
+      keepgroups,
+      keepnames,
+    },
+  }
 }
 
 export type LogFn = (args: any[]) => void
 
-export interface Options extends CliOptions {
+export interface CreateJsxOptions extends BaseOptions {
+  bones: boolean
   componentName: string
-  delay: number
+  exportdefault?: boolean
   header?: string
+  meta?: boolean
+  modelLoadPath: string
   log: LogFn
-  timeout: number
+  precision: number
+  size?: string // human readable size
+  shadows?: boolean
+  types?: boolean
 }
 
-export interface TransformGltfToJsxOptions extends Options {
-  size?: string // human readable size
+export interface CliOptions extends TransformOptions, CreateJsxOptions {
+  // delay: number
+  outputSrc?: string
+  root?: string
+  // timeout: number
+  transform?: boolean
 }
 
 /**

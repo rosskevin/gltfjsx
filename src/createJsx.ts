@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
-import { Options, TransformGltfToJsxOptions } from './types.js'
+import { CreateJsxOptions } from './types.js'
 import {
   isBone,
   isColored,
@@ -32,19 +32,17 @@ interface Duplicates {
   geometries: Record<string, { count: number; name: string; node: string }>
 }
 
-export function createJsx(
-  gltfLike: GLTF,
-  { fileName = 'model', ...options }: Readonly<TransformGltfToJsxOptions>,
-) {
-  console.log('parse', gltfLike, options)
-  let gltf: GLTF = gltfLike
+export function createJsx(gltf: GLTF, options: Readonly<CreateJsxOptions>) {
+  // console.log('parse', modelGTLF, options)
+
   if (isObject3D(gltf)) {
     console.error('gltf is Object3D, in what case is this?', gltf)
     // Wrap scene in a GLTF Structure
     gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
   }
 
-  const url = (fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName
+  const useGTLFLoadPath =
+    (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
   const animations = gltf.animations
   const hasAnimations = animations.length > 0
 
@@ -648,14 +646,14 @@ ${parsedExtras}*/`
             : ''
         }
         ${options.types ? printTypes(objects, animations) : ''}
-
+        const useGTLFLoadPath = '${useGTLFLoadPath}'
         ${
           hasInstances
             ? `
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
         export function Instances({ children, ...props }${options.types ? ': JSX.IntrinsicElements["group"]' : ''}) {
-          const { nodes } = useGLTF('${url}'${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+          const { nodes } = useGLTF(useGTLFLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
             options.types ? ' as GLTFResult' : ''
           }
           const instances = React.useMemo(() => ({
@@ -686,7 +684,7 @@ ${parsedExtras}*/`
             !options.instanceall
               ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${
                   hasAnimations ? ', animations' : ''
-                }} = useGLTF('${url}'${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+                }} = useGLTF(useGTLFLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
                   !hasPrimitives && options.types ? ' as GLTFResult' : ''
                 }${
                   hasPrimitives
@@ -703,13 +701,13 @@ ${parsedExtras}*/`
           )
         }
 
-useGLTF.preload('${url}')`
+useGLTF.preload(useGTLFLoadPath)`
 
   if (!options.console) console.log(header)
   const output = header + '\n' + result
   const formatted = prettier.format(output, {
     semi: false,
-    printWidth: options.printwidth || 1000,
+    printWidth: 1000,
     singleQuote: true,
     jsxBracketSameLine: true,
     parser: 'babel-ts',

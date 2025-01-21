@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 export function getFileSize(file: string) {
   function roundOff(value: number) {
@@ -23,13 +24,13 @@ export function compareFileSizes(original: string, transformed: string) {
   )}%)`
 }
 
-// export function getRelativeFilePath(file: string, options: Options) {
-//   const filePath = path.resolve(file)
-//   const rootPath = options.root ? path.resolve(options.root) : path.dirname(file)
-//   const relativePath = path.relative(rootPath, filePath) || ''
-//   if (process.platform === 'win32') return relativePath.replace(/\\/g, '/')
-//   return relativePath
-// }
+export function resolveModelLoadPath(file: string, root?: string) {
+  const filePath = path.resolve(file)
+  const rootPath = root ? path.resolve(root) : path.dirname(file)
+  const relativePath = path.relative(rootPath, filePath) || ''
+  if (process.platform === 'win32') return relativePath.replace(/\\/g, '/')
+  return relativePath
+}
 
 export function readFileToArrayBuffer(filename: string) {
   function toArrayBuffer(buf: Buffer) {
@@ -41,12 +42,4 @@ export function readFileToArrayBuffer(filename: string) {
   const modelFileData = fs.readFileSync(filename)
   const arrayBuffer = toArrayBuffer(modelFileData)
   return arrayBuffer
-}
-
-export function writeFile(
-  filePath: PathOrFileDescriptor,
-  data: string | NodeJS.ArrayBufferView,
-  options?: WriteFileOptions,
-) {
-  fs.writeFileSync(filePath, data, options)
 }
