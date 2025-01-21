@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
-import { Options } from './types.js'
+import { Options, TransformGltfToJsxOptions } from './types.js'
 import {
   isBone,
   isColored,
@@ -25,12 +25,6 @@ import {
   setRemoved,
 } from './utils/is.js'
 import isVarName from './utils/isVarName.js'
-
-export interface TransformGltfToJsxOptions extends Options {
-  fileName?: string
-  size?: string // human readable size
-  header?: string
-}
 
 interface Duplicates {
   names: Record<string, number>

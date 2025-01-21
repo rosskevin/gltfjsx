@@ -5,9 +5,10 @@ import { fileURLToPath } from 'node:url'
 import meow from 'meow'
 import { readPackageUpSync } from 'read-pkg-up'
 
-import { TransformGltfToJsxOptions } from './createJsx.js'
-import { gltf2Jsx } from './gltf2Jsx.js'
-import { CliOptions, LogFn } from './types.js'
+import gltfTransform from './gltfTransform.js'
+import { readGLTF } from './readGLTF.js'
+import { CliOptions, LogFn, Options } from './types.js'
+import { compareFileSizes } from './utils/files.js'
 
 /**
  * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.
@@ -17,12 +18,14 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const cli = meow(
+  // --draco, -d         Draco binary path
   `
 	Usage
-	  $ npx gltfjsx [Model.glb] [options]
+	  $ npx gltfjsx <Model.glb> <options>
 
 	Options
-    --output, -o        Output file name/path
+    --outputSrc, -os    Output src file name/path (default: Model.(j|t)sx)
+    --outputModel, -om  Output model file name/path e.g. ./public/MyModel.glb (default: <Model>-transformed.glb)
     --types, -t         Add Typescript definitions
     --keepnames, -k     Keep original names
     --keepgroups, -K    Keep (empty) groups, disable pruning
@@ -31,18 +34,17 @@ const cli = meow(
     --shadows, s        Let meshes cast and receive shadows
     --printwidth, w     Prettier printWidth (default: 120)
     --precision, -p     Number of fractional digits (default: 3)
-    --draco, -d         Draco binary path
     --root, -r          Sets directory from which .gltf file is served
-    --instance, -i      Instance re-occuring geometry
-    --instanceall, -I   Instance every geometry (for cheaper re-use)
     --exportdefault, -E Use default export
     --transform, -T     Apply a series of transformations to the GLTF file via the @gltf-transform libraries
-      --resolution, -R  Resolution for texture resizing (default: 1024)
-      --keepmeshes, -j  Do not join compatible meshes
-      --keepmaterials, -M Do not palette join materials
-      --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
-      --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
-      --simplify, -S    Mesh simplification (default: false)
+        --instance, -i      Instance re-occuring geometry
+        --instanceall, -I   Instance every geometry (for cheaper re-use)
+        --resolution, -R  Resolution for texture resizing (default: 1024)
+        --keepmeshes, -j  Do not join compatible meshes
+        --keepmaterials, -M Do not palette join materials
+        --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
+        --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
+        --simplify, -S    Mesh simplification (default: false)
         --ratio         Simplifier ratio (default: 0)
         --error         Simplifier error threshold (default: 0.0001)
     --console, -c       Log JSX to console, won't produce a file
@@ -51,7 +53,8 @@ const cli = meow(
   {
     importMeta: import.meta,
     flags: {
-      output: { type: 'string', shortFlag: 'o' },
+      outputSrc: { type: 'string', shortFlag: 'os', default: 'Model.(j|t)sx' },
+      // outputModel: { type: 'string', shortFlag: 'om', default: '<input name>-transformed.glb' },
       types: { type: 'boolean', shortFlag: 't' },
       keepnames: { type: 'boolean', shortFlag: 'k' },
       keepgroups: { type: 'boolean', shortFlag: 'K' },
@@ -100,16 +103,49 @@ if (cli.input.length === 0) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const cliOptions: CliOptions = cli.flags as any satisfies CliOptions
 
-  const file = cli.input[0]
-  const extension = path.extname(file)
-  const name = path.basename(file, extension) // extension.split('.').slice(0, -1).join('.')
+  // ./public/Model.{glb|gltf}
+  let modelFilename = path.resolve(cli.input[0])
+  const { name: inputName, ext: inputExtension, dir: inputDir } = path.parse(modelFilename)
   const log: LogFn = (args: any[]) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     console.info('log:', ...args)
   }
 
-  const config: TransformGltfToJsxOptions = {
+  //
+  // Transform the GLTF file if necessary using gltf-transform
+  //
+  const shouldTransform = cliOptions.transform || cliOptions.instance || cliOptions.instanceall
+  let size = ''
+  if (shouldTransform) {
+    const transformedModelFilename = path.resolve(inputDir, inputName + '-transformed.glb')
+    await gltfTransform(modelFilename, transformedModelFilename, cliOptions)
+    size = compareFileSizes(modelFilename, transformedModelFilename)
+    modelFilename = transformedModelFilename
+  }
+
+  //
+  // Read the model
+  //
+  const modelGLTF = await readGLTF(modelFilename)
+
+  //
+  // Generate the JSX file
+  //
+  const outputSrcExt = cliOptions.types ? '.tsx' : '.jsx'
+  let outputSrcFilename: string
+  if (!cliOptions.outputSrc) {
+    outputSrcFilename = path.resolve('Model', outputSrcExt) // based on cwd
+  } else {
+    outputSrcFilename = path.resolve(cliOptions.outputSrc)
+  }
+
+  // upper case first letter of the component name
+  let componentName = path.basename(outputSrcFilename)
+  componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1)
+
+  const config: Options = {
     ...cliOptions,
+    componentName,
     header: `Auto-generated by: https://github.com/pmndrs/gltfjsx
 Command: FIXME FIXME npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
     log,
@@ -117,11 +153,14 @@ Command: FIXME FIXME npx gltfjsx@${packageJson.version} ${process.argv.slice(2).
     delay: 1,
   }
 
-  const outputPath =
-    config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
-
   try {
-    const response = await gltf2Jsx(file, outputPath, { ...config, log, timeout: 0, delay: 1 })
+    const response = await createJsx(gltfFilename, outputPath, {
+      ...config,
+      log,
+      timeout: 0,
+      delay: 1,
+    })
+    fs.writeFileSync(outputSrcFilename, response)
   } catch (e) {
     console.error(e)
   }

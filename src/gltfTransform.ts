@@ -21,12 +21,16 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { Options } from './types.js'
+import { TransformOptions } from './types.js'
 
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
  */
-async function gltfTransform(file: string, output: string, config: Readonly<Options>) {
+async function gltfTransform(
+  inFilename: string,
+  outFilename: string,
+  config: Readonly<TransformOptions>,
+) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -38,7 +42,7 @@ async function gltfTransform(file: string, output: string, config: Readonly<Opti
   if (config.console) io.setLogger(new Logger(Logger.Verbosity.ERROR))
   else io.setLogger(new Logger(Logger.Verbosity.WARN))
 
-  const document = await io.read(file)
+  const document = await io.read(inFilename)
   const resolution = config.resolution ?? 1024
   const normalResolution = Math.max(resolution, 2048)
   const degradeResolution = config.degraderesolution ?? 512
@@ -120,7 +124,7 @@ async function gltfTransform(file: string, output: string, config: Readonly<Opti
   // functions.push(draco())
 
   await document.transform(...functions)
-  await io.write(output, document)
+  await io.write(outFilename, document)
 }
 
 export default gltfTransform
