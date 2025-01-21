@@ -48,18 +48,17 @@
     "meshoptimizer": "^0.22.0",
     "prettier": "3.4.2",
     "read-pkg-up": "^11.0.0",
-    "sharp": "^0.33.5",
     "three": "0.172.0"
+  },
+  "optionalDependencies": {
+    "jsdom": "^26.0.0",
+    "jsdom-global": "^3.0.2",
+    "libvips": "^0.0.2",
+    "sharp": "^0.33.5"
   },
   "x-old-dependencies": {
     "@node-loader/babel": "^2.1.0",
     "draco3dgltf": "^1.5.7"
-  },
-  "x-optionalDependencies": {
-    "jsdom": "^26.0.0",
-    "jsdom-global": "^3.0.2",
-    "libvips": "0.0.2",
-    "sharp": "^0.33.5"
   },
   "x-old-resolutions": {
     "sharp": "<0.33.0",
@@ -88,6 +87,7 @@
     "@alienfast/prettier-config": "^1.0.0",
     "@alienfast/tsconfig": "^1.0.1",
     "@types/draco3dgltf": "^1.4.3",
+    "@types/jsdom-global": "^3",
     "@types/node": "^22.10.7",
     "@types/three": "^0.172.0",
     "chalk": "^5.4.1",
