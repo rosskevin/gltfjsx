@@ -5,7 +5,7 @@ interface BaseOptions {
   debug: boolean
   draco?: string // unused, left as an option only for the moment if we can solve the draco loader issue in node in the future
 
-  // transform related
+  // shared transform and jsx
   instance?: boolean
   instanceall?: boolean
   keepgroups?: boolean
