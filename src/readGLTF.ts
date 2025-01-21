@@ -1,4 +1,4 @@
-import 'jsdom-global' // needed for `self` to be defined aka window.self
+import 'global-jsdom/register' // needed for `self` to be defined aka window.self
 
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'

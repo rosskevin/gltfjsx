@@ -42,6 +42,7 @@
     "@gltf-transform/core": "4.1.1",
     "@gltf-transform/extensions": "4.1.1",
     "@gltf-transform/functions": "4.1.1",
+    "global-jsdom": "^26.0.0",
     "is-var-name": "^2.0.0",
     "keyframe-resample": "^0.1.0",
     "meow": "^13.2.0",
@@ -52,7 +53,6 @@
   },
   "optionalDependencies": {
     "jsdom": "^26.0.0",
-    "jsdom-global": "^3.0.2",
     "libvips": "^0.0.2",
     "sharp": "^0.33.5"
   },
@@ -87,7 +87,6 @@
     "@alienfast/prettier-config": "^1.0.0",
     "@alienfast/tsconfig": "^1.0.1",
     "@types/draco3dgltf": "^1.4.3",
-    "@types/jsdom-global": "^3",
     "@types/node": "^22.10.7",
     "@types/three": "^0.172.0",
     "chalk": "^5.4.1",

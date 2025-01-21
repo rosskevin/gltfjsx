@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import * as path from 'node:path'
+import { afterEach } from 'node:test'
 
+import globalJsdom from 'global-jsdom'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -22,9 +24,16 @@ describe('readGLTF', () => {
           path.dirname(new URL(import.meta.url).pathname), // this dir
           `./models/${modelName}/${type}/${modelName}.${extension}`,
         )
+
+        let cleanup: { (): void } | undefined
         describe(type, () => {
           beforeEach(() => {
+            cleanup = globalJsdom()
             expect(fs.existsSync(modelFile), `File not found: ${modelFile}`).toBe(true)
+          })
+
+          afterEach(() => {
+            cleanup?.()
           })
 
           function assertCommon(m: GLTF) {
@@ -34,7 +43,7 @@ describe('readGLTF', () => {
             expect(m.parser.json).not.toBeNull()
           }
 
-          it.concurrent('should read', async () => {
+          it('should read', async () => {
             const m = await readGLTF(modelFile)
             assertCommon(m)
           })
