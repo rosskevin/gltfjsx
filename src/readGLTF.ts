@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * References:
  *  - https://discourse.threejs.org/t/how-to-use-gltfloader-in-nodejs/43607/8
@@ -22,7 +19,6 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 // import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 // import { MeshoptDecoder } from 'three-stdlib'
 import { readFileToArrayBuffer } from './utils/files.js'
-
 
 // global.ProgressEvent ??= ProgressEvent
 // global.self ??= global

@@ -3,7 +3,7 @@ import * as path from 'node:path'
 
 import { GLTF } from 'node-three-gltf'
 // import globalJsdom from 'global-jsdom'
-import { beforeEach, afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { readGLTF } from '../readGLTF.js'
 

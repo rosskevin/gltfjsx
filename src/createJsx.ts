@@ -1,8 +1,8 @@
+import { GLTF } from 'node-three-gltf'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import * as THREE from 'three'
 import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { CreateJsxOptions } from './types.js'
 import {

@@ -42,7 +42,6 @@
     "@gltf-transform/core": "4.1.1",
     "@gltf-transform/extensions": "4.1.1",
     "@gltf-transform/functions": "4.1.1",
-    "global-jsdom": "^26.0.0",
     "is-var-name": "^2.0.0",
     "keyframe-resample": "^0.1.0",
     "meow": "^13.2.0",
@@ -50,13 +49,12 @@
     "node-three-gltf": "patch:node-three-gltf@npm%3A1.8.3#~/.yarn/patches/node-three-gltf-npm-1.8.3-3fdaa59ec9.patch",
     "prettier": "3.4.2",
     "read-pkg-up": "^11.0.0",
+    "sharp": "^0.33.5",
     "three": "0.172.0",
     "three-stdlib": "^2.35.12"
   },
   "optionalDependencies": {
-    "jsdom": "^26.0.0",
-    "libvips": "^0.0.2",
-    "sharp": "^0.33.5"
+    "libvips": "^0.0.2"
   },
   "x-old-dependencies": {
     "@node-loader/babel": "^2.1.0",
