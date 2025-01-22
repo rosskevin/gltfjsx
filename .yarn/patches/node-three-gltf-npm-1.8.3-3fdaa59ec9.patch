@@ -1,0 +1,78 @@
+diff --git a/package.json b/package.json
+index ac011b0a5c685b7f2682dc4987f8968c4af8af3d..e898c12d1a46acf396ef940dd81db5375b740715 100644
+--- a/package.json
++++ b/package.json
+@@ -3,8 +3,16 @@
+   "version": "1.8.3",
+   "description": "Use three.js GLTFLoader in a Node.js environment",
+   "exports": {
+-    "import": "./build/index.js",
+-    "require": "./build/index.cjs"
++    ".": {
++      "import": {
++        "types": "./types/index.d.ts",
++        "default": "./build/index.js"
++      },
++      "require": {
++        "types": "./types/index.d.ts",
++        "default": "./build/index.cjs"
++      }
++    }
+   },
+   "types": "types/index.d.ts",
+   "type": "module",
+diff --git a/types/GLTFExporter.d.ts b/types/GLTFExporter.d.ts
+index 964b31bc6f1b76fa1b0760105bc1b2558aab9156..dd0a1f9e3df438bf4d055927b4fbfde50acefc87 100644
+--- a/types/GLTFExporter.d.ts
++++ b/types/GLTFExporter.d.ts
+@@ -1,6 +1,6 @@
+ /// <reference types="node" />
+ import { Object3D } from 'three';
+-import { GLTFExporterOptions, GLTFExporterPlugin } from 'three/examples/jsm/exporters/GLTFExporter';
++import { GLTFExporterOptions, GLTFExporterPlugin } from 'three/examples/jsm/exporters/GLTFExporter.js';
+ import { Buffer } from 'node:buffer';
+ declare class GLTFExporter {
+     pluginCallbacks: any[];
+diff --git a/types/GLTFLoader.d.ts b/types/GLTFLoader.d.ts
+index 44b4d6064810810a81dd579a9e001e8f129798e5..3326200f2b7624995a115a114a64dddad46e3d9f 100644
+--- a/types/GLTFLoader.d.ts
++++ b/types/GLTFLoader.d.ts
+@@ -1,10 +1,10 @@
+ /// <reference types="node" />
+ import { Buffer } from 'node:buffer';
+ import { AnimationClip, BufferAttribute, Camera, Group, InterleavedBufferAttribute, Loader, LoadingManager, Material, Mesh, MeshStandardMaterial, Object3D, SkinnedMesh, Texture } from 'three';
+-import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
+-import { DRACOLoader } from './DRACOLoader';
+-import { FileLoader } from './FileLoader';
+-import { TextureLoader } from './TextureLoader';
++import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
++import { DRACOLoader } from './DRACOLoader.js';
++import { FileLoader } from './FileLoader.js';
++import { TextureLoader } from './TextureLoader.js';
+ export interface GLTF {
+     animations: AnimationClip[];
+     scene: Group;
+diff --git a/types/index.d.ts b/types/index.d.ts
+index 3f14a0843b7392909eb7d5e1128cf92056c1312c..6d4b44fc810a34c0113cc6c28efdf93af464e4d5 100644
+--- a/types/index.d.ts
++++ b/types/index.d.ts
+@@ -1,11 +1,11 @@
+-import './polyfill';
+-import { GLTF } from './GLTFLoader';
+-export * from './GLTFLoader';
+-export * from './DRACOLoader';
+-export * from './FileLoader';
+-export * from './TextureLoader';
+-export * from './ImageLoader';
+-export * from './GLTFExporter';
++import './polyfill.js';
++import { GLTF } from './GLTFLoader.js';
++export * from './GLTFLoader.js';
++export * from './DRACOLoader.js';
++export * from './FileLoader.js';
++export * from './TextureLoader.js';
++export * from './ImageLoader.js';
++export * from './GLTFExporter.js';
+ /**
+  * Load (draco-compressed) gltf file from local file or web resource and decode/parse content.
+  * @param url - Path to gltf file or web resource

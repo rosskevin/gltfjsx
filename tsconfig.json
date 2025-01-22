@@ -7,6 +7,6 @@
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src", "typings/**/*", "src"],
+  "include": ["src", "typings", "src"],
   "exclude": ["node_modules", "dist", "src-old", "src/__tests__/models"]
 }

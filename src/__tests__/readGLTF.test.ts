@@ -2,8 +2,7 @@ import fs from 'node:fs'
 import * as path from 'node:path'
 import { afterEach } from 'node:test'
 
-import globalJsdom from 'global-jsdom'
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+// import globalJsdom from 'global-jsdom'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { readGLTF } from '../readGLTF.js'
@@ -25,20 +24,23 @@ describe('readGLTF', () => {
           `./models/${modelName}/${type}/${modelName}.${extension}`,
         )
 
-        let cleanup: { (): void } | undefined
+        // let cleanup: { (): void } | undefined
         describe(type, () => {
           beforeEach(() => {
-            cleanup = globalJsdom()
+            // cleanup = globalJsdom()
             expect(fs.existsSync(modelFile), `File not found: ${modelFile}`).toBe(true)
           })
 
           afterEach(() => {
-            cleanup?.()
+            // cleanup?.()
           })
 
           function assertCommon(m: GLTF) {
-            expect(m.scene).not.toBeNull()
             expect(m.animations).not.toBeNull()
+            expect(m.scenes).not.toBeNull()
+            expect(m.scene).not.toBeNull()
+            expect(m.scene.children).not.toBeNull()
+            expect(m.scene.children.length).toBeGreaterThan(0)
             expect(m.parser).not.toBeNull()
             expect(m.parser.json).not.toBeNull()
           }
