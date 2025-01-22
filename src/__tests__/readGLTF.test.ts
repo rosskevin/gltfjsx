@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import * as path from 'node:path'
 import { afterEach } from 'node:test'
 
+import { GLTF } from 'node-three-gltf'
 // import globalJsdom from 'global-jsdom'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -9,7 +10,7 @@ import { readGLTF } from '../readGLTF.js'
 
 const types = [
   'gltf',
-  // 'gtlf-transform-meshopt'
+  'gltf-transform-meshopt',
   //
 ]
 
