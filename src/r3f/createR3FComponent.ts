@@ -80,9 +80,9 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     return Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        let value = props[key]
+        const value = props[key]
         if (value === true) {
-          value = `${value}` // e.g. castShadow
+          return key // e.g. castShadow
         }
         return `${key}={${value}}`
       })
