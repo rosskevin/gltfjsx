@@ -107,7 +107,7 @@ export interface CreateJsxOptions extends BaseOptions {
 
 export interface CliOptions extends TransformOptions, CreateJsxOptions {
   // delay: number
-  outputSrc?: string
+  output?: string
   root?: string
   // timeout: number
   transform?: boolean

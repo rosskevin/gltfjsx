@@ -49,10 +49,10 @@ export function readFileToArrayBuffer(filename: string) {
 export function resolveOutputSrcFile(cliOptions: CliOptions) {
   const outputSrcExt = cliOptions.types ? '.tsx' : '.jsx'
   let outputSrcFile: string
-  if (!cliOptions.outputSrc) {
+  if (!cliOptions.output) {
     outputSrcFile = path.resolve('Model', outputSrcExt) // based on cwd
   } else {
-    outputSrcFile = path.resolve(cliOptions.outputSrc)
+    outputSrcFile = path.resolve(cliOptions.output)
   }
   return outputSrcFile
 }

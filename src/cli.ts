@@ -25,14 +25,14 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const cli = meow(
-  // --draco, -d         Draco binary path
+  // --outputModel, -om  Output model file name/path e.g. ./public/MyModel.glb (default: <Model>-transformed.glb)
   `
 	Usage
-	  $ npx gltfjsx <Model.glb> <options>
-
+  $ npx gltfjsx <Model.glb> <options>
+  
 	Options
-    --outputSrc, -os    Output src file name/path (default: Model.(j|t)sx)
-    --outputModel, -om  Output model file name/path e.g. ./public/MyModel.glb (default: <Model>-transformed.glb)
+    --output, -o        Output src file name/path (default: Model.(j|t)sx)
+    --draco, -d         Draco binary path
     --types, -t         Add Typescript definitions
     --keepnames, -k     Keep original names
     --keepgroups, -K    Keep (empty) groups, disable pruning
