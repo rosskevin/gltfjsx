@@ -28,7 +28,7 @@ export interface TransformOptions extends BaseOptions {
 
 export function pickOptions(options: CliOptions): {
   transformOptions: TransformOptions
-  createJsxOptions: CreateJsxOptions
+  createJsxOptions: JsxOptions
 } {
   const {
     console,
@@ -91,7 +91,7 @@ export function pickOptions(options: CliOptions): {
 
 export type LogFn = (args: any[]) => void
 
-export interface CreateJsxOptions extends BaseOptions {
+export interface JsxOptions extends BaseOptions {
   bones: boolean
   componentName: string
   exportdefault?: boolean
@@ -105,7 +105,7 @@ export interface CreateJsxOptions extends BaseOptions {
   types?: boolean
 }
 
-export interface CliOptions extends TransformOptions, CreateJsxOptions {
+export interface CliOptions extends TransformOptions, JsxOptions {
   // delay: number
   output?: string
   root?: string

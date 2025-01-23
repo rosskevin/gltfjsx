@@ -21,7 +21,7 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { TransformOptions } from './types.js'
+import { TransformOptions } from './options.js'
 
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.

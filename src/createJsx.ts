@@ -4,7 +4,7 @@ import babelParser from 'prettier/parser-babel.js'
 import * as THREE from 'three'
 import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
 
-import { CreateJsxOptions } from './types.js'
+import { JsxOptions } from './options.js'
 import {
   isBone,
   isColored,
@@ -32,7 +32,7 @@ interface Duplicates {
   geometries: Record<string, { count: number; name: string; node: string }>
 }
 
-export function createJsx(gltf: GLTF, options: Readonly<CreateJsxOptions>) {
+export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
   // console.log('parse', modelGTLF, options)
 
   if (isObject3D(gltf)) {

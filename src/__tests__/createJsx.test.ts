@@ -1,11 +1,18 @@
 import { GLTF } from 'node-three-gltf'
-// import globalJsdom from 'global-jsdom'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { createJsx } from '../createJsx.js'
+import { LogFn } from '../options.js'
 import { readGLTF } from '../readGLTF.js'
-import { assertFileExists, models, resolveModelFile, types } from './fixtures.js'
+import { resolveModelLoadPath } from '../utils/files.js'
+import { assertFileExists, defaultJsxOptions, models, resolveModelFile, types } from './fixtures.js'
 
-describe('readGLTF', () => {
+const log: LogFn = (args: any[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  console.info('log:', ...args)
+}
+
+describe('createJsx', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
@@ -17,6 +24,7 @@ describe('readGLTF', () => {
           })
 
           function assertCommon(m: GLTF) {
+            // FIXME
             expect(m.animations).not.toBeNull()
             expect(m.scenes).not.toBeNull()
             expect(m.scene).not.toBeNull()
@@ -26,8 +34,16 @@ describe('readGLTF', () => {
             expect(m.parser.json).not.toBeNull()
           }
 
-          it('should read', async () => {
+          it('should createJsx', async () => {
             const m = await readGLTF(modelFile)
+            const options = defaultJsxOptions({
+              log,
+              componentName: modelName,
+              header: 'FOO header',
+              modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+            })
+            const jsx = await createJsx(m, options)
+            console.log(jsx)
             assertCommon(m)
           })
         })

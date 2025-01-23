@@ -8,8 +8,8 @@ import { readPackageUpSync } from 'read-pkg-up'
 
 import { createJsx } from './createJsx.js'
 import gltfTransform from './gltfTransform.js'
+import { CliOptions, LogFn, pickOptions } from './options.js'
 import { readGLTF } from './readGLTF.js'
-import { CliOptions, LogFn, pickOptions } from './types.js'
 import {
   compareFileSizes,
   resolveComponentName,
@@ -43,7 +43,9 @@ const cli = meow(
     --precision, -p     Number of fractional digits (default: 3)
     --root, -r          Sets directory from which .gltf file is served
     --exportdefault, -E Use default export
-    --transform, -T     Apply a series of transformations to the GLTF file via the @gltf-transform libraries
+    --console, -c       Log JSX to console, won't produce a file
+    --debug, -D         Debug output
+    The following options apply a series of transformations to the GLTF file via the @gltf-transform libraries:
         --instance, -i      Instance re-occuring geometry
         --instanceall, -I   Instance every geometry (for cheaper re-use)
         --resolution, -R  Resolution for texture resizing (default: 1024)
@@ -54,8 +56,6 @@ const cli = meow(
         --simplify, -S    Mesh simplification (default: false)
         --ratio         Simplifier ratio (default: 0)
         --error         Simplifier error threshold (default: 0.0001)
-    --console, -c       Log JSX to console, won't produce a file
-    --debug, -D         Debug output
 `,
   {
     importMeta: import.meta,

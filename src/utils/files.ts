@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { CliOptions } from '../types.js'
+import { CliOptions } from '../options.js'
 
 export function getFileSize(file: string) {
   function roundOff(value: number) {
