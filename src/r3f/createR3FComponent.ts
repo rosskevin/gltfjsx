@@ -2,9 +2,9 @@ import { GLTF } from 'node-three-gltf'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import * as THREE from 'three'
-import { AnimationClip, Euler, Material, Mesh, Object3D, OrthographicCamera } from 'three'
+import { AnimationClip, Mesh, Object3D, OrthographicCamera } from 'three'
 
-import { JsxOptions } from './options.js'
+import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import {
   isBone,
   isColored,
@@ -14,7 +14,6 @@ import {
   isLight,
   isMesh,
   isNotRemoved,
-  isObject3D,
   isOrthographicCamera,
   isPerspectiveCamera,
   isPoints,
@@ -23,144 +22,23 @@ import {
   isSpotLight,
   isTargeted,
   setRemoved,
-} from './utils/is.js'
-import isVarName from './utils/isVarName.js'
+} from '../analyze/is.js'
+import isVarName from '../analyze/isVarName.js'
+import {
+  collectMaterials,
+  equalOrNegated,
+  materialKey,
+  meshKey,
+  sanitizeName,
+} from '../analyze/utils.js'
+import { JsxOptions } from '../options.js'
+import { getType } from './utils.js'
 
-interface Duplicates {
-  names: Record<string, number>
-  materials: Record<string, number>
-  geometries: Record<string, { count: number; name: string; node: string }>
-}
-
-export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
-  // console.log('parse', modelGTLF, options)
-
-  if (isObject3D(gltf)) {
-    console.error('gltf is Object3D, in what case is this?', gltf)
-    // Wrap scene in a GLTF Structure
-    gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
-  }
+export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
+  const a = new AnalyzedGLTF(gltf, { instance: options.instance, instanceall: options.instanceall })
 
   const useGTLFLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
-
-  const hasAnimations = gltf.animations.length > 0
-
-  // Collect all objects
-  const objects: Object3D[] = []
-  gltf.scene.traverse((child: Object3D) => objects.push(child))
-
-  // Browse for duplicates
-  const duplicates: Duplicates = {
-    names: {},
-    materials: {},
-    geometries: {},
-  }
-
-  // material: Material | Material[] can be nested, so we need to flatten it and collect all materials as an array
-  function collectMaterials(material: Material | Material[]): Material[] {
-    const result: Material[] = []
-    if (Array.isArray(material)) {
-      material.forEach((m) => result.concat(collectMaterials(m)), [])
-    } else {
-      result.push(material)
-    }
-    const set = new Set(result)
-    return Array.from(set)
-  }
-
-  function colectDuplicateMaterial(material: Material | Material[]) {
-    if (Array.isArray(material)) {
-      material.forEach((m) => colectDuplicateMaterial(m))
-    } else {
-      if (material.name) {
-        if (!duplicates.materials[material.name]) {
-          duplicates.materials[material.name] = 1
-        } else {
-          duplicates.materials[material.name]++
-        }
-      }
-    }
-  }
-
-  function materialKey(material: Material | Material[]) {
-    if (Array.isArray(material)) {
-      const result: string[] = []
-      material.forEach((m) => m.name && result.push(m.name))
-      if (result.length > 0) {
-        return result.join('-')
-      }
-      return null
-    } else {
-      return material.name
-    }
-  }
-
-  function uniqueName(attempt: string, index = 0) {
-    const newAttempt = index > 0 ? attempt + index : attempt
-    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined)
-      return newAttempt
-    else return uniqueName(attempt, index + 1)
-  }
-
-  function sanitizeMeshName(mesh: Mesh) {
-    let name = (mesh.name || 'Part').replace(/[^a-zA-Z_-]/g, '') // sanitize to only letters
-    name = name.charAt(0).toUpperCase() + name.slice(1)
-    return name
-  }
-
-  function sanitizeName(name: string) {
-    return isVarName(name) ? `.${name}` : `['${name}']`
-  }
-
-  function meshKey(mesh: Mesh) {
-    // Was: child.geometry.uuid + (child.material?.name)
-    // but we need to handle arrays of materials according to types
-    return `mesh-${sanitizeMeshName(mesh)}-${mesh.geometry?.uuid}-${materialKey(mesh.material)}`
-  }
-
-  function nodeName(obj: Object3D) {
-    return 'nodes' + sanitizeName(obj.name)
-  }
-
-  // collect duplicates
-  gltf.scene.traverse((o: Object3D) => {
-    if (isMesh(o)) {
-      const mesh = o as Mesh
-      // materials
-      colectDuplicateMaterial(mesh.material)
-
-      // geometry
-      if (mesh.geometry) {
-        const key = meshKey(mesh)
-        if (!duplicates.geometries[key]) {
-          duplicates.geometries[key] = {
-            count: 1,
-            name: uniqueName(sanitizeMeshName(mesh)),
-            node: nodeName(mesh), // 'nodes' + sanitizeName(mesh.name),
-          }
-        } else {
-          duplicates.geometries[key].count++
-        }
-      }
-    }
-  })
-
-  // Prune duplicate geometries
-  if (!options.instanceall) {
-    for (const key of Object.keys(duplicates.geometries)) {
-      const duplicate = duplicates.geometries[key]
-      // if there is only one geometry, it's not a duplicate and we won't instance it
-      if (duplicate.count === 1) {
-        delete duplicates.geometries[key]
-      }
-    }
-  }
-
-  const hasInstances =
-    (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
-      ? true
-      : false
 
   const rNbr = (n: number) => {
     return parseFloat(n.toFixed(Math.round(options.precision || 2)))
@@ -188,7 +66,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     // TODO validate if this is correct
     const materials = [...new Set(objects.filter((o) => isMesh(o) && collectMaterials(o.material)))]
     // eslint-disable-next-line prefer-const
-    let materials2 = [
+    let materialsOldCollectionMethod = [
       ...new Set(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
         objects.filter((o: any) => o.material && o.material.name).map((o: any) => o.material),
@@ -196,10 +74,10 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     ]
 
     console.log(
-      '!!!!!!!!!!!!!!!!compoare materials collection!!!!!!!!!!!!!!!! size: ',
+      '!!!!!!!!!!!!!!!!compare materials collection!!!!!!!!!!!!!!!! size: ',
       materials.length,
       'vs old: ',
-      materials2.length,
+      materialsOldCollectionMethod.length,
     )
 
     let animationTypes = ''
@@ -211,7 +89,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     }
 
     const types = [...new Set([...meshes, ...bones].map((o) => getType(o)))]
-    const contextType = hasInstances
+    const contextType = a.hasInstances()
       ? `\ntype ContextType = Record<string, React.ForwardRefExoticComponent<
      ${types.map((type) => `JSX.IntrinsicElements['${type}']`).join(' | ')}
     >>\n`
@@ -229,17 +107,9 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
   }\n${contextType}`
   }
 
-  function getType(obj: Object3D): string {
-    let type = obj.type.charAt(0).toLowerCase() + obj.type.slice(1)
-    // Turn object3d's into groups, it should be faster according to the threejs docs
-    if (type === 'object3D') type = 'group'
-    if (type === 'perspectiveCamera') type = 'PerspectiveCamera'
-    if (type === 'orthographicCamera') type = 'OrthographicCamera'
-    return type
-  }
-
   function handleProps(obj: Object3D | OrthographicCamera) {
-    const { type, node, instanced } = getInfo(obj)
+    const { node, instanced } = a.getInfo(obj)
+    const type = getType(obj)
     let result = ''
     // Handle cameras
     if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
@@ -331,34 +201,6 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     return result
   }
 
-  function getInfo(obj: Object3D): {
-    type: string
-    node: string
-    instanced: boolean
-    animated: boolean
-  } {
-    const type = getType(obj)
-    const node = nodeName(obj)
-    let instanced =
-      (options.instance || options.instanceall) &&
-      isMesh(obj) &&
-      obj.geometry &&
-      obj.material &&
-      duplicates.geometries[meshKey(obj)] &&
-      duplicates.geometries[meshKey(obj)].count > (options.instanceall ? 0 : 1)
-    instanced = instanced === undefined ? false : instanced
-    const animated = gltf.animations && gltf.animations.length > 0
-    return { type, node, instanced, animated }
-  }
-
-  function equalOrNegated(a: Euler, b: Euler) {
-    return (
-      (a.x === b.x || a.x === -b.x) &&
-      (a.y === b.y || a.y === -b.y) &&
-      (a.z === b.z || a.z === -b.z)
-    )
-  }
-
   function prune(
     obj: Object3D,
     children: string,
@@ -366,7 +208,8 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     oldResult: string,
     silent: boolean,
   ) {
-    const { type, animated } = getInfo(obj)
+    const { animated } = a.getInfo(obj)
+    const type = getType(obj)
     // Prune ...
     if (
       isNotRemoved(obj) &&
@@ -509,8 +352,8 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
   function print(obj: Object3D, silent = false) {
     let result = ''
     let children = ''
-    const { type: ogType, node, instanced, animated } = getInfo(obj)
-    let type = ogType
+    const { node, instanced, animated } = a.getInfo(obj)
+    let type = getType(obj)
 
     // Check if the root node is useless
     if (isRemoved(obj) && obj.children.length) {
@@ -534,8 +377,8 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     if (obj.children) obj.children.forEach((child) => (children += print(child)))
 
     if (instanced) {
-      result = `<instances.${duplicates.geometries[meshKey(obj as Mesh)].name} `
-      type = `instances.${duplicates.geometries[meshKey(obj as Mesh)].name}`
+      result = `<instances.${a.dupGeometries[meshKey(obj as Mesh)].name} `
+      type = `instances.${a.dupGeometries[meshKey(obj as Mesh)].name}`
     } else {
       if (isInstancedMesh(obj)) {
         const geo = `${node}.geometry`
@@ -617,7 +460,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
       // Dry run to prune graph
       print(gltf.scene)
       // Move children of deleted objects to their new parents
-      objects.forEach((o) => {
+      a.objects.forEach((o) => {
         if (isRemoved(o)) {
           let parent = o.parent
           // Making sure we don't add to a removed parent
@@ -628,7 +471,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
         }
       })
       // Remove deleted objects
-      objects.forEach((o) => {
+      a.objects.forEach((o) => {
         if (isRemoved(o) && o.parent) o.parent.remove(o)
       })
     }
@@ -647,20 +490,20 @@ ${parsedExtras}*/`
   const hasPrimitives = scene.includes('<primitive')
   const result = `${options.types ? `\nimport * as THREE from 'three'` : ''}
         import React from 'react'${hasPrimitives ? '\nimport { useGraph } from "@react-three/fiber"' : ''}
-        import { useGLTF, ${hasInstances ? 'Merged, ' : ''} ${
+        import { useGLTF, ${a.hasInstances() ? 'Merged, ' : ''} ${
           scene.includes('PerspectiveCamera') ? 'PerspectiveCamera,' : ''
         }
         ${scene.includes('OrthographicCamera') ? 'OrthographicCamera,' : ''}
-        ${hasAnimations ? 'useAnimations' : ''} } from '@react-three/drei'
+        ${a.hasAnimations() ? 'useAnimations' : ''} } from '@react-three/drei'
         ${
           hasPrimitives || options.types
             ? `import { ${options.types ? 'GLTF,' : ''} ${hasPrimitives ? 'SkeletonUtils' : ''} } from "three-stdlib"`
             : ''
         }
-        ${options.types ? printTypes(objects, gltf.animations) : ''}
+        ${options.types ? printTypes(a.objects, gltf.animations) : ''}
         const useGTLFLoadPath = '${useGTLFLoadPath}'
         ${
-          hasInstances
+          a.hasInstances()
             ? `
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
@@ -669,7 +512,7 @@ ${parsedExtras}*/`
             options.types ? ' as GLTFResult' : ''
           }
           const instances = React.useMemo(() => ({
-            ${Object.values(duplicates.geometries)
+            ${Object.values(a.dupGeometries)
               .map((v) => `${v.name}: ${v.node}`)
               .join(', ')}
           }), [nodes])
@@ -688,14 +531,14 @@ ${parsedExtras}*/`
         export ${options.exportdefault ? 'default' : ''} function Model(props${
           options.types ? ": JSX.IntrinsicElements['group']" : ''
         }) {
-          ${hasInstances ? 'const instances = React.useContext(context);' : ''} ${
-            hasAnimations
+          ${a.hasInstances() ? 'const instances = React.useContext(context);' : ''} ${
+            a.hasAnimations()
               ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};`
               : ''
           } ${
             !options.instanceall
               ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${
-                  hasAnimations ? ', animations' : ''
+                  a.hasAnimations() ? ', animations' : ''
                 }} = useGLTF(useGTLFLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
                   !hasPrimitives && options.types ? ' as GLTFResult' : ''
                 }${
@@ -707,7 +550,7 @@ ${parsedExtras}*/`
               : ''
           } ${printAnimations(gltf.animations)}
           return (
-            <group ${hasAnimations ? `ref={group}` : ''} {...props} dispose={null}>
+            <group ${a.hasAnimations() ? `ref={group}` : ''} {...props} dispose={null}>
         ${scene}
             </group>
           )

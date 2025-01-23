@@ -9,6 +9,7 @@ import { DRACOLoader, GLTF, GLTFLoader } from 'node-three-gltf'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 
+import { isObject3D } from './analyze/is.js'
 import { readFileToArrayBuffer } from './utils/files.js'
 
 /**
@@ -36,6 +37,11 @@ export async function readGLTF(modelFilename: string): Promise<GLTF> {
       modelBuffer,
       modelDir, // provide the reference path for relative resources
       async (gltf: GLTF) => {
+        if (isObject3D(gltf)) {
+          console.error('gltf is Object3D, in what case is this?', gltf)
+          // Wrap scene in a GLTF Structure
+          gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
+        }
         resolve(gltf)
       },
       (error) => {

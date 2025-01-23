@@ -1,8 +1,8 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { createJsx } from '../createJsx.js'
 import { LogFn } from '../options.js'
+import { createR3FComponent } from '../r3f/createR3FComponent.js'
 import { readGLTF } from '../readGLTF.js'
 import { resolveModelLoadPath } from '../utils/files.js'
 import { assertFileExists, defaultJsxOptions, models, resolveModelFile, types } from './fixtures.js'
@@ -42,7 +42,7 @@ describe('createJsx', () => {
               header: 'FOO header',
               modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
             })
-            const jsx = await createJsx(m, options)
+            const jsx = await createR3FComponent(m, options)
             console.log(jsx)
             assertCommon(m)
           })
