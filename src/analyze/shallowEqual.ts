@@ -1,3 +1,5 @@
+import { Props } from './calculateProps.js'
+
 const compareArrays = (ia1: any[], ia2: any[]) => {
   if (ia1.length !== ia2.length) {
     return false
@@ -10,8 +12,6 @@ const compareArrays = (ia1: any[], ia2: any[]) => {
   // console.log("compareArrays sorted", a1, " == ", a2, ": ", result);
   return result
 }
-
-type Props = Record<string, any>
 
 /**
  * Performs equality by iterating through keys on an object and returning false

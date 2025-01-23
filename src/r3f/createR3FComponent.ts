@@ -1,36 +1,21 @@
 import { GLTF } from 'node-three-gltf'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
-import * as THREE from 'three'
-import { AnimationClip, Mesh, Object3D, OrthographicCamera } from 'three'
+import { AnimationClip, Mesh, Object3D } from 'three'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
+import { calculateProps } from '../analyze/calculateProps.js'
 import {
   isBone,
-  isColored,
-  isDecayed,
-  isDistanced,
   isInstancedMesh,
   isLight,
   isMesh,
   isNotRemoved,
-  isOrthographicCamera,
-  isPerspectiveCamera,
-  isPoints,
   isRemoved,
-  isSkinnedMesh,
-  isSpotLight,
   isTargeted,
-  setRemoved,
 } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import {
-  collectMaterials,
-  equalOrNegated,
-  materialKey,
-  meshKey,
-  sanitizeName,
-} from '../analyze/utils.js'
+import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions } from '../options.js'
 import { getType } from './utils.js'
 
@@ -90,249 +75,21 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   }\n${contextType}`
   }
 
-  function handleProps(obj: Object3D) {
-    const { node, instanced } = a.getInfo(obj)
-    const type = getType(obj)
-    let result = ''
-    // Handle cameras
-    if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
-      result += `makeDefault={false} `
-      if (obj.zoom !== 1) result += `zoom={${rNbr(obj.zoom)}} `
-      if (obj.far !== 2000) result += `far={${rNbr(obj.far)}} `
-      if (obj.near !== 0.1) result += `near={${rNbr(obj.near)}} `
-    }
-    if (isPerspectiveCamera(obj)) {
-      if (obj.fov !== 50) result += `fov={${rNbr(obj.fov)}} `
-    }
-
-    if (!instanced) {
-      // Shadows
-      if (type === 'mesh' && options.shadows) result += `castShadow receiveShadow `
-
-      if (isMesh(obj) && !isInstancedMesh(obj)) {
-        // Write out geometry first
-        result += `geometry={${node}.geometry} `
-
-        // Write out materials
-        const materialName = materialKey(obj.material)
-        if (materialName) result += `material={materials${sanitizeName(materialName)}} `
-        else result += `material={${node}.material} `
-      }
-    }
-
-    if (isInstancedMesh(obj)) {
-      if (obj.instanceMatrix) result += `instanceMatrix={${node}.instanceMatrix} `
-      if (obj.instanceColor) result += `instanceColor={${node}.instanceColor} `
-    }
-    if (isSkinnedMesh(obj)) result += `skeleton={${node}.skeleton} `
-    if (obj.visible === false) result += `visible={false} `
-    if (obj.castShadow === true) result += `castShadow `
-    if (obj.receiveShadow === true) result += `receiveShadow `
-    if (isPoints(obj)) {
-      result += `morphTargetDictionary={${node}.morphTargetDictionary} `
-      result += `morphTargetInfluences={${node}.morphTargetInfluences} `
-    }
-    if (isLight(obj)) {
-      if (rNbr(obj.intensity)) result += `intensity={${rNbr(obj.intensity)}} `
-    }
-    //if (obj.power && obj.power !== 4 * Math.PI) result += `power={${rNbr(obj.power)}} `
-    if (isSpotLight(obj)) {
-      if (obj.angle !== Math.PI / 3) result += `angle={${rDeg(obj.angle)}} `
-      if (obj.penumbra && rNbr(obj.penumbra) !== 0) result += `penumbra={${rNbr(obj.penumbra)}} `
-    }
-
-    // SpotLight | PointLight
-    if (isDecayed(obj)) {
-      if (obj.decay && rNbr(obj.decay) !== 1) result += `decay={${rNbr(obj.decay)}} `
-    }
-    if (isDistanced(obj)) {
-      if (obj.distance && rNbr(obj.distance) !== 0) result += `distance={${rNbr(obj.distance)}} `
-    }
-
-    if (obj.up && obj.up.isVector3 && !obj.up.equals(new THREE.Vector3(0, 1, 0))) {
-      result += `up={[${rNbr(obj.up.x)}, ${rNbr(obj.up.y)}, ${rNbr(obj.up.z)},]} `
-    }
-
-    if (isColored(obj) && obj.color.getHexString() !== 'ffffff')
-      result += `color="#${obj.color.getHexString()}" `
-    if (obj.position && obj.position.isVector3 && rNbr(obj.position.length()))
-      result += `position={[${rNbr(obj.position.x)}, ${rNbr(obj.position.y)}, ${rNbr(obj.position.z)},]} `
-    if (
-      obj.rotation &&
-      obj.rotation.isEuler &&
-      rNbr(new THREE.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z).length())
-    ) {
-      result += `rotation={[${rDeg(obj.rotation.x)}, ${rDeg(obj.rotation.y)}, ${rDeg(obj.rotation.z)},]} `
-    }
-    if (
-      obj.scale &&
-      obj.scale.isVector3 &&
-      !(rNbr(obj.scale.x) === 1 && rNbr(obj.scale.y) === 1 && rNbr(obj.scale.z) === 1)
-    ) {
-      const rX = rNbr(obj.scale.x)
-      const rY = rNbr(obj.scale.y)
-      const rZ = rNbr(obj.scale.z)
-      if (rX === rY && rX === rZ) {
-        result += `scale={${rX}} `
-      } else {
-        result += `scale={[${rX}, ${rY}, ${rZ},]} `
-      }
-    }
-    if (options.meta && obj.userData && Object.keys(obj.userData).length) {
-      result += `userData={${JSON.stringify(obj.userData)}} `
-    }
-    return result
-  }
-
-  function prune(
-    obj: Object3D,
-    children: string,
-    result: string,
-    oldResult: string,
-    silent: boolean,
-  ) {
-    const { animated } = a.getInfo(obj)
-    const type = getType(obj)
-    // Prune ...
-    if (
-      isNotRemoved(obj) &&
-      !options.keepgroups &&
-      !animated &&
-      (type === 'group' || type === 'scene')
-    ) {
-      /** Empty or no-property groups
-       *    <group>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      if (result === oldResult || obj.children.length === 0) {
-        if (options.debug && !silent) {
-          console.log(`group ${obj.name} removed (empty)`)
+  function printProps(obj: Object3D) {
+    const props = calculateProps(obj, a, options)
+    return Object.keys(props)
+      .map((key: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        let value = props[key]
+        if (value === true) {
+          value = `${value}` // e.g. castShadow
         }
-        setRemoved(obj)
-        return children
-      }
-
-      // More aggressive removal strategies ...
-      const first = obj.children[0]
-      const firstProps = handleProps(first)
-      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9.[\]\-, /]*)}/g // original before linting /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
-      const keys1 = [...result.matchAll(regex)].map(([, match]) => match)
-      // const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
-      const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match)
-
-      /** Double negative rotations
-       *    <group rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group rotation={[Math.PI / 2, 0, 0]}>
-       *        <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      if (
-        obj.children.length === 1 &&
-        getType(first) === type &&
-        equalOrNegated(obj.rotation, first.rotation)
-      ) {
-        if (
-          keys1.length === 1 &&
-          keys2.length === 1 &&
-          keys1[0] === 'rotation' &&
-          keys2[0] === 'rotation'
-        ) {
-          if (options.debug && !silent) {
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
-          }
-          setRemoved(obj, isRemoved(first))
-          children = ''
-          if (first.children) first.children.forEach((child) => (children += print(child, true)))
-          return children
-        }
-      }
-
-      /** Double negative rotations w/ props
-       *    <group rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-       *        <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <group scale={0.01}>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      if (
-        obj.children.length === 1 &&
-        getType(first) === type &&
-        equalOrNegated(obj.rotation, first.rotation)
-      ) {
-        if (
-          keys1.length === 1 &&
-          keys2.length > 1 &&
-          keys1[0] === 'rotation' &&
-          keys2.includes('rotation')
-        ) {
-          if (options.debug && !silent) {
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
-          }
-          setRemoved(obj)
-          // Remove rotation from first child
-          first.rotation.set(0, 0, 0)
-          children = print(first, true)
-          return children
-        }
-      }
-
-      /** Transform overlap
-       *    <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
-       */
-      const isChildTransformed =
-        keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
-      const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
-      if (
-        obj.children.length === 1 &&
-        isNotRemoved(first) &&
-        !isChildTransformed &&
-        !hasOtherProps
-      ) {
-        if (options.debug && !silent) {
-          console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
-        }
-        // Move props over from the to-be-deleted object to the child
-        // This ensures that the child will have the correct transform when pruning is being repeated
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        keys1.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
-        // Insert the props into the result string
-        children = print(first, true)
-        setRemoved(obj)
-        return children
-      }
-
-      /** Lack of content
-       *    <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *        <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
-       * Solution:
-       *   (delete the whole sub graph)
-       */
-      const empty: any[] = []
-      obj.traverse((o) => {
-        const type = getType(o)
-        if (type !== 'group' && type !== 'object3D') empty.push(o)
+        return `${key}={${value}}`
       })
-      if (!empty.length) {
-        if (options.debug && !silent)
-          console.log(`group ${obj.name} removed (aggressive: lack of content)`)
-        empty.forEach((child) => setRemoved(child))
-        return ''
-      }
-    }
-
-    //?
-    return children
+      .join(' ')
   }
 
-  function print(obj: Object3D, silent = false) {
+  function print(obj: Object3D) {
     let result = ''
     let children = ''
     const { node, instanced, animated } = a.getInfo(obj)
@@ -351,13 +108,16 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
 
     // Take care of lights with targets
     if (isLight(obj) && isTargeted(obj) && obj.children[0] === obj.target) {
-      return `<${type} ${handleProps(obj)} target={${node}.target}>
-        <primitive object={${node}.target} ${handleProps(obj.target)} />
+      return `<${type} ${printProps(obj)} target={${node}.target}>
+        <primitive object={${node}.target} ${printProps(obj.target)} />
       </${type}>`
     }
 
     // Collect children
     if (obj.children) obj.children.forEach((child) => (children += print(child)))
+
+    // Bail out if the object was pruned
+    if (isRemoved(obj)) return children
 
     if (instanced) {
       result = `<instances.${a.dupGeometries[meshKey(obj as Mesh)].name} `
@@ -376,17 +136,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       }
     }
 
-    // Include names when output is uncompressed or morphTargetDictionaries are present
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (obj.name.length && (options.keepnames || (obj as any).morphTargetDictionary || animated))
-      result += `name="${obj.name}" `
-
-    const oldResult = result
-    result += handleProps(obj)
-
-    const pruned = prune(obj, children, result, oldResult, silent)
-    // Bail out if the object was pruned
-    if (pruned !== undefined) return pruned
+    result += printProps(obj)
 
     // Close tag
     result += `${children.length ? '>' : '/>'}\n`
@@ -415,27 +165,27 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     } else return ''
   }
 
-  function p(obj: Object3D, line: number) {
+  function p(obj: Object3D, line: number, a: AnalyzedGLTF) {
     console.log(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [...new Array(line * 2)].map(() => ' ').join(''),
       obj.type,
       obj.name,
       'pos:',
-      obj.position.toArray().map(rNbr),
+      obj.position.toArray().map(a.rNbr),
       'scale:',
-      obj.scale.toArray().map(rNbr),
+      obj.scale.toArray().map(a.rNbr),
       'rot:',
-      [obj.rotation.x, obj.rotation.y, obj.rotation.z].map(rNbr),
+      [obj.rotation.x, obj.rotation.y, obj.rotation.z].map(a.rNbr),
       'mat:',
       isMesh(obj)
         ? materialKey(obj.material) /*`${obj.material.name}-${obj.material.uuid.substring(0, 8)}`*/
         : '',
     )
-    obj.children.forEach((o) => p(o, line + 1))
+    obj.children.forEach((o) => p(o, line + 1, a))
   }
 
-  if (options.debug) p(gltf.scene, 0)
+  if (options.debug) p(gltf.scene, 0, a)
 
   let scene: string = ''
   try {

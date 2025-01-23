@@ -91,17 +91,26 @@ export function pickOptions(options: CliOptions): {
 
 export type LogFn = (args: any[]) => void
 
-export interface JsxOptions extends BaseOptions {
+export interface PropsOptions {
+  keepnames?: boolean
+  meta?: boolean
+  shadows?: boolean
+}
+
+export interface PruneOptions extends PropsOptions {
   bones: boolean
+  debug: boolean
+  keepgroups?: boolean
+}
+
+export interface JsxOptions extends BaseOptions, PropsOptions, PruneOptions {
   componentName: string
   exportdefault?: boolean
   header?: string
-  meta?: boolean
   modelLoadPath: string
   log: LogFn
   precision: number
   size?: string // human readable size
-  shadows?: boolean
   types?: boolean
 }
 
