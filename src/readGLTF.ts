@@ -30,9 +30,7 @@ export async function readGLTF(modelFilename: string): Promise<GLTF> {
   gltfLoader.setKTX2Loader(ktx2Loader)
   gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 
-  //
   const modelDir = path.parse(modelFilename).dir + path.sep
-  let modelGLTF: GLTF
   return new Promise((resolve, reject) => {
     gltfLoader.parse(
       modelBuffer,
