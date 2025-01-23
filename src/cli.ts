@@ -10,7 +10,12 @@ import { createJsx } from './createJsx.js'
 import gltfTransform from './gltfTransform.js'
 import { readGLTF } from './readGLTF.js'
 import { CliOptions, LogFn, pickOptions } from './types.js'
-import { compareFileSizes, resolveModelLoadPath } from './utils/files.js'
+import {
+  compareFileSizes,
+  resolveComponentName,
+  resolveModelLoadPath,
+  resolveOutputSrcFile,
+} from './utils/files.js'
 
 /**
  * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.
@@ -139,17 +144,8 @@ if (cli.input.length === 0) {
   //
   // Generate the JSX file
   //
-  const outputSrcExt = cliOptions.types ? '.tsx' : '.jsx'
-  let outputSrcFile: string
-  if (!cliOptions.outputSrc) {
-    outputSrcFile = path.resolve('Model', outputSrcExt) // based on cwd
-  } else {
-    outputSrcFile = path.resolve(cliOptions.outputSrc)
-  }
-
-  // upper case first letter of the component name
-  let componentName = path.basename(outputSrcFile)
-  componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1)
+  const outputSrcFile: string = resolveOutputSrcFile(cliOptions)
+  const componentName = resolveComponentName(outputSrcFile)
 
   try {
     const response = await createJsx(modelGLTF, {

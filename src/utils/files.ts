@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { CliOptions } from '../types.js'
+
 export function getFileSize(file: string) {
   function roundOff(value: number) {
     return Math.round(value * 100) / 100
@@ -42,4 +44,24 @@ export function readFileToArrayBuffer(filename: string) {
   const modelFileData = fs.readFileSync(filename)
   const arrayBuffer = toArrayBuffer(modelFileData)
   return arrayBuffer
+}
+
+export function resolveOutputSrcFile(cliOptions: CliOptions) {
+  const outputSrcExt = cliOptions.types ? '.tsx' : '.jsx'
+  let outputSrcFile: string
+  if (!cliOptions.outputSrc) {
+    outputSrcFile = path.resolve('Model', outputSrcExt) // based on cwd
+  } else {
+    outputSrcFile = path.resolve(cliOptions.outputSrc)
+  }
+  return outputSrcFile
+}
+
+/**
+ *  upper case first letter of the component name
+ */
+export function resolveComponentName(outputSrcFile: string) {
+  let componentName = path.basename(outputSrcFile)
+  componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1)
+  return componentName
 }
