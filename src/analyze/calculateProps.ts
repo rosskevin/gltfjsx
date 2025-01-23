@@ -55,26 +55,26 @@ export function calculateProps<O extends PropsOptions>(
 
     if (isMesh(obj) && !isInstancedMesh(obj)) {
       // Write out geometry first
-      props['geometry'] = `{${node}.geometry}`
+      props['geometry'] = `${node}.geometry`
 
       // Write out materials
       const materialName = materialKey(obj.material)
       if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
-      else props['material'] = `{${node}.material}`
+      else props['material'] = `${node}.material`
     }
   }
 
   if (isInstancedMesh(obj)) {
-    if (obj.instanceMatrix) props['instanceMatrix'] = `{${node}.instanceMatrix}`
-    if (obj.instanceColor) props['instanceColor'] = `{${node}.instanceColor}`
+    if (obj.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
+    if (obj.instanceColor) props['instanceColor'] = `${node}.instanceColor`
   }
-  if (isSkinnedMesh(obj)) props['skeleton'] = `{${node}.skeleton} `
+  if (isSkinnedMesh(obj)) props['skeleton'] = `${node}.skeleton`
   if (obj.visible === false) props['visible'] = false
   if (obj.castShadow === true) props['castShadow'] = true
   if (obj.receiveShadow === true) props['receiveShadow'] = true
   if (isPoints(obj)) {
-    props['morphTargetDictionary'] = `{${node}.morphTargetDictionary}`
-    props['morphTargetInfluences'] = `{${node}.morphTargetInfluences}`
+    props['morphTargetDictionary'] = `${node}.morphTargetDictionary}`
+    props['morphTargetInfluences'] = `${node}.morphTargetInfluences}`
   }
   if (isLight(obj)) {
     if (a.rNbr(obj.intensity)) props['intensity'] = a.rNbr(obj.intensity)
@@ -94,21 +94,21 @@ export function calculateProps<O extends PropsOptions>(
   }
 
   if (obj.up && obj.up.isVector3 && !obj.up.equals(new Vector3(0, 1, 0))) {
-    props['up'] = `{[${a.rNbr(obj.up.x)}, ${a.rNbr(obj.up.y)}, ${a.rNbr(obj.up.z)}]}`
+    props['up'] = `[${a.rNbr(obj.up.x)}, ${a.rNbr(obj.up.y)}, ${a.rNbr(obj.up.z)}]`
   }
 
   if (isColored(obj) && obj.color.getHexString() !== 'ffffff')
     props['color'] = `"#${obj.color.getHexString()}"`
   if (obj.position && obj.position.isVector3 && a.rNbr(obj.position.length()))
     props['position'] =
-      `{[${a.rNbr(obj.position.x)}, ${a.rNbr(obj.position.y)}, ${a.rNbr(obj.position.z)}]}`
+      `[${a.rNbr(obj.position.x)}, ${a.rNbr(obj.position.y)}, ${a.rNbr(obj.position.z)}]`
   if (
     obj.rotation &&
     obj.rotation.isEuler &&
     a.rNbr(new Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z).length())
   ) {
     props['rotation'] =
-      `{[${a.rDeg(obj.rotation.x)}, ${a.rDeg(obj.rotation.y)}, ${a.rDeg(obj.rotation.z)},]}`
+      `[${a.rDeg(obj.rotation.x)}, ${a.rDeg(obj.rotation.y)}, ${a.rDeg(obj.rotation.z)}]`
   }
   if (
     obj.scale &&
@@ -121,7 +121,7 @@ export function calculateProps<O extends PropsOptions>(
     if (rX === rY && rX === rZ) {
       props['scale'] = rX
     } else {
-      props['scale'] = `{[${rX}, ${rY}, ${rZ}]}`
+      props['scale'] = `[${rX}, ${rY}, ${rZ}]`
     }
   }
   if (options.meta && obj.userData && Object.keys(obj.userData).length) {

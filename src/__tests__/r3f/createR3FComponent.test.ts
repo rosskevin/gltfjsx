@@ -1,18 +1,24 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { LogFn } from '../options.js'
-import { createR3FComponent } from '../r3f/createR3FComponent.js'
-import { readGLTF } from '../readGLTF.js'
-import { resolveModelLoadPath } from '../utils/files.js'
-import { assertFileExists, defaultJsxOptions, models, resolveModelFile, types } from './fixtures.js'
+import { LogFn } from '../../options.js'
+import { createR3FComponent } from '../../r3f/createR3FComponent.js'
+import { readGLTF } from '../../readGLTF.js'
+import { resolveModelLoadPath } from '../../utils/files.js'
+import {
+  assertFileExists,
+  defaultJsxOptions,
+  models,
+  resolveModelFile,
+  types,
+} from '../fixtures.js'
 
 const log: LogFn = (args: any[]) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   console.info('log:', ...args)
 }
 
-describe('createJsx', () => {
+describe('createR3FComponent', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
@@ -34,7 +40,7 @@ describe('createJsx', () => {
             expect(m.parser.json).not.toBeNull()
           }
 
-          it('should createJsx', async () => {
+          it('should createR3FComponent', async () => {
             const m = await readGLTF(modelFile)
             const options = defaultJsxOptions({
               log,

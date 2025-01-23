@@ -291,8 +291,10 @@ ${parsedExtras}*/`
 
 useGLTF.preload(useGTLFLoadPath)`
 
-  if (!options.console) console.log(header)
+  // if (!options.console) console.log(header)
   const output = header + '\n' + result
+
+  console.log('output:\n', output)
   const formatted = prettier.format(output, {
     semi: false,
     printWidth: 1000,
