@@ -7,6 +7,7 @@ import { meshKey, nodeName, sanitizeMeshName } from './utils.js'
 interface AnalyzedGLTFOptions {
   instance?: boolean
   instanceall?: boolean
+  precision?: number
 }
 
 export class AnalyzedGLTF {
@@ -45,6 +46,23 @@ export class AnalyzedGLTF {
       Object.keys(this.dupGeometries).length > 0
       ? true
       : false
+  }
+
+  public rNbr(n: number) {
+    return parseFloat(n.toFixed(Math.round(this.options.precision || 2)))
+  }
+
+  public rDeg(n: number) {
+    const abs = Math.abs(Math.round(n * 100000))
+    for (let i = 1; i <= 10; i++) {
+      if (abs === Math.round((Math.PI / i) * 100000))
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
+    }
+    for (let i = 1; i <= 10; i++) {
+      if (abs === Math.round(Math.PI * i * 100000))
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
+    }
+    return this.rNbr(n)
   }
 
   public getInfo(obj: Object3D): {

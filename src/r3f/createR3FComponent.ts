@@ -40,23 +40,6 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   const useGTLFLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
 
-  const rNbr = (n: number) => {
-    return parseFloat(n.toFixed(Math.round(options.precision || 2)))
-  }
-
-  const rDeg = (n: number) => {
-    const abs = Math.abs(Math.round(n * 100000))
-    for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round((Math.PI / i) * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
-    }
-    for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(Math.PI * i * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
-    }
-    return rNbr(n)
-  }
-
   function printTypes(objects: Object3D[], animations: AnimationClip[]) {
     const meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
     // .isBone isn't in glTF spec. See ._markDefs in GLTFLoader.js
@@ -107,7 +90,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   }\n${contextType}`
   }
 
-  function handleProps(obj: Object3D | OrthographicCamera) {
+  function handleProps(obj: Object3D) {
     const { node, instanced } = a.getInfo(obj)
     const type = getType(obj)
     let result = ''
