@@ -43,8 +43,8 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
 
   const useGTLFLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
-  const animations = gltf.animations
-  const hasAnimations = animations.length > 0
+
+  const hasAnimations = gltf.animations.length > 0
 
   // Collect all objects
   const objects: Object3D[] = []
@@ -55,13 +55,6 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     names: {},
     materials: {},
     geometries: {},
-  }
-
-  function uniqueName(attempt: string, index = 0) {
-    const newAttempt = index > 0 ? attempt + index : attempt
-    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined)
-      return newAttempt
-    else return uniqueName(attempt, index + 1)
   }
 
   // material: Material | Material[] can be nested, so we need to flatten it and collect all materials as an array
@@ -90,7 +83,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     }
   }
 
-  function materialCacheKey(material: Material | Material[]) {
+  function materialKey(material: Material | Material[]) {
     if (Array.isArray(material)) {
       const result: string[] = []
       material.forEach((m) => m.name && result.push(m.name))
@@ -103,28 +96,48 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     }
   }
 
-  function cacheKey(obj: Mesh) {
+  function uniqueName(attempt: string, index = 0) {
+    const newAttempt = index > 0 ? attempt + index : attempt
+    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined)
+      return newAttempt
+    else return uniqueName(attempt, index + 1)
+  }
+
+  function sanitizeMeshName(mesh: Mesh) {
+    let name = (mesh.name || 'Part').replace(/[^a-zA-Z_-]/g, '') // sanitize to only letters
+    name = name.charAt(0).toUpperCase() + name.slice(1)
+    return name
+  }
+
+  function sanitizeName(name: string) {
+    return isVarName(name) ? `.${name}` : `['${name}']`
+  }
+
+  function meshKey(mesh: Mesh) {
     // Was: child.geometry.uuid + (child.material?.name)
     // but we need to handle arrays of materials according to types
-    return obj.geometry?.uuid + materialCacheKey(obj.material)
+    return `mesh-${sanitizeMeshName(mesh)}-${mesh.geometry?.uuid}-${materialKey(mesh.material)}`
+  }
+
+  function nodeName(obj: Object3D) {
+    return 'nodes' + sanitizeName(obj.name)
   }
 
   // collect duplicates
-  gltf.scene.traverse((child: Object3D) => {
-    if (isMesh(child)) {
+  gltf.scene.traverse((o: Object3D) => {
+    if (isMesh(o)) {
+      const mesh = o as Mesh
       // materials
-      colectDuplicateMaterial(child.material)
+      colectDuplicateMaterial(mesh.material)
 
       // geometry
-      if (child.geometry) {
-        const key = cacheKey(child)
+      if (mesh.geometry) {
+        const key = meshKey(mesh)
         if (!duplicates.geometries[key]) {
-          let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
-          name = name.charAt(0).toUpperCase() + name.slice(1)
           duplicates.geometries[key] = {
             count: 1,
-            name: uniqueName(name),
-            node: 'nodes' + sanitizeName(child.name),
+            name: uniqueName(sanitizeMeshName(mesh)),
+            node: nodeName(mesh), // 'nodes' + sanitizeName(mesh.name),
           }
         } else {
           duplicates.geometries[key].count++
@@ -137,16 +150,17 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
   if (!options.instanceall) {
     for (const key of Object.keys(duplicates.geometries)) {
       const duplicate = duplicates.geometries[key]
-      if (duplicate.count === 1) delete duplicates.geometries[key]
+      // if there is only one geometry, it's not a duplicate and we won't instance it
+      if (duplicate.count === 1) {
+        delete duplicates.geometries[key]
+      }
     }
   }
 
   const hasInstances =
     (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
-
-  function sanitizeName(name: string) {
-    return isVarName(name) ? `.${name}` : `['${name}']`
-  }
+      ? true
+      : false
 
   const rNbr = (n: number) => {
     return parseFloat(n.toFixed(Math.round(options.precision || 2)))
@@ -247,7 +261,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
         result += `geometry={${node}.geometry} `
 
         // Write out materials
-        const materialName = materialCacheKey(obj.material)
+        const materialName = materialKey(obj.material)
         if (materialName) result += `material={materials${sanitizeName(materialName)}} `
         else result += `material={${node}.material} `
       }
@@ -324,14 +338,14 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     animated: boolean
   } {
     const type = getType(obj)
-    const node = 'nodes' + sanitizeName(obj.name)
+    const node = nodeName(obj)
     let instanced =
       (options.instance || options.instanceall) &&
       isMesh(obj) &&
       obj.geometry &&
       obj.material &&
-      duplicates.geometries[cacheKey(obj)] &&
-      duplicates.geometries[cacheKey(obj)].count > (options.instanceall ? 0 : 1)
+      duplicates.geometries[meshKey(obj)] &&
+      duplicates.geometries[meshKey(obj)].count > (options.instanceall ? 0 : 1)
     instanced = instanced === undefined ? false : instanced
     const animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
@@ -520,12 +534,12 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
     if (obj.children) obj.children.forEach((child) => (children += print(child)))
 
     if (instanced) {
-      result = `<instances.${duplicates.geometries[cacheKey(obj as Mesh)].name} `
-      type = `instances.${duplicates.geometries[cacheKey(obj as Mesh)].name}`
+      result = `<instances.${duplicates.geometries[meshKey(obj as Mesh)].name} `
+      type = `instances.${duplicates.geometries[meshKey(obj as Mesh)].name}`
     } else {
       if (isInstancedMesh(obj)) {
         const geo = `${node}.geometry`
-        const materialName = materialCacheKey(obj.material)
+        const materialName = materialKey(obj.material)
         const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
         type = 'instancedMesh'
         result = `<instancedMesh args={[${geo}, ${mat}, ${!obj.count ? `${node}.count` : obj.count}]} `
@@ -589,9 +603,7 @@ export function createJsx(gltf: GLTF, options: Readonly<JsxOptions>) {
       [obj.rotation.x, obj.rotation.y, obj.rotation.z].map(rNbr),
       'mat:',
       isMesh(obj)
-        ? materialCacheKey(
-            obj.material,
-          ) /*`${obj.material.name}-${obj.material.uuid.substring(0, 8)}`*/
+        ? materialKey(obj.material) /*`${obj.material.name}-${obj.material.uuid.substring(0, 8)}`*/
         : '',
     )
     obj.children.forEach((o) => p(o, line + 1))
@@ -645,7 +657,7 @@ ${parsedExtras}*/`
             ? `import { ${options.types ? 'GLTF,' : ''} ${hasPrimitives ? 'SkeletonUtils' : ''} } from "three-stdlib"`
             : ''
         }
-        ${options.types ? printTypes(objects, animations) : ''}
+        ${options.types ? printTypes(objects, gltf.animations) : ''}
         const useGTLFLoadPath = '${useGTLFLoadPath}'
         ${
           hasInstances
@@ -693,7 +705,7 @@ ${parsedExtras}*/`
                     : ''
                 }`
               : ''
-          } ${printAnimations(animations)}
+          } ${printAnimations(gltf.animations)}
           return (
             <group ${hasAnimations ? `ref={group}` : ''} {...props} dispose={null}>
         ${scene}
