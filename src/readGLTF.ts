@@ -42,7 +42,7 @@ export async function readGLTF(modelFilename: string): Promise<GLTF> {
   // @see https://discourse.threejs.org/t/gltf-meshopt-compression/66244/2
   // gltf-transform meshopt input.glb output.glb
   const gltfLoader = new GLTFLoader()
-  // gltfLoader.setDRACOLoader(dracoLoader)  // https://github.com/mrdoob/three.js/issues/26403#issuecomment-2101653981
+  gltfLoader.setDRACOLoader(dracoLoader) // https://github.com/mrdoob/three.js/issues/26403#issuecomment-2101653981
   gltfLoader.setKTX2Loader(ktx2Loader)
   gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 

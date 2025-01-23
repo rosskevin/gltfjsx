@@ -8,9 +8,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { readGLTF } from '../readGLTF.js'
 
 const types = [
+  //
   'gltf',
   'gltf-transform-meshopt',
-  //
+  'gltf-transform-draco',
 ]
 
 describe('readGLTF', () => {
