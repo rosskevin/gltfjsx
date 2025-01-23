@@ -42,6 +42,7 @@
     "@gltf-transform/core": "4.1.1",
     "@gltf-transform/extensions": "4.1.1",
     "@gltf-transform/functions": "4.1.1",
+    "draco3dgltf": "^1.5.7",
     "is-var-name": "^2.0.0",
     "keyframe-resample": "^0.1.0",
     "meow": "^13.2.0",

@@ -69,7 +69,7 @@ const cli = meow(
       shadows: { type: 'boolean', shortFlag: 's' },
       meta: { type: 'boolean', shortFlag: 'm' },
       precision: { type: 'number', shortFlag: 'p', default: 3 },
-      // draco: { type: 'string', shortFlag: 'd' },
+      draco: { type: 'string', shortFlag: 'd' },
       root: { type: 'string', shortFlag: 'r' },
       instance: { type: 'boolean', shortFlag: 'i' },
       instanceall: { type: 'boolean', shortFlag: 'I' },

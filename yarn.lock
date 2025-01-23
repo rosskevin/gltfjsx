@@ -1018,6 +1018,7 @@ __metadata:
     "@types/node": "npm:^22.10.7"
     "@types/three": "npm:^0.172.0"
     chalk: "npm:^5.4.1"
+    draco3dgltf: "npm:^1.5.7"
     eslint: "npm:^9.18.0"
     fast-glob: "npm:^3.3.3"
     fs-extra: "npm:^11.3.0"
@@ -2038,6 +2039,13 @@ __metadata:
   version: 1.5.7
   resolution: "draco3d@npm:1.5.7"
   checksum: 10/9d066f3fcf6c35f9e21205b2d89d87a38010a51115d365c8696bc7dad41f53eb9c1ec98b41ce9324853d1c686c403ac23e9f68742cf281f6f1cba4bcbfa86e09
+  languageName: node
+  linkType: hard
+
+"draco3dgltf@npm:^1.5.7":
+  version: 1.5.7
+  resolution: "draco3dgltf@npm:1.5.7"
+  checksum: 10/0ca591a4e1bf3fb43302dca478805d1c3f0cce9e84129820f4a2ecebabd71487cb467280bbc0d713b98cd64ecfc99f8921eba8f68c781bf0b57201b0f3b1baa0
   languageName: node
   linkType: hard
 

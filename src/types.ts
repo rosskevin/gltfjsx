@@ -49,7 +49,7 @@ export function pickOptions(options: CliOptions): {
     resolution,
     simplify,
     // cliOnly
-    outputSrc,
+    output,
     transform,
     // rest are createJsxOptions
     ...other
