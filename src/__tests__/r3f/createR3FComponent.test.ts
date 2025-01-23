@@ -47,6 +47,9 @@ describe('createR3FComponent', () => {
               componentName: modelName,
               header: 'FOO header',
               modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+              types: true,
+              keepnames: true,
+              shadows: true,
             })
             const jsx = await createR3FComponent(m, options)
             console.log(jsx)

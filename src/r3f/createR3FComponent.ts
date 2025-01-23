@@ -19,6 +19,8 @@ import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze
 import { JsxOptions } from '../options.js'
 import { getType } from './utils.js'
 
+const stringProps = ['name']
+
 export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   const a = new AnalyzedGLTF(gltf, { instance: options.instance, instanceall: options.instanceall })
 
@@ -81,6 +83,10 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const value = props[key]
+
+        if (stringProps.includes(key)) {
+          return `${key}="${value}"`
+        }
         if (value === true) {
           return key // e.g. castShadow
         }
