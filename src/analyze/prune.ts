@@ -2,12 +2,11 @@ import { GLTF } from 'node-three-gltf'
 import { Object3D } from 'three'
 
 import { JsxOptions, PruneOptions } from '../options.js'
-import { getType } from '../r3f/utils.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import { calculateProps, Props } from './calculateProps.js'
 import { isNotRemoved, isRemoved, setRemoved } from './is.js'
 import { shallowEqual } from './shallowEqual.js'
-import { equalOrNegated } from './utils.js'
+import { equalOrNegated, getType } from './utils.js'
 
 function prune<O extends PruneOptions>(
   obj: Object3D,

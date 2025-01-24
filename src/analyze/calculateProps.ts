@@ -1,7 +1,6 @@
 import { Object3D, Vector3 } from 'three'
 
 import { PropsOptions } from '../options.js'
-import { getType } from '../r3f/utils.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import {
   isColored,
@@ -16,7 +15,7 @@ import {
   isSkinnedMesh,
   isSpotLight,
 } from './is.js'
-import { materialKey, sanitizeName } from './utils.js'
+import { getType, materialKey, sanitizeName } from './utils.js'
 
 export type Props = Record<string, any>
 

@@ -15,9 +15,8 @@ import {
   isTargeted,
 } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
+import { collectMaterials, getType, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions } from '../options.js'
-import { getType } from './utils.js'
 
 const stringProps = ['name']
 
