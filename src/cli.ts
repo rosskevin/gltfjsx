@@ -7,7 +7,7 @@ import meow from 'meow'
 import { readPackageUpSync } from 'read-pkg-up'
 
 import gltfTransform from './gltfTransform.js'
-import { CliOptions, LogFn, pickOptions } from './options.js'
+import { CliOptions, pickOptions } from './options.js'
 import { createR3FComponent } from './r3f/createR3FComponent.js'
 import { readGLTF } from './readGLTF.js'
 import {
@@ -16,6 +16,7 @@ import {
   resolveModelLoadPath,
   resolveOutputSrcFile,
 } from './utils/files.js'
+import { Log } from './utils/Log.js'
 
 /**
  * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.
@@ -109,13 +110,11 @@ if (cli.input.length === 0) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const cliOptions: CliOptions = cli.flags as any satisfies CliOptions
 
+  const log = new Log({ debug: cliOptions.debug, silent: false })
+
   // ./public/Model.{glb|gltf}
   const modelFile = path.resolve(cli.input[0])
   const { name: inputName, ext: inputExtension, dir: inputDir } = path.parse(modelFile)
-  const log: LogFn = (args: any[]) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    console.info('log:', ...args)
-  }
 
   //
   const {

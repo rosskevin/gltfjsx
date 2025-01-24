@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
 import { pruneAnalyzedGLTF } from '../../analyze/prune.js'
-import { LogFn } from '../../options.js'
 import { createR3FComponent } from '../../r3f/createR3FComponent.js'
 import { readGLTF } from '../../readGLTF.js'
 import { resolveModelLoadPath } from '../../utils/files.js'
+import { Log } from '../../utils/Log.js'
 import {
   assertFileExists,
   defaultJsxOptions,
@@ -15,10 +15,7 @@ import {
   types,
 } from '../fixtures.js'
 
-const log: LogFn = (args: any[]) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  console.info('log:', ...args)
-}
+const log = new Log({ silent: false, debug: false })
 
 describe('prune', () => {
   for (const modelName of models) {
@@ -48,9 +45,10 @@ describe('prune', () => {
             const a = new AnalyzedGLTF(m, {
               instance: false,
               instanceall: false,
+              log,
             })
 
-            pruneAnalyzedGLTF(a, { bones: false, debug: true })
+            pruneAnalyzedGLTF(a, { bones: false, log })
 
             const options = defaultJsxOptions({
               log,

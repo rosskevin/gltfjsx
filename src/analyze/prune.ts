@@ -16,6 +16,7 @@ function prune<O extends PruneOptions>(
 ): boolean {
   const props = calculateProps(obj, a, options)
   const { animated } = a.getInfo(obj)
+  const { log } = options
   // const type = getType(obj)
   if (
     isNotRemoved(obj) &&
@@ -32,11 +33,9 @@ function prune<O extends PruneOptions>(
     const noChildren = obj.children.length === 0
     const noProps = Object.keys(props).length === 0
     if (noChildren || noProps) {
-      if (options.debug) {
-        console.log(
-          `group ${obj.name} ${obj.uuid} removed (${noChildren ? 'no children' : 'no props'})`,
-        )
-      }
+      log.debug(
+        `group ${obj.name} ${obj.uuid} removed (${noChildren ? 'no children' : 'no props'})`,
+      )
       setRemoved(obj)
       return true // children
     }
@@ -67,9 +66,8 @@ function prune<O extends PruneOptions>(
         propsKeys[0] === 'rotation' &&
         firstPropsKeys[0] === 'rotation'
       ) {
-        if (options.debug) {
-          console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
-        }
+        log.debug(`group ${obj.name} removed (aggressive: double negative rotation)`)
+
         setRemoved(obj, isRemoved(first))
         // children = ''
         if (first.children) {
@@ -100,9 +98,8 @@ function prune<O extends PruneOptions>(
         propsKeys[0] === 'rotation' &&
         firstPropsKeys.includes('rotation')
       ) {
-        if (options.debug) {
-          console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
-        }
+        log.debug(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
+
         setRemoved(obj)
         // Remove rotation from first child
         first.rotation.set(0, 0, 0)
@@ -123,9 +120,8 @@ function prune<O extends PruneOptions>(
       firstPropsKeys.includes('scale')
     const hasOtherProps = propsKeys.some((key) => !['position', 'scale', 'rotation'].includes(key))
     if (obj.children.length === 1 && isNotRemoved(first) && !isChildTransformed && !hasOtherProps) {
-      if (options.debug) {
-        console.log(`group ${obj.name} removed (aggressive: ${propsKeys.join(' ')} overlap)`)
-      }
+      log.debug(`group ${obj.name} removed (aggressive: ${propsKeys.join(' ')} overlap)`)
+
       // Move props over from the to-be-deleted object to the child
       // This ensures that the child will have the correct transform when pruning is being repeated
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -150,7 +146,7 @@ function prune<O extends PruneOptions>(
       }
     })
     if (!empty.length) {
-      if (options.debug) console.log(`group ${obj.name} removed (aggressive: lack of content)`)
+      log.debug(`group ${obj.name} removed (aggressive: lack of content)`)
       empty.forEach((child) => setRemoved(child))
       return true // ''
     }
@@ -167,7 +163,8 @@ function walk<O extends PruneOptions>(
 ): Object3D {
   // let result = ''
   // let children = ''
-  const { node, instanced, animated } = a.getInfo(obj)
+  // const { node, instanced, animated } = a.getInfo(obj)
+  const { log } = options
 
   // Check if the root node is useless
   if (isRemoved(obj) && obj.children.length) {
@@ -201,9 +198,7 @@ function walk<O extends PruneOptions>(
 
   // new
   const pruned = prune(obj, a, options)
-  if (pruned && options.debug) {
-    console.log('pruned', obj)
-  }
+  log.debug('pruned? ', pruned, ' ', obj)
 
   return obj // FIXME: same as pruned???
 }
@@ -234,6 +229,6 @@ export function pruneAnalyzedGLTF(a: AnalyzedGLTF, options: Readonly<PruneOption
     // 2nd pass to eliminate hard to swat left-overs
     walk(a.gltf.scene, a, options)
   } catch (e) {
-    console.log('Error while parsing glTF', e)
+    options.log.error('Error during pruneAnalyzedGLTF: ', e)
   }
 }

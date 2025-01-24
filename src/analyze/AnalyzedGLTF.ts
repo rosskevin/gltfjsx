@@ -1,6 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import { Material, Mesh, Object3D } from 'three'
 
+import { Logger } from '../options.js'
 import { isMesh } from './is.js'
 import { meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
@@ -8,6 +9,7 @@ interface AnalyzedGLTFOptions {
   instance?: boolean
   instanceall?: boolean
   precision?: number
+  log: Logger
 }
 
 export class AnalyzedGLTF {

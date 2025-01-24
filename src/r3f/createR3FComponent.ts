@@ -16,7 +16,7 @@ import {
 } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
-import { JsxOptions } from '../options.js'
+import { JsxOptions, Logger } from '../options.js'
 
 const stringProps = ['name']
 
@@ -33,7 +33,8 @@ function getType(obj: Object3D): string {
 }
 
 export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
-  const a = new AnalyzedGLTF(gltf, { instance: options.instance, instanceall: options.instanceall })
+  const { log, instance, instanceall } = options
+  const a = new AnalyzedGLTF(gltf, { instance, instanceall, log })
 
   const modelLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
@@ -158,7 +159,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
 
   function parseExtras(extras: any) {
     if (extras) {
-      console.log('extras', extras)
+      log.debug('extras', extras)
       return (
         Object.keys(extras as Record<string, any>)
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -168,8 +169,8 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     } else return ''
   }
 
-  function p(obj: Object3D, line: number, a: AnalyzedGLTF) {
-    console.log(
+  function p(obj: Object3D, line: number, a: AnalyzedGLTF, log: Logger) {
+    log.debug(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [...new Array(line * 2)].map(() => ' ').join(''),
       obj.type,
@@ -185,10 +186,10 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
         ? materialKey(obj.material) /*`${obj.material.name}-${obj.material.uuid.substring(0, 8)}`*/
         : '',
     )
-    obj.children.forEach((o) => p(o, line + 1, a))
+    obj.children.forEach((o) => p(o, line + 1, a, log))
   }
 
-  if (options.debug) p(gltf.scene, 0, a)
+  if (options.log.isDebug()) p(gltf.scene, 0, a, options.log)
 
   let scene: string = ''
   try {

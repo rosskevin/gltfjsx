@@ -1,9 +1,23 @@
 import { TextureCompressOptions } from '@gltf-transform/functions'
 
-interface BaseOptions {
-  console: boolean
+export interface LogOptions {
+  silent: boolean
   debug: boolean
-  draco?: string // unused, left as an option only for the moment if we can solve the draco loader issue in node in the future
+}
+
+type LogFn = (...args: any[]) => void
+
+export interface Logger {
+  debug: LogFn
+  error: LogFn
+  info: LogFn
+
+  isDebug: () => boolean
+}
+
+interface BaseOptions {
+  log: Logger
+  draco?: string
 
   // shared transform and jsx
   instance?: boolean
@@ -13,6 +27,7 @@ interface BaseOptions {
 }
 
 export interface TransformOptions extends BaseOptions {
+  console: boolean
   degrade: string
   degraderesolution: number
   error: number
@@ -32,7 +47,6 @@ export function pickOptions(options: CliOptions): {
 } {
   const {
     console,
-    debug,
     degrade,
     degraderesolution,
     draco,
@@ -45,6 +59,7 @@ export function pickOptions(options: CliOptions): {
     keepmaterials,
     keepmeshes,
     keepnames,
+    log,
     ratio,
     resolution,
     simplify,
@@ -57,7 +72,6 @@ export function pickOptions(options: CliOptions): {
 
   const transformOptions: TransformOptions = {
     console,
-    debug,
     degrade,
     degraderesolution,
     error,
@@ -69,6 +83,7 @@ export function pickOptions(options: CliOptions): {
     keepmaterials,
     keepmeshes,
     keepnames,
+    log,
     ratio,
     resolution,
     simplify,
@@ -78,8 +93,9 @@ export function pickOptions(options: CliOptions): {
     transformOptions,
     createJsxOptions: {
       ...other,
-      console,
-      debug,
+      // console,
+      // debug,
+      log,
       draco,
       instance,
       instanceall,
@@ -89,9 +105,8 @@ export function pickOptions(options: CliOptions): {
   }
 }
 
-export type LogFn = (args: any[]) => void
-
 export interface PropsOptions {
+  log: Logger
   keepnames?: boolean
   meta?: boolean
   shadows?: boolean
@@ -99,7 +114,7 @@ export interface PropsOptions {
 
 export interface PruneOptions extends PropsOptions {
   bones: boolean
-  debug: boolean
+  // debug: boolean
   keepgroups?: boolean
 }
 
@@ -108,13 +123,14 @@ export interface JsxOptions extends BaseOptions, PropsOptions, PruneOptions {
   exportdefault?: boolean
   header?: string
   modelLoadPath: string
-  log: LogFn
   precision: number
   size?: string // human readable size
   types?: boolean
 }
 
 export interface CliOptions extends TransformOptions, JsxOptions {
+  console: boolean
+  debug: boolean
   // delay: number
   output?: string
   root?: string

@@ -42,7 +42,6 @@ export async function readGLTF(modelFilename: string): Promise<GLTF> {
         resolve(gltf)
       },
       (error) => {
-        console.log(error)
         reject(error as Error)
       },
     )
