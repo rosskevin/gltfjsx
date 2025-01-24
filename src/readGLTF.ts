@@ -1,6 +1,5 @@
 /**
  * References:
- *  - https://discourse.threejs.org/t/how-to-use-gltfloader-in-nodejs/43607/8
  *  - https://github.com/Brakebein/node-three-gltf/tree/main (maintained!)
  */
 import path from 'node:path'
@@ -21,13 +20,11 @@ export async function readGLTF(modelFilename: string): Promise<GLTF> {
   // Setup loader
   //
   const dracoLoader = new DRACOLoader()
-  // dracoLoader.setDecoderPath('three/addons/jsm/libs/draco/gltf/')
-
   const ktx2Loader = new KTX2Loader()
   ktx2Loader.setTranscoderPath('three/addons/jsm/libs/basis/')
 
   const gltfLoader = new GLTFLoader()
-  gltfLoader.setDRACOLoader(dracoLoader) // https://github.com/mrdoob/three.js/issues/26403#issuecomment-2101653981
+  gltfLoader.setDRACOLoader(dracoLoader)
   gltfLoader.setKTX2Loader(ktx2Loader)
   gltfLoader.setMeshoptDecoder(MeshoptDecoder)
 

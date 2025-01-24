@@ -8,8 +8,8 @@ import { JsxOptions } from '../options.js'
 export const types = [
   //
   'gltf',
-  // 'gltf-transform-meshopt',
-  // 'gltf-transform-draco',
+  'gltf-transform-meshopt',
+  'gltf-transform-draco',
 ]
 
 export const models = ['FlightHelmet']

@@ -24,7 +24,7 @@ const stringProps = ['name']
 export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   const a = new AnalyzedGLTF(gltf, { instance: options.instance, instanceall: options.instanceall })
 
-  const useGTLFLoadPath =
+  const modelLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
 
   function printTypes(a: AnalyzedGLTF) {
@@ -57,7 +57,6 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       ${bones.map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': THREE.' + type).join(',')}
     }
     materials: {
-    // FIXME these are mesh, not materials?
       ${materials.map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': THREE.' + type).join(',')}
     }
     ${a.hasAnimations() ? 'animations: GLTFAction[]' : ''}
@@ -227,14 +226,14 @@ ${parsedExtras}*/`
             : ''
         }
         ${options.types ? printTypes(a) : ''}
-        const useGTLFLoadPath = '${useGTLFLoadPath}'
+        const modelLoadPath = '${modelLoadPath}'
         ${
           a.hasInstances()
             ? `
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
         export function Instances({ children, ...props }${options.types ? ': JSX.IntrinsicElements["group"]' : ''}) {
-          const { nodes } = useGLTF(useGTLFLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+          const { nodes } = useGLTF(modelLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
             options.types ? ' as GLTFResult' : ''
           }
           const instances = React.useMemo(() => ({
@@ -265,7 +264,7 @@ ${parsedExtras}*/`
             !options.instanceall
               ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${
                   a.hasAnimations() ? ', animations' : ''
-                }} = useGLTF(useGTLFLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+                }} = useGLTF(modelLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
                   !hasPrimitives && options.types ? ' as GLTFResult' : ''
                 }${
                   hasPrimitives
@@ -282,12 +281,12 @@ ${parsedExtras}*/`
           )
         }
 
-useGLTF.preload(useGTLFLoadPath)`
+useGLTF.preload(modelLoadPath)`
 
   // if (!options.console) console.log(header)
   const output = header + '\n' + result
 
-  console.log('output:\n', output)
+  // console.log('output:\n', output)
   const formatted = prettier.format(output, {
     semi: false,
     printWidth: 1000,
