@@ -60,7 +60,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     // FIXME these are mesh, not materials?
       ${materials.map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': THREE.' + type).join(',')}
     }
-    animations: GLTFAction[]
+    ${a.hasAnimations() ? 'animations: GLTFAction[]' : ''}
   }\n${contextType}`
   }
 
