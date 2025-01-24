@@ -1,5 +1,6 @@
 import { Euler, Material, Mesh, Object3D } from 'three'
 
+import { isMaterial } from './is.js'
 import isVarName from './isVarName.js'
 
 /**
@@ -62,6 +63,9 @@ export function collectMaterials(material: Material | Material[]): Material[] {
     const set = new Set(result)
     return Array.from(set)
   } else {
+    if (!isMaterial(material)) {
+      throw new Error('Not a material: ' + typeof material)
+    }
     return [material]
   }
 }

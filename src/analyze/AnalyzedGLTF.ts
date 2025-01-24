@@ -20,7 +20,7 @@ export class AnalyzedGLTF {
   /** All objects in the scene */
   public objects: Object3D[] = []
 
-  private gltf: GLTF
+  public gltf: GLTF
   private options: AnalyzedGLTFOptions
 
   constructor(gltf: GLTF, options: AnalyzedGLTFOptions) {

@@ -1,7 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
-import { AnimationClip, Mesh, Object3D } from 'three'
+import { AnimationClip, Bone, Mesh, Object3D } from 'three'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { calculateProps } from '../analyze/calculateProps.js'
@@ -27,35 +27,21 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   const useGTLFLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
 
-  function printTypes(objects: Object3D[], animations: AnimationClip[]) {
-    const meshes = objects.filter((o) => isMesh(o) && isNotRemoved(o))
-    // .isBone isn't in glTF spec. See ._markDefs in GLTFLoader.js
-    const bones = objects.filter(
+  function printTypes(a: AnalyzedGLTF) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const meshes: Mesh[] = a.objects.filter((o) => isMesh(o) && isNotRemoved(o)) as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const bones: Bone[] = a.objects.filter(
       (o) => isBone(o) && !(o.parent && isBone(o.parent)) && isNotRemoved(o),
-    )
-    // TODO validate if this is correct
-    const materials = [...new Set(objects.filter((o) => isMesh(o) && collectMaterials(o.material)))]
-    // eslint-disable-next-line prefer-const
-    let materialsOldCollectionMethod = [
-      ...new Set(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-        objects.filter((o: any) => o.material && o.material.name).map((o: any) => o.material),
-      ),
-    ]
-
-    console.log(
-      '!!!!!!!!!!!!!!!!compare materials collection!!!!!!!!!!!!!!!! size: ',
-      materials.length,
-      'vs old: ',
-      materialsOldCollectionMethod.length,
-    )
+    ) as any
+    const materials = [...new Set(meshes.flatMap((o) => collectMaterials(o.material)))]
 
     let animationTypes = ''
-    if (animations.length) {
+    if (a.hasAnimations()) {
       animationTypes = `\n
-  type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(' | ')};
+      type ActionName = ${a.gltf.animations.map((clip, i) => `"${clip.name}"`).join(' | ')};
 
-  interface GLTFAction extends THREE.AnimationClip { name: ActionName }\n`
+      interface GLTFAction extends THREE.AnimationClip { name: ActionName }\n`
     }
 
     const types = [...new Set([...meshes, ...bones].map((o) => getType(o)))]
@@ -71,6 +57,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       ${bones.map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': THREE.' + type).join(',')}
     }
     materials: {
+    // FIXME these are mesh, not materials?
       ${materials.map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': THREE.' + type).join(',')}
     }
     animations: GLTFAction[]
@@ -239,7 +226,7 @@ ${parsedExtras}*/`
             ? `import { ${options.types ? 'GLTF,' : ''} ${hasPrimitives ? 'SkeletonUtils' : ''} } from "three-stdlib"`
             : ''
         }
-        ${options.types ? printTypes(a.objects, gltf.animations) : ''}
+        ${options.types ? printTypes(a) : ''}
         const useGTLFLoadPath = '${useGTLFLoadPath}'
         ${
           a.hasInstances()
