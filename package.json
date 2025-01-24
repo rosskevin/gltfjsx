@@ -7,7 +7,7 @@
     "build": "rollup -c",
     "build:ide": "echo 'tsc -b' && tsc -b",
     "lint:fix": "eslint . --cache --fix",
-    "test": "node src/test"
+    "test": "vitest"
   },
   "type": "module",
   "keywords": [

@@ -4,6 +4,7 @@ import {
   Bone,
   Camera,
   Color,
+  Group,
   InstancedMesh,
   Light,
   Material,
@@ -18,6 +19,10 @@ import {
 } from 'three'
 
 export const isObject3D = (o: any): o is Object3D => (o as any).isObject3D
+
+export const isScene = (o: any): o is Group => isGroup(o) && o.parent === null
+
+export const isGroup = (o: any): o is Group => (o as any).isGroup
 
 export const isPoints = (o: any): o is Points => (o as any).isPoints
 

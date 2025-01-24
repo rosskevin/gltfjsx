@@ -1,29 +1,27 @@
-import { GLTF } from 'node-three-gltf'
 import { Object3D } from 'three'
 
-import { JsxOptions, PruneOptions } from '../options.js'
+import { PruneOptions } from '../options.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
-import { calculateProps, Props } from './calculateProps.js'
-import { isNotRemoved, isRemoved, setRemoved } from './is.js'
-import { shallowEqual } from './shallowEqual.js'
-import { equalOrNegated, getType } from './utils.js'
+import { calculateProps } from './calculateProps.js'
+import { isBone, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.js'
+import { equalOrNegated } from './utils.js'
 
 function prune<O extends PruneOptions>(
   obj: Object3D,
   // children: string,
-  props: Props, // result: string,
-  oldProps: Props, // oldResult: string,
+  // props: Props, // result: string,
+  // oldProps: Props, // oldResult: string,
   a: AnalyzedGLTF,
   options: Readonly<O>,
 ): boolean {
+  const props = calculateProps(obj, a, options)
   const { animated } = a.getInfo(obj)
-  const type = getType(obj)
-  // Prune ...
+  // const type = getType(obj)
   if (
     isNotRemoved(obj) &&
     !options.keepgroups &&
     !animated &&
-    (type === 'group' || type === 'scene')
+    isGroup(obj) // scene is also a group too
   ) {
     /** Empty or no-property groups
      *    <group>
@@ -31,10 +29,13 @@ function prune<O extends PruneOptions>(
      *  Solution:
      *    <mesh geometry={nodes.foo} material={materials.bar} />
      */
-    if (obj.children.length === 0 || shallowEqual(props, oldProps)) {
-      // FIXME actual calc of oldProps is never sent...
+    const noChildren = obj.children.length === 0
+    const noProps = Object.keys(props).length === 0
+    if (noChildren || noProps) {
       if (options.debug) {
-        console.log(`group ${obj.name} removed (empty)`)
+        console.log(
+          `group ${obj.name} ${obj.uuid} removed (${noChildren ? 'no children' : 'no props'})`,
+        )
       }
       setRemoved(obj)
       return true // children
@@ -57,7 +58,7 @@ function prune<O extends PruneOptions>(
      */
     if (
       obj.children.length === 1 &&
-      getType(first) === type &&
+      first.type === obj.type &&
       equalOrNegated(obj.rotation, first.rotation)
     ) {
       if (
@@ -90,7 +91,7 @@ function prune<O extends PruneOptions>(
      */
     if (
       obj.children.length === 1 &&
-      getType(first) === type &&
+      first.type === obj.type &&
       equalOrNegated(obj.rotation, first.rotation)
     ) {
       if (
@@ -144,8 +145,9 @@ function prune<O extends PruneOptions>(
      */
     const empty: Object3D[] = []
     obj.traverse((o) => {
-      const type = getType(o)
-      if (type !== 'group' && type !== 'object3D') empty.push(o)
+      if (!isGroup(o)) {
+        empty.push(o)
+      }
     })
     if (!empty.length) {
       if (options.debug) console.log(`group ${obj.name} removed (aggressive: lack of content)`)
@@ -166,7 +168,6 @@ function walk<O extends PruneOptions>(
   // let result = ''
   // let children = ''
   const { node, instanced, animated } = a.getInfo(obj)
-  const type = getType(obj)
 
   // Check if the root node is useless
   if (isRemoved(obj) && obj.children.length) {
@@ -177,11 +178,11 @@ function walk<O extends PruneOptions>(
   }
 
   // Bail out on bones
-  if (!options.bones && type === 'bone') {
+  if (!options.bones && isBone(obj)) {
     return obj
   }
 
-  // Collect children
+  // Walk the children first
   if (obj.children) {
     obj.children.forEach((child) => {
       /*children +=*/ walk(child, a, options)
@@ -192,21 +193,26 @@ function walk<O extends PruneOptions>(
   // FIXME generated jsx for instanced code/bones.  It seems like an irrelevant pattern to match now, different
   // FIXME conditons need to be checked to accopmlish whatever was being done before.
   // const oldProps = props
-  const oldProps: Props = {} // FIXME
-  const props = calculateProps(obj, a, options)
-  const pruned = prune(obj, /*children,*/ props, oldProps, a, options)
+  // const oldProps: Props = {} // FIXME
+  // const props = calculateProps(obj, a, options)
+  // const pruned = prune(obj, children, props, oldProps, a, options)
   // Bail out if the object was pruned
-  if (pruned) return obj //FIXME was: pruned what should this be?
+  // if (pruned) return obj //FIXME was: pruned what should this be?
+
+  // new
+  const pruned = prune(obj, a, options)
+  if (pruned && options.debug) {
+    console.log('pruned', obj)
+  }
 
   return obj // FIXME: same as pruned???
 }
 
-export function pruneAnalyzedGLTF(gltf: GLTF, options: Readonly<JsxOptions>) {
-  const a = new AnalyzedGLTF(gltf, { instance: options.instance, instanceall: options.instanceall })
+export function pruneAnalyzedGLTF(a: AnalyzedGLTF, options: Readonly<PruneOptions>) {
   try {
     if (!options.keepgroups) {
       // Dry run to prune graph
-      walk(gltf.scene, a, options)
+      walk(a.gltf.scene, a, options)
 
       // Move children of deleted objects to their new parents
       a.objects.forEach((o) => {
@@ -215,7 +221,7 @@ export function pruneAnalyzedGLTF(gltf: GLTF, options: Readonly<JsxOptions>) {
           // Making sure we don't add to a removed parent
           while (parent && isRemoved(parent)) parent = parent.parent
           // If no parent was found it must be the root node
-          if (!parent) parent = gltf.scene
+          if (!parent) parent = a.gltf.scene
           o.children.slice().forEach((child) => parent.add(child))
         }
       })
@@ -226,7 +232,7 @@ export function pruneAnalyzedGLTF(gltf: GLTF, options: Readonly<JsxOptions>) {
       })
     }
     // 2nd pass to eliminate hard to swat left-overs
-    walk(gltf.scene, a, options)
+    walk(a.gltf.scene, a, options)
   } catch (e) {
     console.log('Error while parsing glTF', e)
   }

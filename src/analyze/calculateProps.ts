@@ -15,7 +15,7 @@ import {
   isSkinnedMesh,
   isSpotLight,
 } from './is.js'
-import { getType, materialKey, sanitizeName } from './utils.js'
+import { materialKey, sanitizeName } from './utils.js'
 
 export type Props = Record<string, any>
 
@@ -26,7 +26,6 @@ export function calculateProps<O extends PropsOptions>(
 ): Props {
   const props: Props = {}
   const { animated, node, instanced } = a.getInfo(obj)
-  const type = getType(obj)
 
   // Include names when output is uncompressed or morphTargetDictionaries are present
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -47,7 +46,7 @@ export function calculateProps<O extends PropsOptions>(
 
   if (!instanced) {
     // Shadows
-    if (type === 'mesh' && options.shadows) {
+    if (isMesh(obj) && options.shadows) {
       props['castShadow'] = true
       props['receiveShadow'] = true
     }
