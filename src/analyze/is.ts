@@ -83,3 +83,5 @@ interface Colored {
 }
 
 export const isColored = (o: any): o is Colored => (o as any).color !== undefined
+
+export const isChildless = (o: Object3D): boolean => o.children.length === 0

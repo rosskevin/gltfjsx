@@ -19,6 +19,10 @@ import { materialKey, sanitizeName } from './utils.js'
 export type Props = Record<string, any>
 
 export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
+  if (!obj) {
+    throw new Error('obj is undefined')
+  }
+
   const props: Props = {}
   const { animated, node, instanced } = a.getInfo(obj)
 

@@ -76,7 +76,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   }
 
   function printProps(obj: Object3D) {
-    const props = calculateProps(obj, a, options)
+    const props = calculateProps(obj, a)
     return Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -96,7 +96,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   function print(obj: Object3D) {
     let result = ''
     let children = ''
-    const { node, instanced, animated } = a.getInfo(obj)
+    const { node, instanced } = a.getInfo(obj)
     let type = getType(obj)
 
     // Check if the root node is useless

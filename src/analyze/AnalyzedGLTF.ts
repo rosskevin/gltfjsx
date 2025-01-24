@@ -4,15 +4,18 @@ import { Material, Mesh, Object3D } from 'three'
 import { descObj3D } from '../Log.js'
 import { PropsOptions } from '../options.js'
 import { calculateProps } from './calculateProps.js'
-import { isBone, isGroup, isMesh, isNotRemoved, isRemoved, setRemoved } from './is.js'
-import { equalOrNegated, meshKey, nodeName, sanitizeMeshName } from './utils.js'
+import { isBone, isMesh, isNotRemoved, isRemoved } from './is.js'
+import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
+import { meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
-interface AnalyzedGLTFOptions extends PropsOptions {
-  // bones?: boolean
-  // instance?: boolean
-  // instanceall?: boolean
-  // keepgroups?: boolean
+export interface AnalyzedGLTFOptions extends PropsOptions {
   precision?: number
+}
+
+export interface ObjectInfo {
+  node: string
+  instanced: boolean
+  animated: boolean
 }
 
 /**
@@ -31,9 +34,16 @@ export class AnalyzedGLTF {
   public gltf: GLTF
   public options: AnalyzedGLTFOptions
 
-  constructor(gltf: GLTF, options: AnalyzedGLTFOptions) {
+  private pruneStrategies: PruneStrategy[]
+
+  constructor(
+    gltf: GLTF,
+    options: AnalyzedGLTFOptions,
+    pruneStrategies: PruneStrategy[] = allPruneStrategies,
+  ) {
     this.gltf = gltf
     this.options = options
+    this.pruneStrategies = pruneStrategies
 
     // Collect all objects in the scene
     this.gltf.scene.traverse((child: Object3D) => this.objects.push(child))
@@ -76,14 +86,11 @@ export class AnalyzedGLTF {
     return this.rNbr(n)
   }
 
-  public getInfo(obj: Object3D): {
-    // type: string
-    node: string
-    instanced: boolean
-    animated: boolean
-  } {
+  public getInfo(obj: Object3D): ObjectInfo {
+    if (!obj) {
+      throw new Error('obj is undefined')
+    }
     const { instance, instanceall } = this.options
-    /* const type = getType(obj) */
     const node = nodeName(obj)
     let instanced =
       (instance || instanceall) &&
@@ -94,6 +101,37 @@ export class AnalyzedGLTF {
       this.dupGeometries[meshKey(obj)].count > (instanceall ? 0 : 1)
     instanced = instanced === undefined ? false : instanced
     return { /*type,*/ node, instanced, animated: this.hasAnimations() }
+  }
+
+  public walkAndPrune(obj: Object3D): Object3D {
+    const { log, bones } = this.options
+
+    // Check if the root node is useless
+    if (isRemoved(obj) && obj.children.length) {
+      obj.children.forEach((child) => {
+        this.walkAndPrune(child)
+      })
+      return obj
+    }
+
+    // Bail out on bones
+    if (!bones && isBone(obj)) {
+      return obj
+    }
+
+    // Walk the children first
+    if (obj.children) {
+      obj.children.forEach((child) => {
+        this.walkAndPrune(child)
+      })
+    }
+
+    const pruned = this.prune(obj)
+    if (pruned) {
+      log.debug('Pruned: ', descObj3D(obj))
+    }
+
+    return obj
   }
 
   //
@@ -162,46 +200,15 @@ export class AnalyzedGLTF {
     try {
       if (!keepgroups) {
         // Dry run to prune graph
-        this.walk(this.gltf.scene)
+        this.walkAndPrune(this.gltf.scene)
         this.compact()
       }
       // 2nd pass to eliminate hard to swat left-overs
-      this.walk(this.gltf.scene)
+      this.walkAndPrune(this.gltf.scene)
       this.compact()
     } catch (e) {
       log.error('Error during pruneAnalyzedGLTF: ', e)
     }
-  }
-
-  private walk(obj: Object3D): Object3D {
-    const { log, bones } = this.options
-
-    // Check if the root node is useless
-    if (isRemoved(obj) && obj.children.length) {
-      obj.children.forEach((child) => {
-        this.walk(child)
-      })
-      return obj
-    }
-
-    // Bail out on bones
-    if (!bones && isBone(obj)) {
-      return obj
-    }
-
-    // Walk the children first
-    if (obj.children) {
-      obj.children.forEach((child) => {
-        this.walk(child)
-      })
-    }
-
-    const pruned = this.prune(obj)
-    if (pruned) {
-      log.debug('Pruned: ', descObj3D(obj))
-    }
-
-    return obj
   }
 
   /**
@@ -228,149 +235,14 @@ export class AnalyzedGLTF {
 
   private prune(obj: Object3D): boolean {
     const props = calculateProps(obj, this)
-    const { animated } = this.getInfo(obj)
-    const { log, keepgroups } = this.options
-    // const type = getType(obj)
-    if (
-      isNotRemoved(obj) &&
-      !keepgroups &&
-      !animated &&
-      isGroup(obj) // scene is also a group too
-    ) {
-      /** Empty or no-property groups
-       *    <group>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      const noChildren = obj.children.length === 0
-      const noProps = Object.keys(props).length === 0
-      if (noChildren || noProps) {
-        log.debug(`Removed (${noChildren ? 'no children' : 'no props'}): `, descObj3D(obj))
-        setRemoved(obj)
-        return true // children
-      }
 
-      // More aggressive removal strategies ...
-      const first = obj.children[0]
-      const firstProps = calculateProps(first, this)
-      //const regex = /([a-z-A-Z]*)={([a-zA-Z0-9.[\]\-, /]*)}/g // original before linting /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
-      const propsKeys = Object.keys(props) // [...result.matchAll(regex)].map(([, match]) => match)
-      // const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
-      const firstPropsKeys = Object.keys(firstProps) // [...firstProps.matchAll(regex)].map(([, match]) => match)
-
-      /** Double negative rotations
-       *    <group rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group rotation={[Math.PI / 2, 0, 0]}>
-       *        <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      if (
-        obj.children.length === 1 &&
-        first.type === obj.type &&
-        equalOrNegated(obj.rotation, first.rotation)
-      ) {
-        if (
-          propsKeys.length === 1 &&
-          firstPropsKeys.length === 1 &&
-          propsKeys[0] === 'rotation' &&
-          firstPropsKeys[0] === 'rotation'
-        ) {
-          log.debug('Removed (aggressive: double negative rotation): ', descObj3D(obj))
-
-          setRemoved(obj, isRemoved(first))
-          // children = ''
-          if (first.children) {
-            first.children.forEach((child) => {
-              this.walk(child)
-            })
-          }
-          return true // children
+    for (const pruneStrategy of this.pruneStrategies) {
+      if (isNotRemoved(obj)) {
+        if (pruneStrategy(this, obj, props)) {
+          return true
         }
-      }
-
-      /** Double negative rotations w/ props
-       *    <group rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-       *        <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <group scale={0.01}>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       */
-      if (
-        obj.children.length === 1 &&
-        first.type === obj.type &&
-        equalOrNegated(obj.rotation, first.rotation)
-      ) {
-        if (
-          propsKeys.length === 1 &&
-          firstPropsKeys.length > 1 &&
-          propsKeys[0] === 'rotation' &&
-          firstPropsKeys.includes('rotation')
-        ) {
-          log.debug('Removed (aggressive: double negative rotation w/ props): ', descObj3D(obj))
-
-          setRemoved(obj)
-          // Remove rotation from first child
-          first.rotation.set(0, 0, 0)
-          this.walk(first)
-          return true // children
-        }
-      }
-
-      /** Transform overlap
-       *    <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *      <mesh geometry={nodes.foo} material={materials.bar} />
-       *  Solution:
-       *    <mesh geometry={nodes.foo} material={materials.bar} position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
-       */
-      const isChildTransformed =
-        firstPropsKeys.includes('position') ||
-        firstPropsKeys.includes('rotation') ||
-        firstPropsKeys.includes('scale')
-      const hasOtherProps = propsKeys.some(
-        (key) => !['position', 'scale', 'rotation'].includes(key),
-      )
-      if (
-        obj.children.length === 1 &&
-        isNotRemoved(first) &&
-        !isChildTransformed &&
-        !hasOtherProps
-      ) {
-        log.debug(`Removed (aggressive: ${propsKeys.join(' ')} overlap): `, descObj3D(obj))
-
-        // Move props over from the to-be-deleted object to the child
-        // This ensures that the child will have the correct transform when pruning is being repeated
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        propsKeys.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
-        // Insert the props into the result string
-        this.walk(first)
-        setRemoved(obj)
-        return true // children
-      }
-
-      /** Lack of content
-       *    <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *      <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]}>
-       *        <group position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
-       * Solution:
-       *   (delete the whole sub graph)
-       */
-      const empty: Object3D[] = []
-      obj.traverse((o) => {
-        if (!isGroup(o)) {
-          empty.push(o)
-        }
-      })
-      if (!empty.length) {
-        log.debug('Removed (aggressive: lack of content): ', descObj3D(obj))
-        empty.forEach((child) => setRemoved(child))
-        return true // ''
       }
     }
-
-    //?
-    return isRemoved(obj) // false // children
+    return false
   }
 }
