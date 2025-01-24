@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { Logger } from '../options.js'
+import { Logger } from './options.js'
 
 export interface Options {
   silent: boolean

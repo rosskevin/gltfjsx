@@ -7,6 +7,7 @@ import meow from 'meow'
 import { readPackageUpSync } from 'read-pkg-up'
 
 import gltfTransform from './gltfTransform.js'
+import { Log } from './Log.js'
 import { CliOptions, pickOptions } from './options.js'
 import { createR3FComponent } from './r3f/createR3FComponent.js'
 import { readGLTF } from './readGLTF.js'
@@ -16,7 +17,6 @@ import {
   resolveModelLoadPath,
   resolveOutputSrcFile,
 } from './utils/files.js'
-import { Log } from './utils/Log.js'
 
 /**
  * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.

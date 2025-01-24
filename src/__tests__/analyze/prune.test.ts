@@ -6,7 +6,7 @@ import { pruneAnalyzedGLTF } from '../../analyze/prune.js'
 import { createR3FComponent } from '../../r3f/createR3FComponent.js'
 import { readGLTF } from '../../readGLTF.js'
 import { resolveModelLoadPath } from '../../utils/files.js'
-import { Log } from '../../utils/Log.js'
+import { Log } from '../../Log.js'
 import {
   assertFileExists,
   defaultJsxOptions,
