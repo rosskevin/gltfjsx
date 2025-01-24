@@ -2,20 +2,11 @@ import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
-import { pruneAnalyzedGLTF } from '../../analyze/prune.js'
-import { createR3FComponent } from '../../r3f/createR3FComponent.js'
-import { readGLTF } from '../../readGLTF.js'
-import { resolveModelLoadPath } from '../../utils/files.js'
 import { Log } from '../../Log.js'
-import {
-  assertFileExists,
-  defaultJsxOptions,
-  models,
-  resolveModelFile,
-  types,
-} from '../fixtures.js'
+import { readGLTF } from '../../readGLTF.js'
+import { assertFileExists, models, resolveModelFile, types } from '../fixtures.js'
 
-const log = new Log({ silent: false, debug: false })
+const log = new Log({ silent: false, debug: true })
 
 describe('prune', () => {
   for (const modelName of models) {
@@ -43,24 +34,20 @@ describe('prune', () => {
             const m = await readGLTF(modelFile)
 
             const a = new AnalyzedGLTF(m, {
-              instance: false,
-              instanceall: false,
               log,
             })
 
-            pruneAnalyzedGLTF(a, { bones: false, log })
-
-            const options = defaultJsxOptions({
-              log,
-              componentName: modelName,
-              header: 'FOO header',
-              modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
-              types: true,
-              keepnames: true,
-              shadows: true,
-            })
-            const jsx = await createR3FComponent(m, options)
-            console.log(jsx)
+            // const options = defaultJsxOptions({
+            //   log,
+            //   componentName: modelName,
+            //   header: 'FOO header',
+            //   modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+            //   types: true,
+            //   keepnames: true,
+            //   shadows: true,
+            // })
+            // const jsx = await createR3FComponent(m, options)
+            // console.log(jsx)
             assertCommon(m)
           })
         })

@@ -17,9 +17,6 @@ export interface Logger {
 
 interface BaseOptions {
   log: Logger
-  draco?: string
-
-  // shared transform and jsx
   instance?: boolean
   instanceall?: boolean
   keepgroups?: boolean
@@ -30,12 +27,14 @@ export interface TransformOptions extends BaseOptions {
   console: boolean
   degrade: string
   degraderesolution: number
+  draco?: string
   error: number
   format: TextureCompressOptions['targetFormat']
 
   keepattributes: boolean
   keepmaterials: boolean
   keepmeshes: boolean
+
   ratio: number
   resolution: number
   simplify: boolean
@@ -96,7 +95,7 @@ export function pickOptions(options: CliOptions): {
       // console,
       // debug,
       log,
-      draco,
+      // draco,
       instance,
       instanceall,
       keepgroups,
@@ -105,21 +104,17 @@ export function pickOptions(options: CliOptions): {
   }
 }
 
-export interface PropsOptions {
-  log: Logger
-  keepnames?: boolean
+export interface PropsOptions extends BaseOptions {
+  // log: Logger
+  // keepnames?: boolean
+  bones?: boolean
   meta?: boolean
   shadows?: boolean
 }
 
-export interface PruneOptions extends PropsOptions {
-  bones: boolean
-  // debug: boolean
-  keepgroups?: boolean
-}
-
-export interface JsxOptions extends BaseOptions, PropsOptions, PruneOptions {
+export interface JsxOptions extends BaseOptions, PropsOptions {
   componentName: string
+  draco?: string
   exportdefault?: boolean
   header?: string
   modelLoadPath: string
@@ -131,6 +126,7 @@ export interface JsxOptions extends BaseOptions, PropsOptions, PruneOptions {
 export interface CliOptions extends TransformOptions, JsxOptions {
   console: boolean
   debug: boolean
+  draco?: string
   // delay: number
   output?: string
   root?: string

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
+import { Object3D } from 'three'
+
 import { Logger } from './options.js'
 
 export interface Options {
@@ -36,4 +38,9 @@ export class Log implements Logger {
   private writeLog(level: string, ...args: any[]) {
     console.log(`${level}: `, ...args)
   }
+}
+
+export const descObj3D = (o: Object3D) => {
+  const { type, name, uuid } = o
+  return `${type} ${name} ${uuid}`
 }

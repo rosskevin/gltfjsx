@@ -1,6 +1,5 @@
 import { Object3D, Vector3 } from 'three'
 
-import { PropsOptions } from '../options.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import {
   isColored,
@@ -19,17 +18,13 @@ import { materialKey, sanitizeName } from './utils.js'
 
 export type Props = Record<string, any>
 
-export function calculateProps<O extends PropsOptions>(
-  obj: Object3D,
-  a: AnalyzedGLTF,
-  options: Readonly<O>,
-): Props {
+export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
   const props: Props = {}
   const { animated, node, instanced } = a.getInfo(obj)
 
   // Include names when output is uncompressed or morphTargetDictionaries are present
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (obj.name.length && (options.keepnames || (obj as any).morphTargetDictionary || animated)) {
+  if (obj.name.length && (a.options.keepnames || (obj as any).morphTargetDictionary || animated)) {
     props['name'] = obj.name
   }
 
@@ -46,7 +41,7 @@ export function calculateProps<O extends PropsOptions>(
 
   if (!instanced) {
     // Shadows
-    if (isMesh(obj) && options.shadows) {
+    if (isMesh(obj) && a.options.shadows) {
       props['castShadow'] = true
       props['receiveShadow'] = true
     }
@@ -122,7 +117,7 @@ export function calculateProps<O extends PropsOptions>(
       props['scale'] = `[${rX}, ${rY}, ${rZ}]`
     }
   }
-  if (options.meta && obj.userData && Object.keys(obj.userData).length) {
+  if (a.options.meta && obj.userData && Object.keys(obj.userData).length) {
     props['userData'] = JSON.stringify(obj.userData)
   }
   return props
