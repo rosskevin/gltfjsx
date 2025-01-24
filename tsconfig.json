@@ -6,5 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src", "typings"],
-  "exclude": ["node_modules", "dist", "src-old", "src/__tests__/models"]
+  "exclude": ["node_modules", "dist", "src/__tests__/models"]
 }

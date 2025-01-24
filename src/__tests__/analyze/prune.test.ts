@@ -20,7 +20,7 @@ describe('prune', () => {
           })
 
           function assertCommon(m: GLTF) {
-            // FIXME
+            // FIXME assert some real things here
             expect(m.animations).not.toBeNull()
             expect(m.scenes).not.toBeNull()
             expect(m.scene).not.toBeNull()
@@ -37,17 +37,8 @@ describe('prune', () => {
               log,
             })
 
-            // const options = defaultJsxOptions({
-            //   log,
-            //   componentName: modelName,
-            //   header: 'FOO header',
-            //   modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
-            //   types: true,
-            //   keepnames: true,
-            //   shadows: true,
-            // })
-            // const jsx = await createR3FComponent(m, options)
-            // console.log(jsx)
+            // FIXME assert some real things here
+
             assertCommon(m)
           })
         })
