@@ -68,7 +68,7 @@ export const pruneDoubleNegativeRotation: PruneStrategy = (a, obj, props) => {
       setRemoved(obj, isRemoved(first))
       if (first.children) {
         first.children.forEach((child) => {
-          a.walkAndPrune(child)
+          a.visitAndPrune(child)
         })
       }
       return true
@@ -111,7 +111,7 @@ export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, obj, prop
       setRemoved(obj)
       // Remove rotation from first child
       first.rotation.set(0, 0, 0)
-      a.walkAndPrune(first)
+      a.visitAndPrune(first)
       return true
     }
   }
@@ -147,7 +147,7 @@ export const pruneTransformOverlap: PruneStrategy = (a, obj, props) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     propsKeys.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
     // Insert the props into the result string
-    a.walkAndPrune(first)
+    a.visitAndPrune(first)
     setRemoved(obj)
     return true
   }

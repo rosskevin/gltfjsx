@@ -103,13 +103,13 @@ export class AnalyzedGLTF {
     return { /*type,*/ node, instanced, animated: this.hasAnimations() }
   }
 
-  public walkAndPrune(obj: Object3D): Object3D {
+  public visitAndPrune(obj: Object3D): Object3D {
     const { log, bones } = this.options
 
     // Check if the root node is useless
     if (isRemoved(obj) && obj.children.length) {
       obj.children.forEach((child) => {
-        this.walkAndPrune(child)
+        this.visitAndPrune(child)
       })
       return obj
     }
@@ -122,7 +122,7 @@ export class AnalyzedGLTF {
     // Walk the children first
     if (obj.children) {
       obj.children.forEach((child) => {
-        this.walkAndPrune(child)
+        this.visitAndPrune(child)
       })
     }
 
@@ -200,11 +200,11 @@ export class AnalyzedGLTF {
     try {
       if (!keepgroups) {
         // Dry run to prune graph
-        this.walkAndPrune(this.gltf.scene)
+        this.visitAndPrune(this.gltf.scene)
         this.compact()
       }
       // 2nd pass to eliminate hard to swat left-overs
-      this.walkAndPrune(this.gltf.scene)
+      this.visitAndPrune(this.gltf.scene)
       this.compact()
     } catch (e) {
       log.error('Error during pruneAnalyzedGLTF: ', e)
