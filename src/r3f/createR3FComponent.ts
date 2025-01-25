@@ -17,6 +17,7 @@ import {
 import isVarName from '../analyze/isVarName.js'
 import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions, Logger } from '../options.js'
+import { getType } from './utils.js'
 
 const stringProps = ['name']
 
