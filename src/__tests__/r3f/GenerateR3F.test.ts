@@ -55,8 +55,11 @@ describe('GenerateR3F', () => {
               instanceall: options.instanceall,
               log: options.log,
             })
-            const jsx = new GeneratedR3F(a, options).generate().getFullText()
-            console.log(jsx)
+            const g = new GeneratedR3F(a, options)
+            g.generate()
+            const tsx = g.getSrc().getFullText()
+            console.log(tsx)
+            // const jsx = g.getJavascriptText()
             assertCommon(m)
           })
         })

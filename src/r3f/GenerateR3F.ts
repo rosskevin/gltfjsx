@@ -1,4 +1,10 @@
-import { FunctionDeclaration, InterfaceDeclaration, Project, SourceFile } from 'ts-morph'
+import {
+  FunctionDeclaration,
+  InterfaceDeclaration,
+  Project,
+  ScriptTarget,
+  SourceFile,
+} from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { JsxOptions } from '../options.js'
@@ -13,8 +19,14 @@ export class GeneratedR3F {
     private a: AnalyzedGLTF,
     private options: Readonly<JsxOptions>,
   ) {
-    this.project = new Project({ useInMemoryFileSystem: true })
-    this.src = this.project.createSourceFile('in-memory-file.ts', this.getTemplate())
+    this.project = new Project({
+      useInMemoryFileSystem: true,
+      compilerOptions: {
+        target: ScriptTarget.ESNext,
+        // jsx: JsxEmit.Preserve
+      },
+    })
+    this.src = this.project.createSourceFile(`${options.componentName}.tsx`, this.getTemplate())
 
     // gather references before we rename them
     const propsInterface = this.src.getInterface('ModelProps')
@@ -32,6 +44,7 @@ export class GeneratedR3F {
     // set constants - load path, draco
     this.setConstants()
 
+    // rename ModelProps and Model function
     this.renameModel()
 
     // format after manipulation
@@ -39,6 +52,29 @@ export class GeneratedR3F {
 
     return this.src
   }
+
+  public getSrc() {
+    return this.src
+  }
+
+  // emits valid js, but it is a build artifact, not source
+  // public getJavascriptText() {
+  //   // this.src.emit({})
+
+  //   // FIXME tsc will ouptut tsx as jsx, but ts-morph does not allow these options
+  //   // FIXME see https://github.com/dsherret/ts-morph/issues/1605
+  //   // npx tsc --jsx preserve -t esnext --outDir js --noEmit false
+  //   const result = this.project.emitToMemory({ jsx: preserve, t: esnext })
+
+  //   // output the emitted files to the console
+  //   for (const file of result.getFiles()) {
+  //     console.log('----')
+  //     console.log(file.filePath)
+  //     console.log('----')
+  //     console.log(file.text)
+  //     console.log('\n')
+  //   }
+  // }
 
   protected setConstants() {
     const { draco, modelLoadPath: inModelLoadPath } = this.options
