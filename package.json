@@ -52,7 +52,8 @@
     "read-pkg-up": "^11.0.0",
     "sharp": "^0.33.5",
     "three": "0.172.0",
-    "three-stdlib": "^2.35.12"
+    "three-stdlib": "^2.35.12",
+    "ts-morph": "^25.0.0"
   },
   "optionalDependencies": {
     "libvips": "^0.0.2"

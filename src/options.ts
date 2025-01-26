@@ -27,7 +27,7 @@ export interface TransformOptions extends BaseOptions {
   console: boolean
   degrade: string
   degraderesolution: number
-  draco?: string
+  draco: boolean
   error: number
   format: TextureCompressOptions['targetFormat']
 
@@ -95,7 +95,7 @@ export function pickOptions(options: CliOptions): {
       // console,
       // debug,
       log,
-      // draco,
+      draco,
       instance,
       instanceall,
       keepgroups,
@@ -114,7 +114,7 @@ export interface PropsOptions extends BaseOptions {
 
 export interface JsxOptions extends BaseOptions, PropsOptions {
   componentName: string
-  draco?: string
+  draco: boolean
   exportdefault?: boolean
   header?: string
   modelLoadPath: string
@@ -126,7 +126,7 @@ export interface JsxOptions extends BaseOptions, PropsOptions {
 export interface CliOptions extends TransformOptions, JsxOptions {
   console: boolean
   debug: boolean
-  draco?: string
+  draco: boolean
   // delay: number
   output?: string
   root?: string

@@ -33,7 +33,7 @@ const cli = meow(
   
 	Options
     --output, -o        Output src file name/path (default: Model.(j|t)sx)
-    --draco, -d         Draco binary path
+    --draco, -d         Use draco to load file
     --types, -t         Add Typescript definitions
     --keepnames, -k     Keep original names
     --keepgroups, -K    Keep (empty) groups, disable pruning
@@ -70,7 +70,7 @@ const cli = meow(
       shadows: { type: 'boolean', shortFlag: 's' },
       meta: { type: 'boolean', shortFlag: 'm' },
       precision: { type: 'number', shortFlag: 'p', default: 3 },
-      draco: { type: 'string', shortFlag: 'd' },
+      draco: { type: 'boolean', shortFlag: 'd', default: false },
       root: { type: 'string', shortFlag: 'r' },
       instance: { type: 'boolean', shortFlag: 'i' },
       instanceall: { type: 'boolean', shortFlag: 'I' },
