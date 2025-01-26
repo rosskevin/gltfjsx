@@ -1,8 +1,9 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
 import { Log } from '../../Log.js'
-import { createR3F } from '../../r3f/createR3F.js'
+import { GeneratedR3F } from '../../r3f/GenerateR3F.js'
 import { readGLTF } from '../../readGLTF.js'
 import { resolveModelLoadPath } from '../../utils/files.js'
 import {
@@ -15,7 +16,7 @@ import {
 
 const log = new Log({ silent: false, debug: false })
 
-describe('createR3F', () => {
+describe('GenerateR3F', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
@@ -37,7 +38,7 @@ describe('createR3F', () => {
             expect(m.parser.json).not.toBeNull()
           }
 
-          it('should createR3FComponent', async () => {
+          it('should generate', async () => {
             const m = await readGLTF(modelFile)
             const options = defaultJsxOptions({
               log,
@@ -49,7 +50,12 @@ describe('createR3F', () => {
               keepnames: true,
               shadows: true,
             })
-            const jsx = createR3F(m, options)
+            const a = new AnalyzedGLTF(m, {
+              instance: options.instance,
+              instanceall: options.instanceall,
+              log: options.log,
+            })
+            const jsx = new GeneratedR3F(a, options).generate().getFullText()
             console.log(jsx)
             assertCommon(m)
           })
