@@ -1,12 +1,12 @@
 import { GLTF } from 'node-three-gltf'
-import { Material, Mesh, Object3D } from 'three'
+import { Bone, Material, Mesh, Object3D } from 'three'
 
 import { descObj3D } from '../Log.js'
 import { PropsOptions } from '../options.js'
 import { calculateProps } from './calculateProps.js'
 import { isBone, isMesh, isNotRemoved, isRemoved } from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
-import { meshKey, nodeName, sanitizeMeshName } from './utils.js'
+import { collectMaterials, meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
 export interface AnalyzedGLTFOptions extends PropsOptions {
   precision?: number
@@ -84,6 +84,22 @@ export class AnalyzedGLTF {
         return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
     }
     return this.rNbr(n)
+  }
+
+  public getMeshes(): Mesh[] {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.objects.filter((o) => isMesh(o) && isNotRemoved(o)) as any
+  }
+
+  public getBones(): Bone[] {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.objects.filter(
+      (o) => isBone(o) && !(o.parent && isBone(o.parent)) && isNotRemoved(o),
+    ) as any
+  }
+
+  public getMaterials(): Material[] {
+    return [...new Set(this.getMeshes().flatMap((o) => collectMaterials(o.material)))]
   }
 
   public getInfo(obj: Object3D): ObjectInfo {

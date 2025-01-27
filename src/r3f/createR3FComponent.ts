@@ -5,15 +5,7 @@ import { AnimationClip, Bone, Mesh, Object3D } from 'three'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { calculateProps } from '../analyze/calculateProps.js'
-import {
-  isBone,
-  isInstancedMesh,
-  isLight,
-  isMesh,
-  isNotRemoved,
-  isRemoved,
-  isTargeted,
-} from '../analyze/is.js'
+import { isInstancedMesh, isLight, isMesh, isRemoved, isTargeted } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions, Logger } from '../options.js'
@@ -29,13 +21,9 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
 
   function printTypes(a: AnalyzedGLTF) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const meshes: Mesh[] = a.objects.filter((o) => isMesh(o) && isNotRemoved(o)) as any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const bones: Bone[] = a.objects.filter(
-      (o) => isBone(o) && !(o.parent && isBone(o.parent)) && isNotRemoved(o),
-    ) as any
-    const materials = [...new Set(meshes.flatMap((o) => collectMaterials(o.material)))]
+    const meshes: Mesh[] = a.getMeshes()
+    const bones: Bone[] = a.getBones()
+    const materials = a.getMaterials()
 
     let animationTypes = ''
     if (a.hasAnimations()) {
