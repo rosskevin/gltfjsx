@@ -1,4 +1,4 @@
-import { Bone, Mesh } from 'three'
+import { Bone, Mesh, Object3D } from 'three'
 import {
   FormatCodeSettings,
   FunctionDeclaration,
@@ -13,9 +13,20 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
+import { isBone, isNotRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { JsxOptions } from '../options.js'
 
+/**
+ * Generate React Three Fiber component
+ *
+ * This uses a mix of a string template, and ts-morph to generate the source file.  Protected member functions
+ * are used to manipulate the source file and allow for extensibiilty/customization.  Customization of the
+ * ts-morph {SourceFile} can also be done externally as opposed or in conjunction with extending this class.
+ *
+ * Much was converted to use stringified template for simplicity, but blocks can be moved out to ts-morph
+ * as needed.
+ */
 export class GeneratedR3F {
   protected project: Project
   protected src: SourceFile
@@ -48,9 +59,7 @@ export class GeneratedR3F {
 
     // may or may not exist
     this.instancesFn = this.src.getFunction(this.getModelInstancesName())!
-  }
 
-  public generate(): SourceFile {
     const { log, header, instance, instanceall } = this.options
 
     // set constants - load path, draco
@@ -60,8 +69,6 @@ export class GeneratedR3F {
 
     // format after manipulation
     this.src.formatText(this.getFormatCodeSettings())
-
-    return this.src
   }
 
   public getSrc() {
@@ -118,10 +125,7 @@ export class GeneratedR3F {
         .join(', ')} }`,
     )
 
-    // animations
-    if (!this.a.hasAnimations()) {
-      return
-    }
+    // animations (done in the template)
   }
 
   // FIXME remove this example
@@ -160,26 +164,57 @@ export class GeneratedR3F {
     return this.options.componentName + 'Instances'
   }
 
+  protected isPrimitive(o: Object3D) {
+    if (isTargetedLight(o)) {
+      return true
+    }
+    if (isBone(o)) {
+      return true
+    }
+
+    return false
+  }
+
+  protected hasPrimitives() {
+    for (const o of this.a.objects) {
+      if (isNotRemoved(o) && this.isPrimitive(o)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
+   * Provides the template for the generated source file.
+   *
+   * NOTE: for simplicity, opted to just include all potential imports or destructured variables, let eslint sort out unused in userland
+   *
+   * @returns
+   */
   protected getTemplate() {
-    const { componentName, instanceall } = this.options
+    const { componentName } = this.options
     const modelGLTFName = this.getModelGLTFName()
     const modelActionName = this.getModelActionName()
     const modelPropsName = this.getModelPropsName()
     const modelInstancesName = this.getModelInstancesName()
     const hasAnimations = this.a.hasAnimations()
+    const hasInstances = this.a.hasInstances()
+    const dupGeometryValues = Object.values(this.a.dupGeometries)
+    const hasPrimitives = this.hasPrimitives() // bones, lights,
 
+    // NOTE: for simplicity, opted to just include all potential imports, let eslint sort out unused in userland
     const template = `
       import { useGLTF } from '@react-three/drei'
-      import { GroupProps, MeshProps } from '@react-three/fiber'
+      import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
       import { AnimationClip, GLTF, Mesh, MeshStandardMaterial } from 'three'
-      import { GLTF } from 'three-stdlib'
+      import { GLTF, SkeletonUtils } from 'three-stdlib'
 
       ${
         hasAnimations
           ? `
         type ${modelActionName}Names = ${this.a.gltf.animations.map((clip, i) => `'${clip.name}'`).join(' | ')}
-        interface GLTFAction extends AnimationClip { name: ${modelActionName}Names }
+        interface ${modelActionName} extends AnimationClip { name: ${modelActionName}Names }
         `
           : ''
       }
@@ -196,7 +231,7 @@ export class GeneratedR3F {
       const draco = false
 
       ${
-        instanceall
+        hasInstances
           ? `
       type ContextType = Record<string, React.ForwardRefExoticComponent<MeshProps>>
 
@@ -204,7 +239,9 @@ export class GeneratedR3F {
 
       export function ${modelInstancesName}({ children, ...props }: ${modelPropsName}) {
         const { nodes } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
-        const instances = React.useMemo(() => ({}), [nodes])
+        const instances = React.useMemo(() => ({
+          ${dupGeometryValues.map((v) => `${v.name}: ${v.node}`).join(', ')}
+        }), [nodes])
         return (
           <Merged meshes={instances} {...props}>
             {(instances: ContextType) => <context.Provider value={instances} children={children} />}
@@ -217,10 +254,17 @@ export class GeneratedR3F {
 
       export function ${componentName}(props: ${modelPropsName}) {
         ${
-          instanceall
+          hasInstances
             ? 'const instances = React.useContext(context)'
-            : `const { nodes, materials } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}`
+            : hasPrimitives
+              ? `
+                const { ${hasAnimations ? 'animations, ' : ''}scene } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
+                const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
+                const { nodes, materials } = useGraph(clone) as ${modelGLTFName}
+              `
+              : `const { ${hasAnimations ? 'animations, ' : ''}nodes, materials } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}`
         }
+        ${hasAnimations ? `const groupRef = React.useRef<Group>()}` : ''}
         return (
           <group {...props} dispose={null}/>
         )

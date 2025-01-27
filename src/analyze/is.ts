@@ -56,6 +56,10 @@ export const isDistanced = (o: any): o is Distanced => (o as any).distance !== u
 interface Targeted {
   target: Object3D
 }
+
+export const isTargetedLight = (o: any): o is Targeted =>
+  isLight(o) && isTargeted(o) && o.children[0] === o.target
+
 export const isTargeted = (o: any): o is Targeted => (o as any).target !== undefined
 
 export const isCamera = (o: any): o is Camera => (o as any).isCamera

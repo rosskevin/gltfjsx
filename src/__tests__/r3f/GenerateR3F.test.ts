@@ -56,7 +56,6 @@ describe('GenerateR3F', () => {
               log: options.log,
             })
             const g = new GeneratedR3F(a, options)
-            g.generate()
             const tsx = g.getSrc().getFullText()
             console.log(tsx)
             // const jsx = g.toJsx()

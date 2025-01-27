@@ -5,9 +5,9 @@ import { AnimationClip, Bone, Mesh, Object3D } from 'three'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { calculateProps } from '../analyze/calculateProps.js'
-import { isInstancedMesh, isLight, isMesh, isRemoved, isTargeted } from '../analyze/is.js'
+import { isInstancedMesh, isMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import { collectMaterials, materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
+import { materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions, Logger } from '../options.js'
 import { getType } from './utils.js'
 
@@ -88,7 +88,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     }
 
     // Take care of lights with targets
-    if (isLight(obj) && isTargeted(obj) && obj.children[0] === obj.target) {
+    if (isTargetedLight(obj)) {
       return `<${type} ${printProps(obj)} target={${node}.target}>
         <primitive object={${node}.target} ${printProps(obj.target)} />
       </${type}>`
@@ -131,7 +131,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   }
 
   function printAnimations(animations: AnimationClip[]) {
-    return animations.length ? `\nconst { actions } = useAnimations(animations, group)` : ''
+    return animations.length ? `\nconst { actions } = useAnimations(animations, groupRef)` : ''
   }
 
   function parseExtras(extras: any) {
@@ -245,17 +245,24 @@ ${parsedExtras}*/`
         export ${options.exportdefault ? 'default' : ''} function Model(props${
           options.types ? ": JSX.IntrinsicElements['group']" : ''
         }) {
-          ${a.hasInstances() ? 'const instances = React.useContext(context);' : ''} ${
+          ${
+            // done
+            a.hasInstances() ? 'const instances = React.useContext(context);' : ''
+          } ${
+            // done
             a.hasAnimations()
-              ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};`
+              ? `const groupRef = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};`
               : ''
           } ${
+            // done
             !options.instanceall
               ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${
                   a.hasAnimations() ? ', animations' : ''
                 }} = useGLTF(modelLoadPath${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+                  // done
                   !hasPrimitives && options.types ? ' as GLTFResult' : ''
                 }${
+                  // done
                   hasPrimitives
                     ? `\nconst clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
                 const { nodes, materials } = useGraph(clone) ${options.types ? ' as GLTFResult' : ''}`
@@ -264,7 +271,7 @@ ${parsedExtras}*/`
               : ''
           } ${printAnimations(gltf.animations)}
           return (
-            <group ${a.hasAnimations() ? `ref={group}` : ''} {...props} dispose={null}>
+            <group ${a.hasAnimations() ? `ref={groupRef}` : ''} {...props} dispose={null}>
         ${scene}
             </group>
           )
