@@ -10,6 +10,7 @@ export const types = [
   'gltf',
   'gltf-transform-meshopt',
   'gltf-transform-draco',
+  'gltf-transform-draco-instanceall',
 ]
 
 export const models = ['FlightHelmet']

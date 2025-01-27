@@ -1,9 +1,12 @@
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
+  ObjectLiteralExpression,
   Project,
   ScriptTarget,
   SourceFile,
+  SyntaxKind,
+  VariableDeclarationKind,
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
@@ -12,6 +15,7 @@ import { JsxOptions } from '../options.js'
 export class GeneratedR3F {
   protected project: Project
   protected src: SourceFile
+  protected gltfInterface!: InterfaceDeclaration
   protected propsInterface!: InterfaceDeclaration
   protected fn!: FunctionDeclaration
   protected instancesFn: FunctionDeclaration
@@ -31,16 +35,15 @@ export class GeneratedR3F {
     this.src = this.project.createSourceFile(`${options.componentName}.tsx`, this.getTemplate())
 
     // gather references before we rename them
-    const propsInterface = this.src.getInterface('ModelProps')
-    if (!propsInterface) throw new Error('ModelProps not found')
-    this.propsInterface = propsInterface
+    this.gltfInterface = this.getInterface(this.getModelGLTFName())
+    this.propsInterface = this.getInterface(this.getModelPropsName())
 
-    const fn = this.src.getFunction('Model')
+    const fn = this.src.getFunction(this.options.componentName)
     if (!fn) throw new Error('Model function not found')
     this.fn = fn
 
     // may or may not exist
-    this.instancesFn = this.src.getFunction('ModelInstances')!
+    this.instancesFn = this.src.getFunction(this.getModelInstancesName())!
   }
 
   public generate(): SourceFile {
@@ -48,9 +51,6 @@ export class GeneratedR3F {
 
     // set constants - load path, draco
     this.setConstants()
-
-    // rename ModelProps and Model function
-    this.renameModel()
 
     // format after manipulation
     this.src.formatText()
@@ -86,38 +86,56 @@ export class GeneratedR3F {
     this.src.getVariableDeclaration('draco')?.setInitializer(draco ? 'true' : 'false')
   }
 
-  /**
-   * Rename ModelProps and Model function
-   */
-  protected renameModel() {
-    const { componentName } = this.options
-    const modelPropsName = componentName + 'Props'
+  // FIXME remove this example
+  protected deletemeObjectLiteralExample() {
+    const variable = this.src.addVariableStatement({
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [{ name: 'example', initializer: '{}' }],
+    })
 
-    // set ModelProps interface name
-    this.propsInterface.set({ name: modelPropsName }) // does not rename everywhere
+    const objectLiteral: ObjectLiteralExpression = variable.getFirstDescendantByKindOrThrow(
+      SyntaxKind.ObjectLiteralExpression,
+    )
 
-    // rename the Model and ModelInstances fn, rename ModelProps arg
-    this.fn.set({ name: componentName })
-    this.instancesFn?.set({ name: componentName + 'Instances' })
-    const props = this.fn.getParameters()[0]
-    if (!props) throw new Error('Model props not found')
-    props.setType(modelPropsName)
+    objectLiteral.addPropertyAssignments([
+      { name: 'property1', initializer: '123' },
+      {
+        name: 'property2',
+        initializer: 'false',
+      },
+    ])
   }
+
+  protected getModelPropsName() {
+    return this.options.componentName + 'Props'
+  }
+
+  protected getModelGLTFName() {
+    return this.options.componentName + 'GLTF'
+  }
+
+  protected getModelInstancesName() {
+    return this.options.componentName + 'Instances'
+  }
+
   protected getTemplate() {
-    const { instanceall } = this.options
+    const { componentName, instanceall } = this.options
+    const modelGLTFName = this.getModelGLTFName()
+    const modelPropsName = this.getModelPropsName()
+    const modelInstancesName = this.getModelInstancesName()
     const template = `
       import { useGLTF } from '@react-three/drei'
-      import { GroupProps } from '@react-three/fiber'
+      import { GroupProps, MeshProps } from '@react-three/fiber'
       import * as React from 'react'
       import { Mesh, MeshStandardMaterial, GLTF } from 'three'
       import { GLTF } from 'three-stdlib'
 
-      interface GLTFResult extends GLTF {
+      interface ${modelGLTFName} extends GLTF {
         nodes: {}
         materials: {}
       }
 
-      export interface ModelProps extends GroupProps {}
+      export interface ${modelPropsName} extends GroupProps {}
 
       const modelLoadPath = '<foo>.glb'
       const draco = false
@@ -129,8 +147,8 @@ export class GeneratedR3F {
 
       const context = React.createContext<ContextType>({})
 
-      export function ModelInstances({ children, ...props }: ModelProps) {
-        const { nodes } = useGLTF(modelLoadPath, draco) as GLTFResult
+      export function ${modelInstancesName}({ children, ...props }: ${modelPropsName}) {
+        const { nodes } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
         const instances = React.useMemo(() => ({}), [nodes])
         return (
           <Merged meshes={instances} {...props}>
@@ -142,11 +160,11 @@ export class GeneratedR3F {
           : ''
       }
 
-      export function Model(props: ModelProps) {
+      export function ${componentName}(props: ${modelPropsName}) {
         ${
           instanceall
             ? 'const instances = React.useContext(context)'
-            : 'const { nodes, materials } = useGLTF(modelLoadPath, draco) as GLTFResult'
+            : `const { nodes, materials } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}`
         }
         return (
           <group {...props} dispose={null}/>
@@ -156,5 +174,12 @@ export class GeneratedR3F {
       useGLTF.preload(modelLoadPath, draco)
       `
     return template
+  }
+
+  /** convenience */
+  private getInterface(name: string) {
+    const i = this.src.getInterface(name)
+    if (!i) throw new Error(`${name} interface not found`)
+    return i
   }
 }
