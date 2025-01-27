@@ -14,6 +14,7 @@ export class GeneratedR3F {
   protected src: SourceFile
   protected propsInterface!: InterfaceDeclaration
   protected fn!: FunctionDeclaration
+  protected instancesFn: FunctionDeclaration
 
   constructor(
     private a: AnalyzedGLTF,
@@ -37,6 +38,9 @@ export class GeneratedR3F {
     const fn = this.src.getFunction('Model')
     if (!fn) throw new Error('Model function not found')
     this.fn = fn
+
+    // may or may not exist
+    this.instancesFn = this.src.getFunction('ModelInstances')!
   }
 
   public generate(): SourceFile {
@@ -92,13 +96,15 @@ export class GeneratedR3F {
     // set ModelProps interface name
     this.propsInterface.set({ name: modelPropsName }) // does not rename everywhere
 
-    // rename the Model fn and rename ModelProps arg
+    // rename the Model and ModelInstances fn, rename ModelProps arg
     this.fn.set({ name: componentName })
+    this.instancesFn?.set({ name: componentName + 'Instances' })
     const props = this.fn.getParameters()[0]
     if (!props) throw new Error('Model props not found')
     props.setType(modelPropsName)
   }
   protected getTemplate() {
+    const { instanceall } = this.options
     const template = `
       import { useGLTF } from '@react-three/drei'
       import { GroupProps } from '@react-three/fiber'
@@ -116,14 +122,38 @@ export class GeneratedR3F {
       const modelLoadPath = '<foo>.glb'
       const draco = false
 
+      ${
+        instanceall
+          ? `
+      type ContextType = Record<string, React.ForwardRefExoticComponent<MeshProps>>
+
+      const context = React.createContext<ContextType>({})
+
+      export function ModelInstances({ children, ...props }: ModelProps) {
+        const { nodes } = useGLTF(modelLoadPath, draco) as GLTFResult
+        const instances = React.useMemo(() => ({}), [nodes])
+        return (
+          <Merged meshes={instances} {...props}>
+            {(instances: ContextType) => <context.Provider value={instances} children={children} />}
+          </Merged>
+        )
+      }        
+      `
+          : ''
+      }
+
       export function Model(props: ModelProps) {
-        const { nodes, materials } = useGLTF(modelLoadPath, draco) as GLTFResult
+        ${
+          instanceall
+            ? 'const instances = React.useContext(context)'
+            : 'const { nodes, materials } = useGLTF(modelLoadPath, draco) as GLTFResult'
+        }
         return (
           <group {...props} dispose={null}/>
         )
       }
 
-      useGLTF.preload(modelLoadPath)
+      useGLTF.preload(modelLoadPath, draco)
       `
     return template
   }
