@@ -27,7 +27,6 @@ export interface TransformOptions extends BaseOptions {
   console: boolean
   degrade: string
   degraderesolution: number
-  draco: boolean
   error: number
   format: TextureCompressOptions['targetFormat']
 
