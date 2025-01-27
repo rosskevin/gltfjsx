@@ -21,10 +21,11 @@ export class GeneratedR3F {
   ) {
     this.project = new Project({
       useInMemoryFileSystem: true,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       compilerOptions: {
         target: ScriptTarget.ESNext,
-        // jsx: JsxEmit.Preserve
-      },
+        jsx: 1, // JsxEmit.Preserve bug https://github.com/dsherret/ts-morph/issues/1605
+      } as any,
     })
     this.src = this.project.createSourceFile(`${options.componentName}.tsx`, this.getTemplate())
 
@@ -57,30 +58,27 @@ export class GeneratedR3F {
     return this.src
   }
 
-  // emits valid js, but it is a build artifact, not source
-  // public getJavascriptText() {
-  //   // this.src.emit({})
+  /**
+   * @returns the source as tsx
+   */
+  public toTsx() {
+    return this.src.getFullText()
+  }
 
-  //   // FIXME tsc will ouptut tsx as jsx, but ts-morph does not allow these options
-  //   // FIXME see https://github.com/dsherret/ts-morph/issues/1605
-  //   // npx tsc --jsx preserve -t esnext --outDir js --noEmit false
-  //   const result = this.project.emitToMemory({ jsx: preserve, t: esnext })
-
-  //   // output the emitted files to the console
-  //   for (const file of result.getFiles()) {
-  //     console.log('----')
-  //     console.log(file.filePath)
-  //     console.log('----')
-  //     console.log(file.text)
-  //     console.log('\n')
-  //   }
-  // }
+  /**
+   * @returns the source as jsx
+   */
+  public toJsx() {
+    // npx tsc --jsx preserve -t esnext --outDir js --noEmit false
+    const result = this.project.emitToMemory()
+    return result.getFiles()[0].text
+  }
 
   protected setConstants() {
     const { draco, modelLoadPath: inModelLoadPath } = this.options
     const modelLoadPath =
       (inModelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + inModelLoadPath
-    this.src.getVariableDeclaration('modelLoadPath')?.setInitializer(modelLoadPath)
+    this.src.getVariableDeclaration('modelLoadPath')?.setInitializer(`'${modelLoadPath}'`)
     this.src.getVariableDeclaration('draco')?.setInitializer(draco ? 'true' : 'false')
   }
 
