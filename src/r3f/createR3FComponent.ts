@@ -209,16 +209,19 @@ ${parsedExtras}*/`
         }
         ${scene.includes('OrthographicCamera') ? 'OrthographicCamera,' : ''}
         ${a.hasAnimations() ? 'useAnimations' : ''} } from '@react-three/drei'
+        // done
         ${
           hasPrimitives || options.types
             ? `import { ${options.types ? 'GLTF,' : ''} ${hasPrimitives ? 'SkeletonUtils' : ''} } from "three-stdlib"`
             : ''
         }
+        // done
         ${options.types ? printTypes(a) : ''}
         const modelLoadPath = '${modelLoadPath}'
         ${
           a.hasInstances()
-            ? `
+            ? // done
+              `
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
         export function Instances({ children, ...props }${options.types ? ': JSX.IntrinsicElements["group"]' : ''}) {
@@ -241,7 +244,7 @@ ${parsedExtras}*/`
         `
             : ''
         }
-
+        // done
         export ${options.exportdefault ? 'default' : ''} function Model(props${
           options.types ? ": JSX.IntrinsicElements['group']" : ''
         }) {

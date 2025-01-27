@@ -18,6 +18,8 @@ import {
   SpotLight,
 } from 'three'
 
+export type isFn = (o: any) => boolean
+
 export const isObject3D = (o: any): o is Object3D => (o as any).isObject3D
 
 export const isScene = (o: any): o is Group => isGroup(o) && o.parent === null

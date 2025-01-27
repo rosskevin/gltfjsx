@@ -4,7 +4,7 @@ import { Bone, Material, Mesh, Object3D } from 'three'
 import { descObj3D } from '../Log.js'
 import { PropsOptions } from '../options.js'
 import { calculateProps } from './calculateProps.js'
-import { isBone, isMesh, isNotRemoved, isRemoved } from './is.js'
+import { isBone, isFn, isMesh, isNotRemoved, isRemoved } from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
 import { collectMaterials, meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
@@ -56,6 +56,18 @@ export class AnalyzedGLTF {
 
     // Prune all (other) strategies
     this.pruneAllStrategies()
+  }
+
+  /**
+   * Determine if pruned scene contains any of the given objects
+   */
+  public includes(is: isFn) {
+    for (const o of this.objects) {
+      if (isNotRemoved(o) && is(o)) {
+        return true
+      }
+    }
+    return false
   }
 
   public hasAnimations() {

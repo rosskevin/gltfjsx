@@ -1,4 +1,4 @@
-import { Bone, Mesh, Object3D } from 'three'
+import { Bone, Mesh } from 'three'
 import {
   FormatCodeSettings,
   FunctionDeclaration,
@@ -13,9 +13,9 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { isBone, isNotRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { JsxOptions } from '../options.js'
+import { isPrimitive } from './utils.js'
 
 /**
  * Generate React Three Fiber component
@@ -164,24 +164,8 @@ export class GeneratedR3F {
     return this.options.componentName + 'Instances'
   }
 
-  protected isPrimitive(o: Object3D) {
-    if (isTargetedLight(o)) {
-      return true
-    }
-    if (isBone(o)) {
-      return true
-    }
-
-    return false
-  }
-
   protected hasPrimitives() {
-    for (const o of this.a.objects) {
-      if (isNotRemoved(o) && this.isPrimitive(o)) {
-        return true
-      }
-    }
-    return false
+    return this.a.includes(isPrimitive)
   }
 
   /**
@@ -204,7 +188,7 @@ export class GeneratedR3F {
 
     // NOTE: for simplicity, opted to just include all potential imports, let eslint sort out unused in userland
     const template = `
-      import { useGLTF } from '@react-three/drei'
+      import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
       import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
       import { AnimationClip, GLTF, Mesh, MeshStandardMaterial } from 'three'

@@ -1,5 +1,7 @@
 import { Object3D } from 'three'
 
+import { isBone, isTargetedLight } from '../analyze/is.js'
+
 /**
  * r3f specific determination of jsx component
  */
@@ -10,4 +12,15 @@ export function getType(obj: Object3D): string {
   if (type === 'perspectiveCamera') type = 'PerspectiveCamera'
   if (type === 'orthographicCamera') type = 'OrthographicCamera'
   return type
+}
+
+export function isPrimitive(o: Object3D) {
+  if (isTargetedLight(o)) {
+    return true
+  }
+  if (isBone(o)) {
+    return true
+  }
+
+  return false
 }
