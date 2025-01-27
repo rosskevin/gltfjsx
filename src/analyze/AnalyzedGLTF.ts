@@ -59,7 +59,7 @@ export class AnalyzedGLTF {
   }
 
   /**
-   * Determine if pruned scene contains any of the given objects
+   * Determine if pruned scene contains any of the given objects (that have not been removed)
    */
   public includes(is: isFn) {
     for (const o of this.objects) {
