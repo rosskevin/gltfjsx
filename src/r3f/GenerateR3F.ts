@@ -1,6 +1,7 @@
+import * as prettier from 'prettier'
+import babelParser from 'prettier/parser-babel.js'
 import { Bone, Mesh } from 'three'
 import {
-  FormatCodeSettings,
   FunctionDeclaration,
   InterfaceDeclaration,
   ObjectLiteralExpression,
@@ -8,7 +9,6 @@ import {
   ScriptTarget,
   SourceFile,
   SyntaxKind,
-  ts,
   VariableDeclarationKind,
 } from 'ts-morph'
 
@@ -68,7 +68,7 @@ export class GeneratedR3F {
     this.setModelGLTFTypes()
 
     // format after manipulation
-    this.src.formatText(this.getFormatCodeSettings())
+    this.src.formatText()
   }
 
   public getSrc() {
@@ -78,23 +78,17 @@ export class GeneratedR3F {
   /**
    * @returns the source as tsx
    */
-  public toTsx() {
-    return this.src.getFullText()
+  public async toTsx() {
+    return this.formatCode(this.src.getFullText())
   }
 
   /**
    * @returns the source as jsx
    */
-  public toJsx() {
+  public async toJsx() {
     // npx tsc --jsx preserve -t esnext --outDir js --noEmit false
     const result = this.project.emitToMemory()
-    return result.getFiles()[0].text
-  }
-
-  protected getFormatCodeSettings(): FormatCodeSettings {
-    return {
-      semicolons: ts.SemicolonPreference.Remove,
-    }
+    return this.formatCode(result.getFiles()[0].text)
   }
 
   protected setConstants() {
@@ -126,6 +120,21 @@ export class GeneratedR3F {
     )
 
     // animations (done in the template)
+  }
+
+  protected async formatCode(code: string) {
+    return prettier.format(code, this.getPrettierSettings())
+  }
+
+  protected getPrettierSettings() {
+    return {
+      semi: false,
+      printWidth: 100,
+      singleQuote: true,
+      jsxBracketSameLine: true,
+      parser: 'babel-ts',
+      plugins: [babelParser],
+    }
   }
 
   // FIXME remove this example
