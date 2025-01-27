@@ -4,6 +4,7 @@ import { Bone, Mesh } from 'three'
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
+  JsxSelfClosingElement,
   ObjectLiteralExpression,
   Project,
   ScriptTarget,
@@ -26,6 +27,8 @@ import { isPrimitive } from './utils.js'
  *
  * Much was converted to use stringified template for simplicity, but blocks can be moved out to ts-morph
  * as needed.
+ *
+ * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
 export class GeneratedR3F {
   protected project: Project
@@ -34,6 +37,7 @@ export class GeneratedR3F {
   protected propsInterface!: InterfaceDeclaration
   protected instancesFn: FunctionDeclaration
   protected fn!: FunctionDeclaration
+  protected groupRoot!: JsxSelfClosingElement
 
   constructor(
     private a: AnalyzedGLTF,
@@ -57,15 +61,21 @@ export class GeneratedR3F {
     if (!fn) throw new Error('Model function not found')
     this.fn = fn
 
+    const fnReturn = this.fn.getStatementByKind(SyntaxKind.ReturnStatement)
+    if (!fnReturn) throw new Error('Model function return not found')
+    const groupRoot = fnReturn.getFirstDescendantByKindOrThrow(SyntaxKind.JsxSelfClosingElement)
+    if (!groupRoot) throw new Error('Model function groupRoot not found')
+    this.groupRoot = groupRoot
+
     // may or may not exist
     this.instancesFn = this.src.getFunction(this.getModelInstancesName())!
-
-    const { log, header, instance, instanceall } = this.options
 
     // set constants - load path, draco
     this.setConstants()
 
     this.setModelGLTFTypes()
+
+    this.generateChildren()
 
     // format after manipulation
     this.src.formatText()
@@ -121,6 +131,8 @@ export class GeneratedR3F {
 
     // animations (done in the template)
   }
+
+  protected generateChildren() {}
 
   protected async formatCode(code: string) {
     return prettier.format(code, this.getPrettierSettings())
@@ -185,7 +197,7 @@ export class GeneratedR3F {
    * @returns
    */
   protected getTemplate() {
-    const { componentName } = this.options
+    const { componentName, header, size } = this.options
     const modelGLTFName = this.getModelGLTFName()
     const modelActionName = this.getModelActionName()
     const modelPropsName = this.getModelPropsName()
@@ -193,10 +205,23 @@ export class GeneratedR3F {
     const hasAnimations = this.a.hasAnimations()
     const hasInstances = this.a.hasInstances()
     const dupGeometryValues = Object.values(this.a.dupGeometries)
-    const hasPrimitives = this.hasPrimitives() // bones, lights,
+    const hasPrimitives = this.hasPrimitives() // bones, lights
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const extras = this.a.gltf.parser.json.asset && this.a.gltf.parser.json.asset.extras
 
     // NOTE: for simplicity, opted to just include all potential imports, let eslint sort out unused in userland
     const template = `
+      /*
+        ${header ? header : 'Auto-generated'} ${size ? `\nFiles: ${size}` : ''}
+      */
+      ${
+        extras
+          ? Object.keys(extras as Record<string, any>)
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              .map((key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${extras[key]}`)
+              .join('\n') + '\n'
+          : ''
+      }
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
       import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
@@ -257,9 +282,16 @@ export class GeneratedR3F {
               `
               : `const { ${hasAnimations ? 'animations, ' : ''}nodes, materials } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}`
         }
-        ${hasAnimations ? `const groupRef = React.useRef<Group>()}` : ''}
+        ${
+          hasAnimations
+            ? `
+          const groupRef = React.useRef<Group>()
+          const { actions } = useAnimations(animations, groupRef)
+          `
+            : ''
+        }
         return (
-          <group {...props} dispose={null}/>
+          <group ${hasAnimations ? `ref={groupRef}` : ''} {...props} dispose={null}/>
         )
       }
 

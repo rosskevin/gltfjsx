@@ -130,6 +130,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
     return result
   }
 
+  // done
   function printAnimations(animations: AnimationClip[]) {
     return animations.length ? `\nconst { actions } = useAnimations(animations, groupRef)` : ''
   }
@@ -194,8 +195,10 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   } catch (e) {
     console.log('Error while parsing glTF', e)
   }
+  // done
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const parsedExtras = parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)
+  // done
   const header = `/*
 ${options.header ? options.header : 'Auto-generated'} ${
     options.size ? `\nFiles: ${options.size}` : ''
@@ -272,7 +275,9 @@ ${parsedExtras}*/`
                     : ''
                 }`
               : ''
-          } ${printAnimations(gltf.animations)}
+          } 
+          // done
+          ${printAnimations(gltf.animations)}
           return (
             <group ${a.hasAnimations() ? `ref={groupRef}` : ''} {...props} dispose={null}>
         ${scene}
