@@ -15,11 +15,24 @@ export const types = [
 
 export const models = ['FlightHelmet']
 
-export const resolveModelFile = (modelName: string, type: string) => {
+export const resolveModelFile = (inModelName: string, type: string) => {
+  let modelName
   const extension = type === 'gltf' ? 'gltf' : 'glb'
+  switch (type) {
+    case 'gltf':
+    case 'gltf-transform-meshopt':
+    case 'gltf-transform-draco':
+      modelName = inModelName
+      break
+    case 'gltf-transform-draco-instanceall':
+      modelName = inModelName + '-transformed'
+      break
+    default:
+      throw new Error(`Unknown type: ${type}`)
+  }
   return path.join(
     path.dirname(new URL(import.meta.url).pathname), // this dir
-    `./models/${modelName}/${type}/${modelName}.${extension}`,
+    `./models/${inModelName}/${type}/${modelName}.${extension}`,
   )
 }
 

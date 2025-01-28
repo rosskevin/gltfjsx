@@ -60,6 +60,13 @@ describe('GenerateR3F', () => {
             console.log(tsx)
             // const jsx = g.toJsx()
             // console.log(jsx)
+
+            if (type.includes('instanceall')) {
+              expect(tsx).toContain('<Merged')
+              expect(tsx).toContain('const instances = React.useMemo(')
+              expect(tsx).toContain('<instances.')
+            }
+
             assertCommon(m)
           })
         })
