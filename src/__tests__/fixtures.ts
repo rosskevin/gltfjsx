@@ -22,6 +22,7 @@ export const resolveModelFile = (inModelName: string, type: string) => {
     case 'gltf':
     case 'gltf-transform-meshopt':
     case 'gltf-transform-draco':
+      // case 'gltf-transform-draco-instanceall':
       modelName = inModelName
       break
     case 'gltf-transform-draco-instanceall':

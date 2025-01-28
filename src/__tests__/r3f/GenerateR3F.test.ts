@@ -49,6 +49,7 @@ describe('GenerateR3F', () => {
               types: true,
               keepnames: true,
               shadows: true,
+              instanceall: type.includes('instanceall'),
             })
             const a = new AnalyzedGLTF(m, {
               instance: options.instance,
@@ -60,6 +61,7 @@ describe('GenerateR3F', () => {
             console.log(tsx)
             // const jsx = g.toJsx()
             // console.log(jsx)
+            expect(tsx).toContain('FOO header')
 
             if (type.includes('instanceall')) {
               expect(tsx).toContain('<Merged')
