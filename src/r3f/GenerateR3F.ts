@@ -32,7 +32,7 @@ const stringProps = ['name']
  * ts-morph {SourceFile} can also be done externally as opposed or in conjunction with extending this class.
  *
  * Much was converted to use stringified template for simplicity, but blocks can be moved out to ts-morph
- * as needed.
+ * as needed.  String writer/setBodyText is easier to read, so where it made sense, it was used.
  *
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
@@ -139,14 +139,6 @@ export class GeneratedR3F {
   }
 
   protected generateChildren() {
-    // was: children = print(gltf.scene)
-    // this.groupRoot.setChildren(this.a.getScene().children.map((child) => this.print(child)))
-    // this.groupRoot.set()
-    //     const { node, instanced } = this.a.getInfo(obj)
-    // this.groupRoot.setBodyText(`<primitive object={node.target} />`)
-
-    // const writerFunction: WriterFunction = (writer) => {
-
     this.groupRoot.setBodyText(
       this.a.gltf.scene.children.map((child) => this.generate(child)).join('\n'),
     )
@@ -158,12 +150,13 @@ export class GeneratedR3F {
     let element = getJsxElementName(o) // used except when instanced
     const dupGeometries = this.a.dupGeometries
     let result = ''
+    let children = ''
 
-    // Check if this (not child) node is useless
-    if (isRemoved(o) && o.children.length) {
-      o.children.forEach((child) => (result += this.generate(child)))
-      return result
-    }
+    // Children
+    if (o.children) o.children.forEach((child) => (children += this.generate(child)))
+
+    // Bail out if the object was pruned
+    if (isRemoved(o)) return children
 
     // Bail out on bones
     if (!bones && isBone(o)) {
@@ -176,13 +169,6 @@ export class GeneratedR3F {
             <primitive object={${node}.target} ${this.writeProps(o.target)} />
           </${element}>`
     }
-
-    // Collect children
-    let children = ''
-    if (o.children) o.children.forEach((child) => (children += this.generate(child)))
-
-    // Bail out if the object was pruned
-    if (isRemoved(o)) return children
 
     if (instanced) {
       result = `<instances.${dupGeometries[meshKey(o as Mesh)].name} `
