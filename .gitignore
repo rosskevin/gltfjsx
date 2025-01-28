@@ -24,3 +24,4 @@ tmp*
 !.yarn/versions
 *.tsbuildinfo
 /.eslintcache
+New.tsx

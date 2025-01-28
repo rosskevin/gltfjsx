@@ -309,7 +309,7 @@ export class GeneratedR3F {
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
       import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
-      import { AnimationClip, GLTF, Mesh, MeshStandardMaterial } from 'three'
+      import { AnimationClip, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
       import { GLTF, SkeletonUtils } from 'three-stdlib'
 
       ${
