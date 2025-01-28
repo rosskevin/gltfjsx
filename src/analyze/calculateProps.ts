@@ -1,5 +1,6 @@
 import { Object3D, Vector3 } from 'three'
 
+import { Props } from '../utils/types.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import {
   isColored,
@@ -16,8 +17,8 @@ import {
 } from './is.js'
 import { materialKey, sanitizeName } from './utils.js'
 
-export type Props = Record<string, any>
-
+// FIXME: is this r3f specific? if not add to AnalyzedGLTF, otherwise think about pluggable strategy to AnalyzedGLTF
+// FIXME:   to calc and write props
 export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
   if (!obj) {
     throw new Error('obj is undefined')

@@ -5,11 +5,11 @@ import { AnimationClip, Bone, Mesh, Object3D } from 'three'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { calculateProps } from '../analyze/calculateProps.js'
-import { isInstancedMesh, isMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
+import { isBone, isInstancedMesh, isMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions, Logger } from '../options.js'
-import { getType } from './utils.js'
+import { getJsxElementName } from './utils.js'
 
 const stringProps = ['name']
 
@@ -20,6 +20,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   const modelLoadPath =
     (options.modelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + options.modelLoadPath
 
+  // done
   function printTypes(a: AnalyzedGLTF) {
     const meshes: Mesh[] = a.getMeshes()
     const bones: Bone[] = a.getBones()
@@ -33,7 +34,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       interface GLTFAction extends THREE.AnimationClip { name: ActionName }\n`
     }
 
-    const types = [...new Set([...meshes, ...bones].map((o) => getType(o)))]
+    const types = [...new Set([...meshes, ...bones].map((o) => getJsxElementName(o)))]
     const contextType = a.hasInstances()
       ? `\ntype ContextType = Record<string, React.ForwardRefExoticComponent<
      ${types.map((type) => `JSX.IntrinsicElements['${type}']`).join(' | ')}
@@ -52,6 +53,7 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
   }\n${contextType}`
   }
 
+  // done
   function printProps(obj: Object3D) {
     const props = calculateProps(obj, a)
     return Object.keys(props)
@@ -70,62 +72,62 @@ export function createR3FComponent(gltf: GLTF, options: Readonly<JsxOptions>) {
       .join(' ')
   }
 
-  function print(obj: Object3D) {
+  function print(o: Object3D) {
     let result = ''
     let children = ''
-    const { node, instanced } = a.getInfo(obj)
-    let type = getType(obj)
+    const { node, instanced } = a.getInfo(o)
+    let element = getJsxElementName(o)
 
-    // Check if the root node is useless
-    if (isRemoved(obj) && obj.children.length) {
-      obj.children.forEach((child) => (result += print(child)))
+    // done Check if the root node is useless
+    if (isRemoved(o) && o.children.length) {
+      o.children.forEach((child) => (result += print(child)))
       return result
     }
 
-    // Bail out on bones
-    if (!options.bones && type === 'bone') {
+    // done Bail out on bones
+    if (!options.bones && isBone(o)) {
       return `<primitive object={${node}} />`
     }
 
-    // Take care of lights with targets
-    if (isTargetedLight(obj)) {
-      return `<${type} ${printProps(obj)} target={${node}.target}>
-        <primitive object={${node}.target} ${printProps(obj.target)} />
-      </${type}>`
+    // done Lights with targets
+    if (isTargetedLight(o)) {
+      return `<${element} ${printProps(o)} target={${node}.target}>
+        <primitive object={${node}.target} ${printProps(o.target)} />
+      </${element}>`
     }
 
-    // Collect children
-    if (obj.children) obj.children.forEach((child) => (children += print(child)))
+    // done Collect children
+    if (o.children) o.children.forEach((child) => (children += print(child)))
 
-    // Bail out if the object was pruned
-    if (isRemoved(obj)) return children
+    // done Bail out if the object was pruned
+    if (isRemoved(o)) return children
 
     if (instanced) {
-      result = `<instances.${a.dupGeometries[meshKey(obj as Mesh)].name} `
-      type = `instances.${a.dupGeometries[meshKey(obj as Mesh)].name}`
+      result = `<instances.${a.dupGeometries[meshKey(o as Mesh)].name} `
+      element = `instances.${a.dupGeometries[meshKey(o as Mesh)].name}`
     } else {
-      if (isInstancedMesh(obj)) {
+      if (isInstancedMesh(o)) {
         const geo = `${node}.geometry`
-        const materialName = materialKey(obj.material)
+        const materialName = materialKey(o.material)
         const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
-        type = 'instancedMesh'
-        result = `<instancedMesh args={[${geo}, ${mat}, ${!obj.count ? `${node}.count` : obj.count}]} `
+        element = 'instancedMesh'
+        result = `<instancedMesh args={[${geo}, ${mat}, ${!o.count ? `${node}.count` : o.count}]} `
       } else {
         // Form the object in JSX syntax
-        if (type === 'bone') result = `<primitive object={${node}} `
-        else result = `<${type} `
+        if (element === 'bone') result = `<primitive object={${node}} `
+        else result = `<${element} `
       }
     }
 
-    result += printProps(obj)
+    result += printProps(o)
 
     // Close tag
     result += `${children.length ? '>' : '/>'}\n`
 
     // Add children and return
     if (children.length) {
-      if (type === 'bone') result += children + `</primitive>`
-      else result += children + `</${type}>`
+      if (element === 'bone') result += children + `</primitive>`
+      else result += children + `</${element}>`
     }
     return result
   }

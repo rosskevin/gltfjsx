@@ -1,3 +1,5 @@
+export type Props = Record<string, any>
+
 /**
  * type UserWithName = WithRequired<User, 'name'>
  *

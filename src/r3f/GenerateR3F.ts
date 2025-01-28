@@ -1,10 +1,10 @@
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
-import { Bone, Mesh } from 'three'
+import { Bone, Mesh, Object3D } from 'three'
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
-  JsxSelfClosingElement,
+  JsxElement,
   ObjectLiteralExpression,
   Project,
   ScriptTarget,
@@ -14,9 +14,15 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
+import { calculateProps } from '../analyze/calculateProps.js'
+import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
+import { materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
 import { JsxOptions } from '../options.js'
-import { isPrimitive } from './utils.js'
+import { getJsxElementName, isPrimitive } from './utils.js'
+
+// controls writing of prop values in writeProps()
+const stringProps = ['name']
 
 /**
  * Generate React Three Fiber component
@@ -37,7 +43,7 @@ export class GeneratedR3F {
   protected propsInterface!: InterfaceDeclaration
   protected instancesFn: FunctionDeclaration
   protected fn!: FunctionDeclaration
-  protected groupRoot!: JsxSelfClosingElement
+  protected groupRoot!: JsxElement
 
   constructor(
     private a: AnalyzedGLTF,
@@ -63,7 +69,7 @@ export class GeneratedR3F {
 
     const fnReturn = this.fn.getStatementByKind(SyntaxKind.ReturnStatement)
     if (!fnReturn) throw new Error('Model function return not found')
-    const groupRoot = fnReturn.getFirstDescendantByKindOrThrow(SyntaxKind.JsxSelfClosingElement)
+    const groupRoot = fnReturn.getFirstDescendantByKindOrThrow(SyntaxKind.JsxElement)
     if (!groupRoot) throw new Error('Model function groupRoot not found')
     this.groupRoot = groupRoot
 
@@ -77,7 +83,7 @@ export class GeneratedR3F {
 
     this.generateChildren()
 
-    // format after manipulation
+    // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
   }
 
@@ -132,7 +138,99 @@ export class GeneratedR3F {
     // animations (done in the template)
   }
 
-  protected generateChildren() {}
+  protected generateChildren() {
+    // was: children = print(gltf.scene)
+    // this.groupRoot.setChildren(this.a.getScene().children.map((child) => this.print(child)))
+    // this.groupRoot.set()
+    //     const { node, instanced } = this.a.getInfo(obj)
+    // this.groupRoot.setBodyText(`<primitive object={node.target} />`)
+
+    // const writerFunction: WriterFunction = (writer) => {
+
+    this.groupRoot.setBodyText(
+      this.a.gltf.scene.children.map((child) => this.generate(child)).join('\n'),
+    )
+  }
+
+  protected generate(o: Object3D): string {
+    const { bones } = this.options
+    const { node, instanced } = this.a.getInfo(o)
+    let element = getJsxElementName(o) // used except when instanced
+    const dupGeometries = this.a.dupGeometries
+    let result = ''
+
+    // Check if this (not child) node is useless
+    if (isRemoved(o) && o.children.length) {
+      o.children.forEach((child) => (result += this.generate(child)))
+      return result
+    }
+
+    // Bail out on bones
+    if (!bones && isBone(o)) {
+      return `<primitive object={${node}} />`
+    }
+
+    // Lights with targets
+    if (isTargetedLight(o)) {
+      return `<${element} ${this.writeProps(o)} target={${node}.target}>
+            <primitive object={${node}.target} ${this.writeProps(o.target)} />
+          </${element}>`
+    }
+
+    // Collect children
+    let children = ''
+    if (o.children) o.children.forEach((child) => (children += this.generate(child)))
+
+    // Bail out if the object was pruned
+    if (isRemoved(o)) return children
+
+    if (instanced) {
+      result = `<instances.${dupGeometries[meshKey(o as Mesh)].name} `
+      element = `instances.${dupGeometries[meshKey(o as Mesh)].name}`
+    } else {
+      if (isInstancedMesh(o)) {
+        const geo = `${node}.geometry`
+        const materialName = materialKey(o.material)
+        const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
+        element = 'instancedMesh'
+        result = `<instancedMesh args={[${geo}, ${mat}, ${!o.count ? `${node}.count` : o.count}]} `
+      } else {
+        // Form the object in JSX syntax
+        if (element === 'bone') result = `<primitive object={${node}} `
+        else result = `<${element} `
+      }
+    }
+
+    result += this.writeProps(o)
+
+    // Close tag
+    result += `${children.length ? '>' : '/>'}`
+
+    // Add children and return
+    if (children.length) {
+      if (element === 'bone') result += children + `</primitive>`
+      else result += children + `</${element}>`
+    }
+    return result
+  }
+
+  protected writeProps(obj: Object3D) {
+    const props = calculateProps(obj, this.a)
+    return Object.keys(props)
+      .map((key: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const value = props[key]
+
+        if (stringProps.includes(key)) {
+          return `${key}="${value}"`
+        }
+        if (value === true) {
+          return key // e.g. castShadow
+        }
+        return `${key}={${value}}`
+      })
+      .join(' ')
+  }
 
   protected async formatCode(code: string) {
     return prettier.format(code, this.getPrettierSettings())
@@ -219,7 +317,7 @@ export class GeneratedR3F {
           ? Object.keys(extras as Record<string, any>)
               // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               .map((key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${extras[key]}`)
-              .join('\n') + '\n'
+              .join('\n')
           : ''
       }
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
@@ -291,7 +389,8 @@ export class GeneratedR3F {
             : ''
         }
         return (
-          <group ${hasAnimations ? `ref={groupRef}` : ''} {...props} dispose={null}/>
+          <group ${hasAnimations ? `ref={groupRef}` : ''} {...props} dispose={null}>
+          </group>
         )
       }
 
