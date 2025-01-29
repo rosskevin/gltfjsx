@@ -169,6 +169,9 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     return o
   }
 
+  /**
+   * Calculate props for a given object based on input options
+   */
   public calculateProps(o: Object3D): Props {
     if (!o) {
       throw new Error('o is undefined')

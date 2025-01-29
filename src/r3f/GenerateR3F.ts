@@ -5,12 +5,10 @@ import {
   FunctionDeclaration,
   InterfaceDeclaration,
   JsxElement,
-  ObjectLiteralExpression,
   Project,
   ScriptTarget,
   SourceFile,
   SyntaxKind,
-  VariableDeclarationKind,
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
@@ -249,26 +247,6 @@ export class GeneratedR3F<O extends GenerateOptions> {
       parser: 'babel-ts',
       plugins: [babelParser],
     }
-  }
-
-  // FIXME remove this example after building props
-  protected deletemeObjectLiteralExample() {
-    const variable = this.src.addVariableStatement({
-      declarationKind: VariableDeclarationKind.Const,
-      declarations: [{ name: 'example', initializer: '{}' }],
-    })
-
-    const objectLiteral: ObjectLiteralExpression = variable.getFirstDescendantByKindOrThrow(
-      SyntaxKind.ObjectLiteralExpression,
-    )
-
-    objectLiteral.addPropertyAssignments([
-      { name: 'property1', initializer: '123' },
-      {
-        name: 'property2',
-        initializer: 'false',
-      },
-    ])
   }
 
   protected getModelPropsName() {
