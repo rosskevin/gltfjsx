@@ -3,7 +3,9 @@ import path from 'node:path'
 
 import { expect } from 'vitest'
 
-import { GenerateOptions } from '../options.js'
+import { Log } from '../Log.js'
+import { AnalyzedGLTFOptions, GenerateOptions } from '../options.js'
+import { WithRequired } from '../utils/types.js'
 
 export const types = [
   //
@@ -14,6 +16,8 @@ export const types = [
 ]
 
 export const models = ['FlightHelmet']
+
+const log = new Log({ silent: false, debug: false })
 
 export const resolveFixtureModelFile = (inModelName: string, type: string) => {
   let modelName
@@ -41,15 +45,25 @@ export const assertFileExists = (path: string) => {
   expect(fs.existsSync(path), `File not found: ${path}`).toBe(true)
 }
 
-export const fixtureGenerateOptions = (input: Partial<GenerateOptions>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const o: GenerateOptions = {
+export const fixtureAnalyzeOptions = (
+  input: Partial<AnalyzedGLTFOptions> = {},
+): AnalyzedGLTFOptions => {
+  const o: AnalyzedGLTFOptions = {
     bones: false,
     precision: 3,
-    exportdefault: false,
-    console: false,
-    debug: false,
+    log,
     ...input,
-  } as any
+  }
+  return o
+}
+
+export const fixtureGenerateOptions = (
+  input: WithRequired<Partial<GenerateOptions>, 'componentName' | 'modelLoadPath' | 'draco'>,
+): GenerateOptions => {
+  const o: GenerateOptions = {
+    ...fixtureAnalyzeOptions({ log: input.log }),
+    exportdefault: false,
+    ...input,
+  }
   return o
 }
