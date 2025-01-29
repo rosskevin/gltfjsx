@@ -2,13 +2,13 @@ import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { readGLTF } from '../readGLTF.js'
-import { assertFileExists, models, resolveModelFile, types } from './fixtures.js'
+import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
 
 describe('readGLTF', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
-        const modelFile = resolveModelFile(modelName, type)
+        const modelFile = resolveFixtureModelFile(modelName, type)
 
         describe(type, () => {
           beforeEach(() => {

@@ -16,7 +16,6 @@ export interface Logger {
 }
 
 interface BaseOptions {
-  log: Logger
   instance?: boolean
   instanceall?: boolean
   keepgroups?: boolean
@@ -39,90 +38,31 @@ export interface TransformOptions extends BaseOptions {
   simplify: boolean
 }
 
-export function pickOptions(options: CliOptions): {
-  transformOptions: TransformOptions
-  createJsxOptions: JsxOptions
-} {
-  const {
-    console,
-    degrade,
-    degraderesolution,
-    draco,
-    error,
-    format,
-    instance,
-    instanceall,
-    keepattributes,
-    keepgroups,
-    keepmaterials,
-    keepmeshes,
-    keepnames,
-    log,
-    ratio,
-    resolution,
-    simplify,
-    // cliOnly
-    output,
-    transform,
-    // rest are createJsxOptions
-    ...other
-  } = options
-
-  const transformOptions: TransformOptions = {
-    console,
-    degrade,
-    degraderesolution,
-    error,
-    format,
-    instance,
-    instanceall,
-    keepattributes,
-    keepgroups,
-    keepmaterials,
-    keepmeshes,
-    keepnames,
-    log,
-    ratio,
-    resolution,
-    simplify,
-  }
-
-  return {
-    transformOptions,
-    createJsxOptions: {
-      ...other,
-      // console,
-      // debug,
-      log,
-      draco,
-      instance,
-      instanceall,
-      keepgroups,
-      keepnames,
-    },
-  }
-}
-
 export interface PropsOptions extends BaseOptions {
-  // log: Logger
-  // keepnames?: boolean
-  bones?: boolean
+  log: Logger
+  bones: boolean
   meta?: boolean
   shadows?: boolean
 }
 
-export interface JsxOptions extends BaseOptions, PropsOptions {
+export interface AnalyzedGLTFOptions extends PropsOptions {
+  precision: number
+}
+
+export interface GenerateOptions extends PropsOptions {
   componentName: string
   draco: boolean
-  exportdefault?: boolean
+  exportdefault: boolean
   header?: string
   modelLoadPath: string
   precision: number
   size?: string // human readable size
-  types?: boolean
 }
 
-export interface CliOptions extends TransformOptions, JsxOptions {
+export interface CliOptions
+  extends TransformOptions,
+    Omit<GenerateOptions, 'componentName' | 'modelLoadPath' | 'log'>,
+    Omit<AnalyzedGLTFOptions, 'log'> {
   console: boolean
   debug: boolean
   draco: boolean
@@ -131,4 +71,5 @@ export interface CliOptions extends TransformOptions, JsxOptions {
   root?: string
   // timeout: number
   transform?: boolean
+  types: boolean
 }

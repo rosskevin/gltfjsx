@@ -25,7 +25,7 @@ export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
   }
 
   const props: Props = {}
-  const { animated, node, instanced } = a.getInfo(obj)
+  const { animated, node } = a.getInfo(obj)
 
   // Include names when output is uncompressed or morphTargetDictionaries are present
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -44,7 +44,7 @@ export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
     if (obj.fov !== 50) props['fov'] = a.rNbr(obj.fov)
   }
 
-  if (!instanced) {
+  if (!a.isInstanced(obj)) {
     // Shadows
     if (isMesh(obj) && a.options.shadows) {
       props['castShadow'] = true

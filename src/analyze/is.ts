@@ -52,17 +52,15 @@ export const isDecayed = (o: any): o is Decayed => (o as any).decay !== undefine
 interface Distanced {
   distance: number
 }
-
 export const isDistanced = (o: any): o is Distanced => (o as any).distance !== undefined
 
 interface Targeted {
   target: Object3D
 }
+export const isTargeted = (o: any): o is Targeted => (o as any).target !== undefined
 
 export const isTargetedLight = (o: any): o is Targeted =>
   isLight(o) && isTargeted(o) && o.children[0] === o.target
-
-export const isTargeted = (o: any): o is Targeted => (o as any).target !== undefined
 
 export const isCamera = (o: any): o is Camera => (o as any).isCamera
 
@@ -75,7 +73,6 @@ export const isPerspectiveCamera = (o: any): o is PerspectiveCamera =>
 // interface Removeable {
 //   __removed?: boolean
 // }
-
 export const isNotRemoved = (o: any): boolean => o.__removed === undefined || !o.__removed
 
 export const isRemoved = (o: any): boolean => o.__removed !== undefined && o.__removed
@@ -87,7 +84,6 @@ export const setRemoved = (o: any, value = true): void => {
 interface Colored {
   color: Color
 }
-
 export const isColored = (o: any): o is Colored => (o as any).color !== undefined
 
 export const isChildless = (o: Object3D): boolean => o.children.length === 0

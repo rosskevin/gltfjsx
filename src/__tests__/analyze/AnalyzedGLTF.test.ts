@@ -5,7 +5,7 @@ import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
 import { isGroup } from '../../analyze/is.js'
 import { Log } from '../../Log.js'
 import { readGLTF } from '../../readGLTF.js'
-import { assertFileExists, models, resolveModelFile, types } from '../fixtures.js'
+import { assertFileExists, models, resolveFixtureModelFile, types } from '../fixtures.js'
 
 const log = new Log({ silent: false, debug: true })
 
@@ -13,7 +13,7 @@ describe('AnalyzedGLTF', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
-        const modelFile = resolveModelFile(modelName, type)
+        const modelFile = resolveFixtureModelFile(modelName, type)
 
         describe(type, () => {
           let m: GLTF

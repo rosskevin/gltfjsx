@@ -26,10 +26,10 @@ import { TransformOptions } from './options.js'
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
  */
-async function gltfTransform(
+async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
   outFilename: string,
-  config: Readonly<TransformOptions>,
+  config: Readonly<O>,
 ) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready

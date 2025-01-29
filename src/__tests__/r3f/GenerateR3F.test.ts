@@ -8,9 +8,9 @@ import { readGLTF } from '../../readGLTF.js'
 import { resolveModelLoadPath } from '../../utils/files.js'
 import {
   assertFileExists,
-  defaultJsxOptions,
+  fixtureGenerateOptions,
   models,
-  resolveModelFile,
+  resolveFixtureModelFile,
   types,
 } from '../fixtures.js'
 
@@ -20,7 +20,7 @@ describe('GenerateR3F', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
-        const modelFile = resolveModelFile(modelName, type)
+        const modelFile = resolveFixtureModelFile(modelName, type)
 
         describe(type, () => {
           beforeEach(() => {
@@ -40,22 +40,18 @@ describe('GenerateR3F', () => {
 
           it('should generate', async () => {
             const m = await readGLTF(modelFile)
-            const options = defaultJsxOptions({
+            const options = fixtureGenerateOptions({
               log,
               componentName: modelName,
               draco: type.includes('draco'),
               header: 'FOO header',
               modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
-              types: true,
+              // types: true,
               keepnames: true,
               shadows: true,
               instanceall: type.includes('instanceall'),
             })
-            const a = new AnalyzedGLTF(m, {
-              instance: options.instance,
-              instanceall: options.instanceall,
-              log: options.log,
-            })
+            const a = new AnalyzedGLTF(m, options)
             const g = new GeneratedR3F(a, options)
             const tsx = await g.toTsx()
             console.log(tsx)

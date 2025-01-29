@@ -18,7 +18,7 @@ import { calculateProps } from '../analyze/calculateProps.js'
 import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
-import { JsxOptions } from '../options.js'
+import { GenerateOptions } from '../options.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
 // controls writing of prop values in writeProps()
@@ -36,7 +36,7 @@ const stringProps = ['name']
  *
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
-export class GeneratedR3F {
+export class GeneratedR3F<O extends GenerateOptions> {
   protected project: Project
   protected src: SourceFile
   protected gltfInterface!: InterfaceDeclaration
@@ -47,7 +47,7 @@ export class GeneratedR3F {
 
   constructor(
     private a: AnalyzedGLTF,
-    private options: Readonly<JsxOptions>,
+    private options: Readonly<O>,
   ) {
     this.project = new Project({
       useInMemoryFileSystem: true,
@@ -146,7 +146,7 @@ export class GeneratedR3F {
 
   protected generate(o: Object3D): string {
     const { bones } = this.options
-    const { node, instanced } = this.a.getInfo(o)
+    const { node } = this.a.getInfo(o)
     let element = getJsxElementName(o) // used except when instanced
     const dupGeometries = this.a.dupGeometries
     let result = ''
@@ -170,7 +170,7 @@ export class GeneratedR3F {
           </${element}>`
     }
 
-    if (instanced) {
+    if (this.a.isInstanced(o)) {
       result = `<instances.${dupGeometries[meshKey(o as Mesh)].name} `
       element = `instances.${dupGeometries[meshKey(o as Mesh)].name}`
     } else {
@@ -233,7 +233,7 @@ export class GeneratedR3F {
     }
   }
 
-  // FIXME remove this example
+  // FIXME remove this example after building props
   protected deletemeObjectLiteralExample() {
     const variable = this.src.addVariableStatement({
       declarationKind: VariableDeclarationKind.Const,
@@ -281,7 +281,7 @@ export class GeneratedR3F {
    * @returns
    */
   protected getTemplate() {
-    const { componentName, header, size } = this.options
+    const { componentName, exportdefault, header, size } = this.options
     const modelGLTFName = this.getModelGLTFName()
     const modelActionName = this.getModelActionName()
     const modelPropsName = this.getModelPropsName()
@@ -339,7 +339,7 @@ export class GeneratedR3F {
 
       const context = React.createContext<ContextType>({})
 
-      export function ${modelInstancesName}({ children, ...props }: ${modelPropsName}) {
+      export ${exportdefault ? 'default' : ''} function ${modelInstancesName}({ children, ...props }: ${modelPropsName}) {
         const { nodes } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
         const instances = React.useMemo(() => ({
           ${dupGeometryValues.map((v) => `${v.name}: ${v.node}`).join(', ')}

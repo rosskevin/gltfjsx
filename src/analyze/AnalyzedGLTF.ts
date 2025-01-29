@@ -2,26 +2,22 @@ import { GLTF } from 'node-three-gltf'
 import { Bone, Material, Mesh, Object3D } from 'three'
 
 import { descObj3D } from '../Log.js'
-import { PropsOptions } from '../options.js'
+import { AnalyzedGLTFOptions } from '../options.js'
 import { calculateProps } from './calculateProps.js'
 import { isBone, isFn, isMesh, isNotRemoved, isRemoved } from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
 import { collectMaterials, meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
-export interface AnalyzedGLTFOptions extends PropsOptions {
-  precision?: number
-}
-
 export interface ObjectInfo {
   node: string
-  instanced: boolean
+  // instanced: boolean
   animated: boolean
 }
 
 /**
  * Analyze given GLTF, remove duplicates and prune the scene
  */
-export class AnalyzedGLTF {
+export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   /**
    * Duplicates found in the scene
    */
@@ -38,7 +34,7 @@ export class AnalyzedGLTF {
 
   constructor(
     gltf: GLTF,
-    options: AnalyzedGLTFOptions,
+    options: Readonly<O>,
     pruneStrategies: PruneStrategy[] = allPruneStrategies,
   ) {
     this.gltf = gltf
@@ -118,19 +114,38 @@ export class AnalyzedGLTF {
     if (!obj) {
       throw new Error('obj is undefined')
     }
-    const { instance, instanceall } = this.options
+    // const { instance, instanceall } = this.options
     const node = nodeName(obj)
-    let instanced =
-      (instance || instanceall) &&
-      isMesh(obj) &&
-      obj.geometry &&
-      obj.material &&
-      this.dupGeometries[meshKey(obj)] &&
-      this.dupGeometries[meshKey(obj)].count > (instanceall ? 0 : 1)
-    instanced = instanced === undefined ? false : instanced
-    return { /*type,*/ node, instanced, animated: this.hasAnimations() }
+    // let instanced =
+    //   (instance || instanceall) &&
+    //   isMesh(obj) &&
+    //   obj.geometry &&
+    //   obj.material &&
+    //   this.dupGeometries[meshKey(obj)] &&
+    //   this.dupGeometries[meshKey(obj)].count > (instanceall ? 0 : 1)
+    // instanced = instanced === undefined ? false : instanced
+    return { /*type,*/ node, /*instanced,*/ animated: this.hasAnimations() }
   }
 
+  public isInstanced(o: Object3D): boolean {
+    if (!o) {
+      throw new Error('obj is undefined')
+    }
+    const { instance, instanceall } = this.options
+    let instanced =
+      (instance || instanceall) &&
+      isMesh(o) &&
+      o.geometry &&
+      o.material &&
+      this.dupGeometries[meshKey(o)] &&
+      this.dupGeometries[meshKey(o)].count > (instanceall ? 0 : 1)
+    instanced = instanced === undefined ? false : instanced
+    return instanced
+  }
+
+  /**
+   * Exposed for external PruneStrategies
+   */
   public visitAndPrune(obj: Object3D): Object3D {
     const { log, bones } = this.options
 

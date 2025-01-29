@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import { expect } from 'vitest'
 
-import { JsxOptions } from '../options.js'
+import { GenerateOptions } from '../options.js'
 
 export const types = [
   //
@@ -15,7 +15,7 @@ export const types = [
 
 export const models = ['FlightHelmet']
 
-export const resolveModelFile = (inModelName: string, type: string) => {
+export const resolveFixtureModelFile = (inModelName: string, type: string) => {
   let modelName
   const extension = type === 'gltf' ? 'gltf' : 'glb'
   switch (type) {
@@ -41,9 +41,9 @@ export const assertFileExists = (path: string) => {
   expect(fs.existsSync(path), `File not found: ${path}`).toBe(true)
 }
 
-export const defaultJsxOptions = (input: Partial<JsxOptions>) => {
+export const fixtureGenerateOptions = (input: Partial<GenerateOptions>) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const o: JsxOptions = {
+  const o: GenerateOptions = {
     bones: false,
     precision: 3,
     exportdefault: false,
