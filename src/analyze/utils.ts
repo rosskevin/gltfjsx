@@ -46,8 +46,8 @@ export function meshKey(mesh: Mesh) {
   return `mesh-${sanitizeMeshName(mesh)}-${mesh.geometry?.uuid}-${materialKey(mesh.material)}`
 }
 
-export function nodeName(obj: Object3D) {
-  return 'nodes' + sanitizeName(obj.name)
+export function nodeName(o: Object3D) {
+  return 'nodes' + sanitizeName(o.name)
 }
 
 /**

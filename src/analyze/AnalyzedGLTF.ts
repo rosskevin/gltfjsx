@@ -62,13 +62,8 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     // Collect all objects in the scene
     this.gltf.scene.traverse((child: Object3D) => this.objects.push(child))
 
-    // Collect all duplicates
-    this.collectDuplicates()
-
-    // Prune duplicate geometries
-    this.pruneDuplicates()
-
-    // Prune all (other) strategies
+    this.collectDuplicateGeometries()
+    this.pruneDuplicateGeometries()
     this.pruneAllStrategies()
   }
 
@@ -130,150 +125,146 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   /**
    * Exposed for external PruneStrategies
    */
-  public visitAndPrune(obj: Object3D): Object3D {
+  public visitAndPrune(o: Object3D): Object3D {
     const { log, bones } = this.options
 
     // Check if the root node is useless
-    if (isRemoved(obj) && obj.children.length) {
-      obj.children.forEach((child) => {
+    if (isRemoved(o) && o.children.length) {
+      o.children.forEach((child) => {
         this.visitAndPrune(child)
       })
-      return obj
+      return o
     }
 
     // Bail out on bones
-    if (!bones && isBone(obj)) {
-      return obj
+    if (!bones && isBone(o)) {
+      return o
     }
 
     // Walk the children first
-    if (obj.children) {
-      obj.children.forEach((child) => {
+    if (o.children) {
+      o.children.forEach((child) => {
         this.visitAndPrune(child)
       })
     }
 
-    const pruned = this.prune(obj)
+    const pruned = this.prune(o)
     if (pruned) {
-      log.debug('Pruned: ', descObj3D(obj))
+      log.debug('Pruned: ', descObj3D(o))
     }
 
-    return obj
+    return o
   }
 
-  public calculateProps(obj: Object3D): Props {
-    if (!obj) {
-      throw new Error('obj is undefined')
+  public calculateProps(o: Object3D): Props {
+    if (!o) {
+      throw new Error('o is undefined')
     }
 
     const props: Props = {}
-    const node = nodeName(obj)
+    const node = nodeName(o)
 
     // name: include name when output is uncompressed or morphTargetDictionaries are present
     if (
-      obj.name.length &&
+      o.name.length &&
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (this.options.keepnames || (obj as any).morphTargetDictionary || this.hasAnimations())
+      (this.options.keepnames || (o as any).morphTargetDictionary || this.hasAnimations())
     ) {
-      props['name'] = obj.name
+      props['name'] = o.name
     }
 
     // camera
-    if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
+    if (isPerspectiveCamera(o) || isOrthographicCamera(o)) {
       props['makeDefault'] = false
-      if (obj.zoom !== 1) props['zoom'] = this.rNbr(obj.zoom)
-      if (obj.far !== 2000) props['far'] = this.rNbr(obj.far)
-      if (obj.near !== 0.1) props['near'] = this.rNbr(obj.near)
+      if (o.zoom !== 1) props['zoom'] = this.rNbr(o.zoom)
+      if (o.far !== 2000) props['far'] = this.rNbr(o.far)
+      if (o.near !== 0.1) props['near'] = this.rNbr(o.near)
     }
-    if (isPerspectiveCamera(obj)) {
-      if (obj.fov !== 50) props['fov'] = this.rNbr(obj.fov)
+    if (isPerspectiveCamera(o)) {
+      if (o.fov !== 50) props['fov'] = this.rNbr(o.fov)
     }
 
     // non-instanced
-    if (!this.isInstanced(obj)) {
+    if (!this.isInstanced(o)) {
       // shadows
-      if (isMesh(obj) && this.options.shadows) {
+      if (isMesh(o) && this.options.shadows) {
         props['castShadow'] = true
         props['receiveShadow'] = true
       }
 
-      if (isMesh(obj) && !isInstancedMesh(obj)) {
+      if (isMesh(o) && !isInstancedMesh(o)) {
         // geometry
         props['geometry'] = `${node}.geometry`
 
         // material
-        const materialName = materialKey(obj.material)
+        const materialName = materialKey(o.material)
         if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
         else props['material'] = `${node}.material`
       }
     }
 
-    if (isInstancedMesh(obj)) {
-      if (obj.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
-      if (obj.instanceColor) props['instanceColor'] = `${node}.instanceColor`
+    if (isInstancedMesh(o)) {
+      if (o.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
+      if (o.instanceColor) props['instanceColor'] = `${node}.instanceColor`
     }
-    if (isSkinnedMesh(obj)) props['skeleton'] = `${node}.skeleton`
-    if (obj.visible === false) props['visible'] = false
-    if (obj.castShadow === true) props['castShadow'] = true
-    if (obj.receiveShadow === true) props['receiveShadow'] = true
-    if (isPoints(obj)) {
+    if (isSkinnedMesh(o)) props['skeleton'] = `${node}.skeleton`
+    if (o.visible === false) props['visible'] = false
+    if (o.castShadow === true) props['castShadow'] = true
+    if (o.receiveShadow === true) props['receiveShadow'] = true
+    if (isPoints(o)) {
       props['morphTargetDictionary'] = `${node}.morphTargetDictionary}`
       props['morphTargetInfluences'] = `${node}.morphTargetInfluences}`
     }
-    if (isLight(obj)) {
-      if (this.rNbr(obj.intensity)) props['intensity'] = this.rNbr(obj.intensity)
+    if (isLight(o)) {
+      if (this.rNbr(o.intensity)) props['intensity'] = this.rNbr(o.intensity)
     }
-    //if (obj.power && obj.power !== 4 * Math.PI) props['power'] = ${this.rNbr(obj.power)} `
-    if (isSpotLight(obj)) {
-      if (obj.angle !== Math.PI / 3) props['angle'] = this.rDeg(obj.angle)
-      if (obj.penumbra && this.rNbr(obj.penumbra) !== 0) props['penumbra'] = this.rNbr(obj.penumbra)
+    //if (o.power && o.power !== 4 * Math.PI) props['power'] = ${this.rNbr(o.power)} `
+    if (isSpotLight(o)) {
+      if (o.angle !== Math.PI / 3) props['angle'] = this.rDeg(o.angle)
+      if (o.penumbra && this.rNbr(o.penumbra) !== 0) props['penumbra'] = this.rNbr(o.penumbra)
     }
 
     // SpotLight | PointLight
-    if (isDecayed(obj)) {
-      if (obj.decay && this.rNbr(obj.decay) !== 1) props['decay'] = this.rNbr(obj.decay)
+    if (isDecayed(o)) {
+      if (o.decay && this.rNbr(o.decay) !== 1) props['decay'] = this.rNbr(o.decay)
     }
-    if (isDistanced(obj)) {
-      if (obj.distance && this.rNbr(obj.distance) !== 0) props['distance'] = this.rNbr(obj.distance)
-    }
-
-    if (obj.up && obj.up.isVector3 && !obj.up.equals(new Vector3(0, 1, 0))) {
-      props['up'] = `[${this.rNbr(obj.up.x)}, ${this.rNbr(obj.up.y)}, ${this.rNbr(obj.up.z)}]`
+    if (isDistanced(o)) {
+      if (o.distance && this.rNbr(o.distance) !== 0) props['distance'] = this.rNbr(o.distance)
     }
 
-    if (isColored(obj) && obj.color.getHexString() !== 'ffffff')
-      props['color'] = `"#${obj.color.getHexString()}"`
-    if (obj.position && obj.position.isVector3 && this.rNbr(obj.position.length()))
+    if (o.up && o.up.isVector3 && !o.up.equals(new Vector3(0, 1, 0))) {
+      props['up'] = `[${this.rNbr(o.up.x)}, ${this.rNbr(o.up.y)}, ${this.rNbr(o.up.z)}]`
+    }
+
+    if (isColored(o) && o.color.getHexString() !== 'ffffff')
+      props['color'] = `"#${o.color.getHexString()}"`
+    if (o.position && o.position.isVector3 && this.rNbr(o.position.length()))
       props['position'] =
-        `[${this.rNbr(obj.position.x)}, ${this.rNbr(obj.position.y)}, ${this.rNbr(obj.position.z)}]`
+        `[${this.rNbr(o.position.x)}, ${this.rNbr(o.position.y)}, ${this.rNbr(o.position.z)}]`
     if (
-      obj.rotation &&
-      obj.rotation.isEuler &&
-      this.rNbr(new Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z).length())
+      o.rotation &&
+      o.rotation.isEuler &&
+      this.rNbr(new Vector3(o.rotation.x, o.rotation.y, o.rotation.z).length())
     ) {
       props['rotation'] =
-        `[${this.rDeg(obj.rotation.x)}, ${this.rDeg(obj.rotation.y)}, ${this.rDeg(obj.rotation.z)}]`
+        `[${this.rDeg(o.rotation.x)}, ${this.rDeg(o.rotation.y)}, ${this.rDeg(o.rotation.z)}]`
     }
     if (
-      obj.scale &&
-      obj.scale.isVector3 &&
-      !(
-        this.rNbr(obj.scale.x) === 1 &&
-        this.rNbr(obj.scale.y) === 1 &&
-        this.rNbr(obj.scale.z) === 1
-      )
+      o.scale &&
+      o.scale.isVector3 &&
+      !(this.rNbr(o.scale.x) === 1 && this.rNbr(o.scale.y) === 1 && this.rNbr(o.scale.z) === 1)
     ) {
-      const rX = this.rNbr(obj.scale.x)
-      const rY = this.rNbr(obj.scale.y)
-      const rZ = this.rNbr(obj.scale.z)
+      const rX = this.rNbr(o.scale.x)
+      const rY = this.rNbr(o.scale.y)
+      const rZ = this.rNbr(o.scale.z)
       if (rX === rY && rX === rZ) {
         props['scale'] = rX
       } else {
         props['scale'] = `[${rX}, ${rY}, ${rZ}]`
       }
     }
-    if (this.options.meta && obj.userData && Object.keys(obj.userData).length) {
-      props['userData'] = JSON.stringify(obj.userData)
+    if (this.options.meta && o.userData && Object.keys(o.userData).length) {
+      props['userData'] = JSON.stringify(o.userData)
     }
     return props
   }
@@ -304,7 +295,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     else return this.uniqueName(attempt, index + 1)
   }
 
-  private collectDuplicates() {
+  private collectDuplicateGeometries() {
     // collect duplicates
     this.gltf.scene.traverse((o: Object3D) => {
       if (isMesh(o)) {
@@ -343,7 +334,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     }
   }
 
-  private pruneDuplicates() {
+  private pruneDuplicateGeometries() {
     // Prune duplicate geometries
     if (!this.options.instanceall) {
       for (const key of Object.keys(this.dupGeometries)) {
@@ -395,12 +386,12 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     })
   }
 
-  private prune(obj: Object3D): boolean {
-    const props = this.calculateProps(obj)
+  private prune(o: Object3D): boolean {
+    const props = this.calculateProps(o)
 
     for (const pruneStrategy of this.pruneStrategies) {
-      if (isNotRemoved(obj)) {
-        if (pruneStrategy(this, obj, props)) {
+      if (isNotRemoved(o)) {
+        if (pruneStrategy(this, o, props)) {
           return true
         }
       }

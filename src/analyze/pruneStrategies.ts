@@ -6,7 +6,7 @@ import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import { isChildless, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.js'
 import { equalOrNegated } from './utils.js'
 
-export type PruneStrategy = (a: AnalyzedGLTF, obj: Object3D, props: Props) => boolean
+export type PruneStrategy = (a: AnalyzedGLTF, o: Object3D, props: Props) => boolean
 
 /**
  * Empty or no-property groups
@@ -15,19 +15,19 @@ export type PruneStrategy = (a: AnalyzedGLTF, obj: Object3D, props: Props) => bo
  *  Solution:
  *    <mesh geometry={nodes.foo} material={materials.bar} />
  */
-export const pruneEmpty: PruneStrategy = (a, obj, props) => {
+export const pruneEmpty: PruneStrategy = (a, o, props) => {
   const { log, keepgroups } = a.options
 
   if (
     !keepgroups &&
     !a.hasAnimations() &&
-    isGroup(obj) // scene is also a group too
+    isGroup(o) // scene is also a group too
   ) {
-    const noChildren = obj.children.length === 0
+    const noChildren = o.children.length === 0
     const noProps = Object.keys(props).length === 0
     if (noChildren || noProps) {
-      log.debug(`Removed (${noChildren ? 'no children' : 'no props'}): `, descObj3D(obj))
-      setRemoved(obj)
+      log.debug(`Removed (${noChildren ? 'no children' : 'no props'}): `, descObj3D(o))
+      setRemoved(o)
       return true
     }
   }
@@ -42,19 +42,19 @@ export const pruneEmpty: PruneStrategy = (a, obj, props) => {
  *  Solution:
  *    <mesh geometry={nodes.foo} material={materials.bar} />
  */
-export const pruneDoubleNegativeRotation: PruneStrategy = (a, obj, props) => {
+export const pruneDoubleNegativeRotation: PruneStrategy = (a, o, props) => {
   const { log } = a.options
 
-  if (isChildless(obj)) return false
+  if (isChildless(o)) return false
 
   const propsKeys = Object.keys(props)
-  const first = obj.children[0]
+  const first = o.children[0]
   const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   if (
-    obj.children.length === 1 &&
-    first.type === obj.type &&
-    equalOrNegated(obj.rotation, first.rotation)
+    o.children.length === 1 &&
+    first.type === o.type &&
+    equalOrNegated(o.rotation, first.rotation)
   ) {
     if (
       propsKeys.length === 1 &&
@@ -62,9 +62,9 @@ export const pruneDoubleNegativeRotation: PruneStrategy = (a, obj, props) => {
       propsKeys[0] === 'rotation' &&
       firstPropsKeys[0] === 'rotation'
     ) {
-      log.debug('Removed (aggressive: double negative rotation): ', descObj3D(obj))
+      log.debug('Removed (aggressive: double negative rotation): ', descObj3D(o))
 
-      setRemoved(obj, isRemoved(first))
+      setRemoved(o, isRemoved(first))
       if (first.children) {
         first.children.forEach((child) => {
           a.visitAndPrune(child)
@@ -85,19 +85,19 @@ export const pruneDoubleNegativeRotation: PruneStrategy = (a, obj, props) => {
  *    <group scale={0.01}>
  *      <mesh geometry={nodes.foo} material={materials.bar} />
  */
-export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, obj, props) => {
+export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, o, props) => {
   const { log } = a.options
 
-  if (isChildless(obj)) return false
+  if (isChildless(o)) return false
 
   const propsKeys = Object.keys(props)
-  const first = obj.children[0]
+  const first = o.children[0]
   const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   if (
-    obj.children.length === 1 &&
-    first.type === obj.type &&
-    equalOrNegated(obj.rotation, first.rotation)
+    o.children.length === 1 &&
+    first.type === o.type &&
+    equalOrNegated(o.rotation, first.rotation)
   ) {
     if (
       propsKeys.length === 1 &&
@@ -105,9 +105,9 @@ export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, obj, prop
       propsKeys[0] === 'rotation' &&
       firstPropsKeys.includes('rotation')
     ) {
-      log.debug('Removed (aggressive: double negative rotation w/ props): ', descObj3D(obj))
+      log.debug('Removed (aggressive: double negative rotation w/ props): ', descObj3D(o))
 
-      setRemoved(obj)
+      setRemoved(o)
       // Remove rotation from first child
       first.rotation.set(0, 0, 0)
       a.visitAndPrune(first)
@@ -124,13 +124,13 @@ export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, obj, prop
  *  Solution:
  *    <mesh geometry={nodes.foo} material={materials.bar} position={[10, 0, 0]} scale={2} rotation={[-Math.PI / 2, 0, 0]} />
  */
-export const pruneTransformOverlap: PruneStrategy = (a, obj, props) => {
+export const pruneTransformOverlap: PruneStrategy = (a, o, props) => {
   const { log } = a.options
 
-  if (isChildless(obj)) return false
+  if (isChildless(o)) return false
 
   const propsKeys = Object.keys(props)
-  const first = obj.children[0]
+  const first = o.children[0]
   const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   const isChildTransformed =
@@ -138,16 +138,16 @@ export const pruneTransformOverlap: PruneStrategy = (a, obj, props) => {
     firstPropsKeys.includes('rotation') ||
     firstPropsKeys.includes('scale')
   const hasOtherProps = propsKeys.some((key) => !['position', 'scale', 'rotation'].includes(key))
-  if (obj.children.length === 1 && isNotRemoved(first) && !isChildTransformed && !hasOtherProps) {
-    log.debug(`Removed (aggressive: ${propsKeys.join(' ')} overlap): `, descObj3D(obj))
+  if (o.children.length === 1 && isNotRemoved(first) && !isChildTransformed && !hasOtherProps) {
+    log.debug(`Removed (aggressive: ${propsKeys.join(' ')} overlap): `, descObj3D(o))
 
     // Move props over from the to-be-deleted object to the child
     // This ensures that the child will have the correct transform when pruning is being repeated
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    propsKeys.forEach((key) => (obj.children[0] as any)[key].copy((obj as any)[key]))
+    propsKeys.forEach((key) => (o.children[0] as any)[key].copy((o as any)[key]))
     // Insert the props into the result string
     a.visitAndPrune(first)
-    setRemoved(obj)
+    setRemoved(o)
     return true
   }
   return false
@@ -160,17 +160,17 @@ export const pruneTransformOverlap: PruneStrategy = (a, obj, props) => {
  * Solution:
  *   (delete the whole sub graph)
  */
-export const pruneLackOfContent: PruneStrategy = (a, obj, props) => {
+export const pruneLackOfContent: PruneStrategy = (a, o, props) => {
   const { log } = a.options
 
   const empty: Object3D[] = []
-  obj.traverse((o) => {
+  o.traverse((o) => {
     if (!isGroup(o)) {
       empty.push(o)
     }
   })
   if (!empty.length) {
-    log.debug('Removed (aggressive: lack of content): ', descObj3D(obj))
+    log.debug('Removed (aggressive: lack of content): ', descObj3D(o))
     empty.forEach((child) => setRemoved(child))
     return true // ''
   }
