@@ -20,6 +20,7 @@ import {
   isRemoved,
   isSkinnedMesh,
   isSpotLight,
+  isTargetedLight,
 } from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
 import {
@@ -176,7 +177,6 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     if (!o) {
       throw new Error('o is undefined')
     }
-
     const props: Props = {}
     const node = nodeName(o)
 
@@ -200,63 +200,88 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
       if (o.fov !== 50) props['fov'] = this.rNbr(o.fov)
     }
 
-    // non-instanced
-    if (!this.isInstanced(o)) {
-      // shadows
-      if (isMesh(o) && this.options.shadows) {
-        props['castShadow'] = true
-        props['receiveShadow'] = true
+    // Meshes
+    if (isMesh(o)) {
+      // non-instanced
+      if (!this.isInstanced(o)) {
+        // Mesh shadows
+        if (this.options.shadows) {
+          props['castShadow'] = true
+          props['receiveShadow'] = true
+        }
+
+        if (!isInstancedMesh(o)) {
+          // geometry
+          props['geometry'] = `${node}.geometry`
+
+          // material
+          const materialName = materialKey(o.material)
+          if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
+          else props['material'] = `${node}.material`
+        }
       }
 
-      if (isMesh(o) && !isInstancedMesh(o)) {
-        // geometry
-        props['geometry'] = `${node}.geometry`
+      // InstancedMesh
+      if (isInstancedMesh(o)) {
+        if (o.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
+        if (o.instanceColor) props['instanceColor'] = `${node}.instanceColor`
 
-        // material
         const materialName = materialKey(o.material)
-        if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
-        else props['material'] = `${node}.material`
+        const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
+        props['args'] = `[${node}.geometry, ${mat}, ${!o.count ? `${node}.count` : o.count}]`
       }
+
+      // SkinnedMesh
+      if (isSkinnedMesh(o)) props['skeleton'] = `${node}.skeleton`
     }
 
-    if (isInstancedMesh(o)) {
-      if (o.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
-      if (o.instanceColor) props['instanceColor'] = `${node}.instanceColor`
-    }
-    if (isSkinnedMesh(o)) props['skeleton'] = `${node}.skeleton`
-    if (o.visible === false) props['visible'] = false
-    if (o.castShadow === true) props['castShadow'] = true
-    if (o.receiveShadow === true) props['receiveShadow'] = true
+    // Points
     if (isPoints(o)) {
       props['morphTargetDictionary'] = `${node}.morphTargetDictionary}`
       props['morphTargetInfluences'] = `${node}.morphTargetInfluences}`
     }
+
+    // Lights
     if (isLight(o)) {
       if (this.rNbr(o.intensity)) props['intensity'] = this.rNbr(o.intensity)
-    }
-    //if (o.power && o.power !== 4 * Math.PI) props['power'] = ${this.rNbr(o.power)} `
-    if (isSpotLight(o)) {
-      if (o.angle !== Math.PI / 3) props['angle'] = this.rDeg(o.angle)
-      if (o.penumbra && this.rNbr(o.penumbra) !== 0) props['penumbra'] = this.rNbr(o.penumbra)
+
+      //if (o.power && o.power !== 4 * Math.PI) props['power'] = ${this.rNbr(o.power)} `
+      if (isSpotLight(o)) {
+        if (o.angle !== Math.PI / 3) props['angle'] = this.rDeg(o.angle)
+        if (o.penumbra && this.rNbr(o.penumbra) !== 0) props['penumbra'] = this.rNbr(o.penumbra)
+      }
+
+      // SpotLight | PointLight
+      if (isDecayed(o)) {
+        if (o.decay && this.rNbr(o.decay) !== 1) props['decay'] = this.rNbr(o.decay)
+      }
+      if (isDistanced(o)) {
+        if (o.distance && this.rNbr(o.distance) !== 0) props['distance'] = this.rNbr(o.distance)
+      }
+      // Lights with targets - return
+      if (isTargetedLight(o)) {
+        props['target'] = `${node}.target`
+      }
     }
 
-    // SpotLight | PointLight
-    if (isDecayed(o)) {
-      if (o.decay && this.rNbr(o.decay) !== 1) props['decay'] = this.rNbr(o.decay)
-    }
-    if (isDistanced(o)) {
-      if (o.distance && this.rNbr(o.distance) !== 0) props['distance'] = this.rNbr(o.distance)
-    }
-
+    // Object3D
+    if (o.visible === false) props['visible'] = false
+    if (o.castShadow === true) props['castShadow'] = true
+    if (o.receiveShadow === true) props['receiveShadow'] = true
     if (o.up && o.up.isVector3 && !o.up.equals(new Vector3(0, 1, 0))) {
       props['up'] = `[${this.rNbr(o.up.x)}, ${this.rNbr(o.up.y)}, ${this.rNbr(o.up.z)}]`
     }
 
-    if (isColored(o) && o.color.getHexString() !== 'ffffff')
+    // color
+    if (isColored(o) && o.color.getHexString() !== 'ffffff') {
       props['color'] = `"#${o.color.getHexString()}"`
-    if (o.position && o.position.isVector3 && this.rNbr(o.position.length()))
+    }
+    // position
+    if (o.position && o.position.isVector3 && this.rNbr(o.position.length())) {
       props['position'] =
         `[${this.rNbr(o.position.x)}, ${this.rNbr(o.position.y)}, ${this.rNbr(o.position.z)}]`
+    }
+    // rotation
     if (
       o.rotation &&
       o.rotation.isEuler &&
@@ -265,6 +290,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
       props['rotation'] =
         `[${this.rDeg(o.rotation.x)}, ${this.rDeg(o.rotation.y)}, ${this.rDeg(o.rotation.z)}]`
     }
+    // scale
     if (
       o.scale &&
       o.scale.isVector3 &&
@@ -279,6 +305,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
         props['scale'] = `[${rX}, ${rY}, ${rZ}]`
       }
     }
+    // userData
     if (this.options.meta && o.userData && Object.keys(o.userData).length) {
       props['userData'] = JSON.stringify(o.userData)
     }

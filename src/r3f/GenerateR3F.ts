@@ -12,9 +12,9 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
+import { isBone, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import { materialKey, nodeName, sanitizeName } from '../analyze/utils.js'
+import { nodeName } from '../analyze/utils.js'
 import { GenerateOptions } from '../options.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
@@ -178,9 +178,9 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
       return `<${element} object={${node}} />`
     }
 
-    // Lights with targets
+    // Lights with targets - return
     if (isTargetedLight(o)) {
-      return `<${element} ${this.writeProps(o)} target={${node}.target}>
+      return `<${element} ${this.writeProps(o)}>
             <primitive object={${node}.target} ${this.writeProps(o.target)} />
           </${element}>`
     }
@@ -188,20 +188,13 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     // Open the element
     result = `<${element} `
 
-    if (isInstancedMesh(o)) {
-      const geo = `${node}.geometry`
-      const materialName = materialKey(o.material)
-      const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
-      result += `args={[${geo}, ${mat}, ${!o.count ? `${node}.count` : o.count}]} `
-    }
-
     // Bone and options.bones is true
     if (isBone(o)) result += `object={${node}} `
 
     result += this.writeProps(o)
 
     if (children.length) {
-      // Add children and return
+      // Add children and close the element's tag
       result += `>
       ${children}
       </${element}>`
