@@ -12,7 +12,7 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { isBone, isInstancedMesh, isMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
+import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { materialKey, nodeName, sanitizeName } from '../analyze/utils.js'
 import { GenerateOptions } from '../options.js'
@@ -163,7 +163,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   protected generate(o: Object3D): string {
     const { bones } = this.options
     const node = nodeName(o)
-    let element = getJsxElementName(o) // used except when instanced
+    const element = getJsxElementName(o, this.a) // used except when instanced
     let result = ''
     let children = ''
 
@@ -173,9 +173,9 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     // Bail out if the object was pruned
     if (isRemoved(o)) return children
 
-    // Bail out on bones
+    // Bone and options.bone is false - return
     if (!bones && isBone(o)) {
-      return `<primitive object={${node}} />`
+      return `<${element} object={${node}} />`
     }
 
     // Lights with targets
@@ -185,33 +185,29 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
           </${element}>`
     }
 
-    if (isMesh(o) && this.a.isInstanced(o)) {
-      const meshName = this.a.getMeshName(o)
-      result = `<instances.${meshName} `
-      element = `instances.${meshName}`
-    } else {
-      if (isInstancedMesh(o)) {
-        const geo = `${node}.geometry`
-        const materialName = materialKey(o.material)
-        const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
-        element = 'instancedMesh'
-        result = `<instancedMesh args={[${geo}, ${mat}, ${!o.count ? `${node}.count` : o.count}]} `
-      } else {
-        // Form the object in JSX syntax
-        if (element === 'bone') result = `<primitive object={${node}} `
-        else result = `<${element} `
-      }
+    // Open the element
+    result = `<${element} `
+
+    if (isInstancedMesh(o)) {
+      const geo = `${node}.geometry`
+      const materialName = materialKey(o.material)
+      const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
+      result += `args={[${geo}, ${mat}, ${!o.count ? `${node}.count` : o.count}]} `
     }
+
+    // Bone and options.bones is true
+    if (isBone(o)) result += `object={${node}} `
 
     result += this.writeProps(o)
 
-    // Close tag
-    result += `${children.length ? '>' : '/>'}`
-
-    // Add children and return
     if (children.length) {
-      if (element === 'bone') result += children + `</primitive>`
-      else result += children + `</${element}>`
+      // Add children and return
+      result += `>
+      ${children}
+      </${element}>`
+    } else {
+      // Close this element's tag
+      result += `/>`
     }
     return result
   }
