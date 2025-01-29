@@ -31,22 +31,27 @@ import {
   sanitizeName,
 } from './utils.js'
 
+export interface DuplicateGeometry {
+  count: number
+  name: string
+  node: string
+}
+
 /**
  * Analyze given GLTF, remove duplicates and prune the scene. This class is agnostic of the generated output
  * or target framework e.g. react-three-fiber.
  */
 export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
+  public options: AnalyzedGLTFOptions
+  public gltf: GLTF
   /**
    * Duplicates found in the scene
    */
-  public dupMaterials: Record<string, number> = {}
-  public dupGeometries: Record<string, { count: number; name: string; node: string }> = {}
+  private dupMaterials: Record<string, number> = {}
+  private dupGeometries: Record<string, DuplicateGeometry> = {}
 
   /** All objects in the scene */
-  public objects: Object3D[] = []
-
-  public gltf: GLTF
-  public options: AnalyzedGLTFOptions
+  private objects: Object3D[] = []
 
   private pruneStrategies: PruneStrategy[]
 
@@ -62,7 +67,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     // Collect all objects in the scene
     this.gltf.scene.traverse((child: Object3D) => this.objects.push(child))
 
-    this.collectDuplicateGeometries()
+    this.collectDuplicates()
     this.pruneDuplicateGeometries()
     this.pruneAllStrategies()
   }
@@ -88,6 +93,14 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
       Object.keys(this.dupGeometries).length > 0
       ? true
       : false
+  }
+
+  public getDuplicateGeometryValues(): DuplicateGeometry[] {
+    return Object.values(this.dupGeometries)
+  }
+
+  public getMeshName(m: Mesh): string {
+    return this.dupGeometries[meshKey(m)].name
   }
 
   public getMeshes(): Mesh[] {
@@ -287,15 +300,17 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     return this.rNbr(n)
   }
 
-  //
-  private uniqueName(attempt: string, index = 0): string {
+  /**
+   * Create a unique name for the geometry given the list of duplicates
+   */
+  private uniqueGeometryName(attempt: string, index = 0): string {
     const newAttempt = index > 0 ? attempt + index : attempt
     if (Object.values(this.dupGeometries).find(({ name }) => name === newAttempt) === undefined)
       return newAttempt
-    else return this.uniqueName(attempt, index + 1)
+    else return this.uniqueGeometryName(attempt, index + 1)
   }
 
-  private collectDuplicateGeometries() {
+  private collectDuplicates() {
     // collect duplicates
     this.gltf.scene.traverse((o: Object3D) => {
       if (isMesh(o)) {
@@ -309,7 +324,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
           if (!this.dupGeometries[key]) {
             this.dupGeometries[key] = {
               count: 1,
-              name: this.uniqueName(sanitizeMeshName(mesh)),
+              name: this.uniqueGeometryName(sanitizeMeshName(mesh)),
               node: nodeName(mesh), // 'nodes' + sanitizeName(mesh.name),
             }
           } else {

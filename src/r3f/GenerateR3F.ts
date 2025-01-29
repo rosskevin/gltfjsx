@@ -14,9 +14,9 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
+import { isBone, isInstancedMesh, isMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import { materialKey, meshKey, nodeName, sanitizeName } from '../analyze/utils.js'
+import { materialKey, nodeName, sanitizeName } from '../analyze/utils.js'
 import { GenerateOptions } from '../options.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
@@ -166,7 +166,6 @@ export class GeneratedR3F<O extends GenerateOptions> {
     const { bones } = this.options
     const node = nodeName(o)
     let element = getJsxElementName(o) // used except when instanced
-    const dupGeometries = this.a.dupGeometries
     let result = ''
     let children = ''
 
@@ -188,9 +187,10 @@ export class GeneratedR3F<O extends GenerateOptions> {
           </${element}>`
     }
 
-    if (this.a.isInstanced(o)) {
-      result = `<instances.${dupGeometries[meshKey(o as Mesh)].name} `
-      element = `instances.${dupGeometries[meshKey(o as Mesh)].name}`
+    if (isMesh(o) && this.a.isInstanced(o)) {
+      const meshName = this.a.getMeshName(o)
+      result = `<instances.${meshName} `
+      element = `instances.${meshName}`
     } else {
       if (isInstancedMesh(o)) {
         const geo = `${node}.geometry`
@@ -306,7 +306,7 @@ export class GeneratedR3F<O extends GenerateOptions> {
     const modelInstancesName = this.getModelInstancesName()
     const hasAnimations = this.a.hasAnimations()
     const hasInstances = this.a.hasInstances()
-    const dupGeometryValues = Object.values(this.a.dupGeometries)
+    const dupGeometryValues = this.a.getDuplicateGeometryValues()
     const hasPrimitives = this.hasPrimitives() // bones, lights
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const extras = this.a.gltf.parser.json.asset && this.a.gltf.parser.json.asset.extras
