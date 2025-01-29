@@ -45,13 +45,17 @@ export const assertFileExists = (path: string) => {
   expect(fs.existsSync(path), `File not found: ${path}`).toBe(true)
 }
 
+const sharedFixtureOptions = {
+  bones: false,
+  precision: 3,
+  log,
+}
+
 export const fixtureAnalyzeOptions = (
   input: Partial<AnalyzedGLTFOptions> = {},
 ): AnalyzedGLTFOptions => {
   const o: AnalyzedGLTFOptions = {
-    bones: false,
-    precision: 3,
-    log,
+    ...sharedFixtureOptions,
     ...input,
   }
   return o
@@ -61,7 +65,7 @@ export const fixtureGenerateOptions = (
   input: WithRequired<Partial<GenerateOptions>, 'componentName' | 'modelLoadPath' | 'draco'>,
 ): GenerateOptions => {
   const o: GenerateOptions = {
-    ...fixtureAnalyzeOptions({ log: input.log }),
+    ...sharedFixtureOptions,
     exportdefault: false,
     ...input,
   }

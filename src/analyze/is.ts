@@ -59,6 +59,7 @@ interface Targeted {
 }
 export const isTargeted = (o: any): o is Targeted => (o as any).target !== undefined
 
+// SpotLight and ...
 export const isTargetedLight = (o: any): o is Targeted =>
   isLight(o) && isTargeted(o) && o.children[0] === o.target
 

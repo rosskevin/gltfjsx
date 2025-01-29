@@ -33,7 +33,7 @@ const stringProps = ['name']
  *
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
-export class GeneratedR3F<O extends GenerateOptions> {
+export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   protected project: Project
   protected src: SourceFile
   protected gltfInterface!: InterfaceDeclaration
