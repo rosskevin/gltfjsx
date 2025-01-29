@@ -3,7 +3,6 @@ import { Object3D } from 'three'
 import { descObj3D } from '../Log.js'
 import { Props } from '../utils/types.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
-import { calculateProps } from './calculateProps.js'
 import { isChildless, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.js'
 import { equalOrNegated } from './utils.js'
 
@@ -50,7 +49,7 @@ export const pruneDoubleNegativeRotation: PruneStrategy = (a, obj, props) => {
 
   const propsKeys = Object.keys(props)
   const first = obj.children[0]
-  const firstPropsKeys = Object.keys(calculateProps(first, a))
+  const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   if (
     obj.children.length === 1 &&
@@ -93,7 +92,7 @@ export const pruneDoubleNegativeRotationWithProps: PruneStrategy = (a, obj, prop
 
   const propsKeys = Object.keys(props)
   const first = obj.children[0]
-  const firstPropsKeys = Object.keys(calculateProps(first, a))
+  const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   if (
     obj.children.length === 1 &&
@@ -132,7 +131,7 @@ export const pruneTransformOverlap: PruneStrategy = (a, obj, props) => {
 
   const propsKeys = Object.keys(props)
   const first = obj.children[0]
-  const firstPropsKeys = Object.keys(calculateProps(first, a))
+  const firstPropsKeys = Object.keys(a.calculateProps(first))
 
   const isChildTransformed =
     firstPropsKeys.includes('position') ||

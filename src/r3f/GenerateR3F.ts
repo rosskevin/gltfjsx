@@ -14,7 +14,6 @@ import {
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { calculateProps } from '../analyze/calculateProps.js'
 import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { materialKey, meshKey, nodeName, sanitizeName } from '../analyze/utils.js'
@@ -201,7 +200,7 @@ export class GeneratedR3F<O extends GenerateOptions> {
   }
 
   protected writeProps(obj: Object3D) {
-    const props = calculateProps(obj, this.a)
+    const props = this.a.calculateProps(obj)
     return Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

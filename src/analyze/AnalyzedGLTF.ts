@@ -1,15 +1,39 @@
 import { GLTF } from 'node-three-gltf'
-import { Bone, Material, Mesh, Object3D } from 'three'
+import { Bone, Material, Mesh, Object3D, Vector3 } from 'three'
 
 import { descObj3D } from '../Log.js'
 import { AnalyzedGLTFOptions } from '../options.js'
-import { calculateProps } from './calculateProps.js'
-import { isBone, isFn, isMesh, isNotRemoved, isRemoved } from './is.js'
+import { Props } from '../utils/types.js'
+import {
+  isBone,
+  isColored,
+  isDecayed,
+  isDistanced,
+  isFn,
+  isInstancedMesh,
+  isLight,
+  isMesh,
+  isNotRemoved,
+  isOrthographicCamera,
+  isPerspectiveCamera,
+  isPoints,
+  isRemoved,
+  isSkinnedMesh,
+  isSpotLight,
+} from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
-import { collectMaterials, meshKey, nodeName, sanitizeMeshName } from './utils.js'
+import {
+  collectMaterials,
+  materialKey,
+  meshKey,
+  nodeName,
+  sanitizeMeshName,
+  sanitizeName,
+} from './utils.js'
 
 /**
- * Analyze given GLTF, remove duplicates and prune the scene
+ * Analyze given GLTF, remove duplicates and prune the scene. This class is agnostic of the generated output
+ * or target framework e.g. react-three-fiber.
  */
 export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   /**
@@ -69,23 +93,6 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
       Object.keys(this.dupGeometries).length > 0
       ? true
       : false
-  }
-
-  public rNbr(n: number) {
-    return parseFloat(n.toFixed(Math.round(this.options.precision || 2)))
-  }
-
-  public rDeg(n: number) {
-    const abs = Math.abs(Math.round(n * 100000))
-    for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round((Math.PI / i) * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
-    }
-    for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(Math.PI * i * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
-    }
-    return this.rNbr(n)
   }
 
   public getMeshes(): Mesh[] {
@@ -152,6 +159,141 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     }
 
     return obj
+  }
+
+  public calculateProps(obj: Object3D): Props {
+    if (!obj) {
+      throw new Error('obj is undefined')
+    }
+
+    const props: Props = {}
+    const node = nodeName(obj)
+
+    // name: include name when output is uncompressed or morphTargetDictionaries are present
+    if (
+      obj.name.length &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (this.options.keepnames || (obj as any).morphTargetDictionary || this.hasAnimations())
+    ) {
+      props['name'] = obj.name
+    }
+
+    // camera
+    if (isPerspectiveCamera(obj) || isOrthographicCamera(obj)) {
+      props['makeDefault'] = false
+      if (obj.zoom !== 1) props['zoom'] = this.rNbr(obj.zoom)
+      if (obj.far !== 2000) props['far'] = this.rNbr(obj.far)
+      if (obj.near !== 0.1) props['near'] = this.rNbr(obj.near)
+    }
+    if (isPerspectiveCamera(obj)) {
+      if (obj.fov !== 50) props['fov'] = this.rNbr(obj.fov)
+    }
+
+    // non-instanced
+    if (!this.isInstanced(obj)) {
+      // shadows
+      if (isMesh(obj) && this.options.shadows) {
+        props['castShadow'] = true
+        props['receiveShadow'] = true
+      }
+
+      if (isMesh(obj) && !isInstancedMesh(obj)) {
+        // geometry
+        props['geometry'] = `${node}.geometry`
+
+        // material
+        const materialName = materialKey(obj.material)
+        if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
+        else props['material'] = `${node}.material`
+      }
+    }
+
+    if (isInstancedMesh(obj)) {
+      if (obj.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
+      if (obj.instanceColor) props['instanceColor'] = `${node}.instanceColor`
+    }
+    if (isSkinnedMesh(obj)) props['skeleton'] = `${node}.skeleton`
+    if (obj.visible === false) props['visible'] = false
+    if (obj.castShadow === true) props['castShadow'] = true
+    if (obj.receiveShadow === true) props['receiveShadow'] = true
+    if (isPoints(obj)) {
+      props['morphTargetDictionary'] = `${node}.morphTargetDictionary}`
+      props['morphTargetInfluences'] = `${node}.morphTargetInfluences}`
+    }
+    if (isLight(obj)) {
+      if (this.rNbr(obj.intensity)) props['intensity'] = this.rNbr(obj.intensity)
+    }
+    //if (obj.power && obj.power !== 4 * Math.PI) props['power'] = ${this.rNbr(obj.power)} `
+    if (isSpotLight(obj)) {
+      if (obj.angle !== Math.PI / 3) props['angle'] = this.rDeg(obj.angle)
+      if (obj.penumbra && this.rNbr(obj.penumbra) !== 0) props['penumbra'] = this.rNbr(obj.penumbra)
+    }
+
+    // SpotLight | PointLight
+    if (isDecayed(obj)) {
+      if (obj.decay && this.rNbr(obj.decay) !== 1) props['decay'] = this.rNbr(obj.decay)
+    }
+    if (isDistanced(obj)) {
+      if (obj.distance && this.rNbr(obj.distance) !== 0) props['distance'] = this.rNbr(obj.distance)
+    }
+
+    if (obj.up && obj.up.isVector3 && !obj.up.equals(new Vector3(0, 1, 0))) {
+      props['up'] = `[${this.rNbr(obj.up.x)}, ${this.rNbr(obj.up.y)}, ${this.rNbr(obj.up.z)}]`
+    }
+
+    if (isColored(obj) && obj.color.getHexString() !== 'ffffff')
+      props['color'] = `"#${obj.color.getHexString()}"`
+    if (obj.position && obj.position.isVector3 && this.rNbr(obj.position.length()))
+      props['position'] =
+        `[${this.rNbr(obj.position.x)}, ${this.rNbr(obj.position.y)}, ${this.rNbr(obj.position.z)}]`
+    if (
+      obj.rotation &&
+      obj.rotation.isEuler &&
+      this.rNbr(new Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z).length())
+    ) {
+      props['rotation'] =
+        `[${this.rDeg(obj.rotation.x)}, ${this.rDeg(obj.rotation.y)}, ${this.rDeg(obj.rotation.z)}]`
+    }
+    if (
+      obj.scale &&
+      obj.scale.isVector3 &&
+      !(
+        this.rNbr(obj.scale.x) === 1 &&
+        this.rNbr(obj.scale.y) === 1 &&
+        this.rNbr(obj.scale.z) === 1
+      )
+    ) {
+      const rX = this.rNbr(obj.scale.x)
+      const rY = this.rNbr(obj.scale.y)
+      const rZ = this.rNbr(obj.scale.z)
+      if (rX === rY && rX === rZ) {
+        props['scale'] = rX
+      } else {
+        props['scale'] = `[${rX}, ${rY}, ${rZ}]`
+      }
+    }
+    if (this.options.meta && obj.userData && Object.keys(obj.userData).length) {
+      props['userData'] = JSON.stringify(obj.userData)
+    }
+    return props
+  }
+
+  //
+  protected rNbr(n: number) {
+    return parseFloat(n.toFixed(Math.round(this.options.precision || 2)))
+  }
+
+  protected rDeg(n: number) {
+    const abs = Math.abs(Math.round(n * 100000))
+    for (let i = 1; i <= 10; i++) {
+      if (abs === Math.round((Math.PI / i) * 100000))
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
+    }
+    for (let i = 1; i <= 10; i++) {
+      if (abs === Math.round(Math.PI * i * 100000))
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
+    }
+    return this.rNbr(n)
   }
 
   //
@@ -254,7 +396,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   }
 
   private prune(obj: Object3D): boolean {
-    const props = calculateProps(obj, this)
+    const props = this.calculateProps(obj)
 
     for (const pruneStrategy of this.pruneStrategies) {
       if (isNotRemoved(obj)) {
