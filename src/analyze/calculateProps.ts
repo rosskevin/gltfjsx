@@ -15,7 +15,7 @@ import {
   isSkinnedMesh,
   isSpotLight,
 } from './is.js'
-import { materialKey, sanitizeName } from './utils.js'
+import { materialKey, nodeName, sanitizeName } from './utils.js'
 
 // FIXME: is this r3f specific? if not add to AnalyzedGLTF, otherwise think about pluggable strategy to AnalyzedGLTF
 // FIXME:   to calc and write props
@@ -25,11 +25,14 @@ export function calculateProps(obj: Object3D, a: AnalyzedGLTF): Props {
   }
 
   const props: Props = {}
-  const { animated, node } = a.getInfo(obj)
+  const node = nodeName(obj)
 
   // Include names when output is uncompressed or morphTargetDictionaries are present
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (obj.name.length && (a.options.keepnames || (obj as any).morphTargetDictionary || animated)) {
+  if (
+    obj.name.length &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    (a.options.keepnames || (obj as any).morphTargetDictionary || a.hasAnimations())
+  ) {
     props['name'] = obj.name
   }
 

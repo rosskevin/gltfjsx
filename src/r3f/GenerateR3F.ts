@@ -17,7 +17,7 @@ import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { calculateProps } from '../analyze/calculateProps.js'
 import { isBone, isInstancedMesh, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
-import { materialKey, meshKey, sanitizeName } from '../analyze/utils.js'
+import { materialKey, meshKey, nodeName, sanitizeName } from '../analyze/utils.js'
 import { GenerateOptions } from '../options.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
@@ -146,7 +146,7 @@ export class GeneratedR3F<O extends GenerateOptions> {
 
   protected generate(o: Object3D): string {
     const { bones } = this.options
-    const { node } = this.a.getInfo(o)
+    const node = nodeName(o)
     let element = getJsxElementName(o) // used except when instanced
     const dupGeometries = this.a.dupGeometries
     let result = ''

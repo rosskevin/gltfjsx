@@ -17,12 +17,11 @@ export type PruneStrategy = (a: AnalyzedGLTF, obj: Object3D, props: Props) => bo
  *    <mesh geometry={nodes.foo} material={materials.bar} />
  */
 export const pruneEmpty: PruneStrategy = (a, obj, props) => {
-  const { animated } = a.getInfo(obj)
   const { log, keepgroups } = a.options
 
   if (
     !keepgroups &&
-    !animated &&
+    !a.hasAnimations() &&
     isGroup(obj) // scene is also a group too
   ) {
     const noChildren = obj.children.length === 0

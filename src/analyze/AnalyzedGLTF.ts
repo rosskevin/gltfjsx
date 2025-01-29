@@ -8,12 +8,6 @@ import { isBone, isFn, isMesh, isNotRemoved, isRemoved } from './is.js'
 import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
 import { collectMaterials, meshKey, nodeName, sanitizeMeshName } from './utils.js'
 
-export interface ObjectInfo {
-  node: string
-  // instanced: boolean
-  animated: boolean
-}
-
 /**
  * Analyze given GLTF, remove duplicates and prune the scene
  */
@@ -108,23 +102,6 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
 
   public getMaterials(): Material[] {
     return [...new Set(this.getMeshes().flatMap((o) => collectMaterials(o.material)))]
-  }
-
-  public getInfo(obj: Object3D): ObjectInfo {
-    if (!obj) {
-      throw new Error('obj is undefined')
-    }
-    // const { instance, instanceall } = this.options
-    const node = nodeName(obj)
-    // let instanced =
-    //   (instance || instanceall) &&
-    //   isMesh(obj) &&
-    //   obj.geometry &&
-    //   obj.material &&
-    //   this.dupGeometries[meshKey(obj)] &&
-    //   this.dupGeometries[meshKey(obj)].count > (instanceall ? 0 : 1)
-    // instanced = instanced === undefined ? false : instanced
-    return { /*type,*/ node, /*instanced,*/ animated: this.hasAnimations() }
   }
 
   public isInstanced(o: Object3D): boolean {
