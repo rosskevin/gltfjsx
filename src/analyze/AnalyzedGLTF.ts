@@ -113,7 +113,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
 
   public isInstanced(o: Object3D): boolean {
     if (!o) {
-      throw new Error('obj is undefined')
+      throw new Error('o is undefined')
     }
     const { instance, instanceall } = this.options
     let instanced =

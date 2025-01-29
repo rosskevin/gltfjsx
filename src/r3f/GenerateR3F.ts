@@ -114,6 +114,19 @@ export class GeneratedR3F<O extends GenerateOptions> {
     this.src.getVariableDeclaration('draco')?.setInitializer(draco ? 'true' : 'false')
   }
 
+  /**
+   * Set the types for the GLTF model
+   *
+   * e.g.
+   *   interface FlightHelmetGLTF extends GLTF {
+   *     nodes: {
+   *       GlassPlastic_low: Mesh
+   *     }
+   *     materials: {
+   *       GlassPlasticMat: MeshStandardMaterial
+   *     }
+   *   }
+   */
   protected setModelGLTFTypes() {
     // nodes
     const meshes: Mesh[] = this.a.getMeshes()
@@ -137,12 +150,18 @@ export class GeneratedR3F<O extends GenerateOptions> {
     // animations (done in the template)
   }
 
+  /**
+   * Generate the children of the root <group> found in the template
+   */
   protected generateChildren() {
     this.groupRoot.setBodyText(
       this.a.gltf.scene.children.map((child) => this.generate(child)).join('\n'),
     )
   }
 
+  /**
+   * Generate the JSX for the object and its children
+   */
   protected generate(o: Object3D): string {
     const { bones } = this.options
     const node = nodeName(o)
@@ -199,8 +218,8 @@ export class GeneratedR3F<O extends GenerateOptions> {
     return result
   }
 
-  protected writeProps(obj: Object3D) {
-    const props = this.a.calculateProps(obj)
+  protected writeProps(o: Object3D) {
+    const props = this.a.calculateProps(o)
     return Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
