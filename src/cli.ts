@@ -20,7 +20,8 @@ import {
 } from './utils/files.js'
 
 /**
- * Separate the CLI from the main function to allow for testing.  CLI is responsible for IO.
+ * Separate the CLI from the main function to allow for testing and external API use/customization.
+ * CLI is responsible for IO.
  */
 
 const __filename = fileURLToPath(import.meta.url)
