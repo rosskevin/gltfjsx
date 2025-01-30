@@ -4,12 +4,19 @@
   "description": "GLTF to JSX converter",
   "prettier": "@alienfast/prettier-config",
   "scripts": {
-    "build": "rollup -c",
+    "build": "tsup-node && chmod +x dist/cli.js",
     "build:ide": "echo 'tsc -b' && tsc -b",
     "lint:fix": "eslint . --cache --fix",
     "test": "vitest"
   },
   "type": "module",
+  "bin": "./dist/cli.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "keywords": [
     "gltf",
     "jsx",
@@ -32,11 +39,8 @@
     "url": "https://github.com/pmndrs/gltfjsx/issues"
   },
   "homepage": "https://github.com/pmndrs/gltfjsx#readme",
-  "bin": "./dist/cli.js",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=16"
   },
   "dependencies": {
     "@gltf-transform/core": "4.1.1",
@@ -71,6 +75,7 @@
     "fs-extra": "^11.3.0",
     "lint-staged": "^15.4.1",
     "prettier": "^3.4.2",
+    "tsup": "^8.3.6",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.21.0",
