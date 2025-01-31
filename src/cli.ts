@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import fs from 'node:fs'
+
+import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import meow from 'meow'
 
+// should be your first import
 import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
 import gltfTransform from './gltfTransform.js'
 import { loadGLTF } from './loadGLTF.js'
@@ -26,7 +28,7 @@ import {
  */
 export async function main(modelFile: string, cliOptions: CliOptions) {
   const log = new Log({ debug: cliOptions.debug, silent: false })
-  log.info('options', cliOptions)
+  log.debug('cliOptions:', cliOptions)
 
   const { name: inputName, ext: inputExtension, dir: inputDir } = path.parse(modelFile)
 
@@ -66,26 +68,17 @@ Command: npx gltfjsx@${readPackage().packageJson.version} ${process.argv.slice(2
     modelLoadPath: resolveModelLoadPath(modelFile, cliOptions.root),
     ...cliOptions,
   }
-  log.debug('Generate options: ', genOptions)
+  log.debug('GenerateOptions: ', genOptions)
   const g = new GeneratedR3F(a, genOptions)
 
   // write the tsx or jsx file
-  log.debug('Getting code as ' + (cliOptions.types ? 'tsx' : 'jsx'))
   const code = cliOptions.types ? await g.toTsx() : await g.toJsx()
-  log.debug('Writing to file: ', outputSrcFile)
-  fs.writeFileSync(outputSrcFile, code)
-  log.debug('done writing file')
-
-  //
-  //
-  //
-  // Debug and check for open handles
-  const activeResources = process.getActiveResourcesInfo()
-
-  log.debug('ActiveResources:\n', activeResources)
-
-  // Explicitly exit the process
-  process.exit(0)
+  if (cliOptions.console) {
+    console.log(code)
+  } else {
+    await fs.writeFile(outputSrcFile, code)
+    console.log('Wrote file: ', outputSrcFile)
+  }
 }
 
 try {
