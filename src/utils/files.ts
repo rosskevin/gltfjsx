@@ -51,7 +51,7 @@ export function resolveOutputSrcFile(cliOptions: CliOptions) {
   const outputSrcExt = cliOptions.types ? '.tsx' : '.jsx'
   let outputSrcFile: string
   if (!cliOptions.output) {
-    outputSrcFile = path.resolve('Model', outputSrcExt) // based on cwd
+    outputSrcFile = path.resolve(`Model.${outputSrcExt}`, 'foo') // based on cwd
   } else {
     outputSrcFile = path.resolve(cliOptions.output)
   }
@@ -62,7 +62,7 @@ export function resolveOutputSrcFile(cliOptions: CliOptions) {
  *  upper case first letter of the component name
  */
 export function resolveComponentName(outputSrcFile: string) {
-  let componentName = path.basename(outputSrcFile)
+  let componentName = path.parse(outputSrcFile).name
   componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1)
   return componentName
 }
