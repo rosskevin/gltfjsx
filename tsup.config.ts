@@ -9,5 +9,5 @@ export default defineConfig({
   format: ['esm'], // cjs can't be used for top level await
   minify: false,
   treeshake: false,
-  splitting: false,
+  splitting: true, // share code between entry points
 })
