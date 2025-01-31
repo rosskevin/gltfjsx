@@ -39,6 +39,7 @@ export async function loadGLTF(modelFilename: string): Promise<GLTF> {
           // Wrap scene in a GLTF Structure
           gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
         }
+        dracoLoader.dispose() // https://github.com/Brakebein/node-three-gltf/issues/19
         resolve(gltf)
       },
       (error) => {
