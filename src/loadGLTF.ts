@@ -23,14 +23,14 @@ export async function loadGLTF(modelFilename: string): Promise<GLTF> {
   const ktx2Loader = new KTX2Loader()
   ktx2Loader.setTranscoderPath('three/addons/jsm/libs/basis/')
 
-  const gltfLoader = new GLTFLoader()
-  gltfLoader.setDRACOLoader(dracoLoader)
-  gltfLoader.setKTX2Loader(ktx2Loader)
-  gltfLoader.setMeshoptDecoder(MeshoptDecoder)
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+  loader.setKTX2Loader(ktx2Loader)
+  loader.setMeshoptDecoder(MeshoptDecoder)
 
   const modelDir = path.parse(modelFilename).dir + path.sep
   return new Promise((resolve, reject) => {
-    gltfLoader.parse(
+    loader.parse(
       modelBuffer,
       modelDir, // provide the reference path for relative resources
       async (gltf: GLTF) => {
