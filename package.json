@@ -7,7 +7,8 @@
     "build": "tsup-node && chmod +x dist/cli.js",
     "build:ide": "echo 'tsc -b' && tsc -b",
     "lint:fix": "eslint . --cache --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "release": "yarn auto shipit"
   },
   "type": "module",
   "bin": "./dist/cli.js",
@@ -66,9 +67,13 @@
     "@alienfast/eslint-config": "^5.1.25",
     "@alienfast/prettier-config": "^1.0.1",
     "@alienfast/tsconfig": "^1.0.4",
+    "@auto-it/all-contributors": "^11.3.0",
+    "@auto-it/first-time-contributor": "^11.3.0",
+    "@auto-it/released": "^11.3.0",
     "@types/draco3dgltf": "^1.4.3",
     "@types/node": "^22.13.0",
     "@types/three": "^0.173.0",
+    "auto": "^11.3.0",
     "chalk": "^5.4.1",
     "eslint": "^9.19.0",
     "fast-glob": "^3.3.3",
@@ -76,11 +81,9 @@
     "lint-staged": "^15.4.3",
     "prettier": "^3.4.2",
     "tsup": "^8.3.6",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.22.0",
-    "vitest": "^3.0.4",
-    "why-is-node-running": "^3.2.2"
+    "vitest": "^3.0.4"
   },
   "lint-staged": {
     "*.{json,md,gql}": [
@@ -96,5 +99,13 @@
     "type": "opencollective",
     "url": "https://opencollective.com/react-three-fiber"
   },
-  "packageManager": "yarn@4.6.0"
+  "packageManager": "yarn@4.6.0",
+  "auto": {
+    "plugins": [
+      "npm",
+      "all-contributors",
+      "first-time-contributor",
+      "released"
+    ]
+  }
 }
