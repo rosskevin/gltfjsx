@@ -1,7 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { loadGLTF } from '../loadGLTF.js'
+import { loadGLTF } from '../src/index.js'
 import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
 
 describe('readGLTF', () => {

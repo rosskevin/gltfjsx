@@ -3,9 +3,7 @@ import path from 'node:path'
 
 import { expect } from 'vitest'
 
-import { Log } from '../Log.js'
-import { AnalyzedGLTFOptions, GenerateOptions } from '../options.js'
-import { WithRequired } from '../utils/types.js'
+import { AnalyzedGLTFOptions, GenerateOptions, Log, WithRequired } from '../src/index.js'
 
 export const types = [
   //

@@ -1,10 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
-import { isGroup } from '../../analyze/is.js'
-import { loadGLTF } from '../../loadGLTF.js'
-import { Log } from '../../Log.js'
+import { AnalyzedGLTF, isGroup, loadGLTF, Log } from '../../src/index.js'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,

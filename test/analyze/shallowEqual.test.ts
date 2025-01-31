@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { shallowEqual } from '../../analyze/shallowEqual.js'
+import { shallowEqual } from '../../src/index.js'
 
 describe('shallowEqual', () => {
   it('should work', () => {

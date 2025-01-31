@@ -1,10 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
-import { loadGLTF } from '../../loadGLTF.js'
-import { GeneratedR3F } from '../../r3f/GenerateR3F.js'
-import { resolveModelLoadPath } from '../../utils/files.js'
+import { AnalyzedGLTF, GeneratedR3F, loadGLTF, resolveModelLoadPath } from '../../src/index.js'
 import {
   assertFileExists,
   fixtureGenerateOptions,
