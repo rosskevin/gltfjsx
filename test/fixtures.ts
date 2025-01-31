@@ -20,18 +20,13 @@ const log = new Log({ silent: false, debug: false })
 export const resolveFixtureModelFile = (inModelName: string, type: string) => {
   let modelName
   const extension = type === 'gltf' ? 'gltf' : 'glb'
+
   switch (type) {
-    case 'gltf':
-    case 'gltf-transform-meshopt':
-    case 'gltf-transform-draco':
-      // case 'gltf-transform-draco-instanceall':
-      modelName = inModelName
-      break
     case 'gltf-transform-draco-instanceall':
       modelName = inModelName + '-transformed'
       break
     default:
-      throw new Error(`Unknown type: ${type}`)
+      modelName = inModelName
   }
   return path.join(
     path.dirname(new URL(import.meta.url).pathname), // this dir
