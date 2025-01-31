@@ -1,7 +1,12 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { readPackageUpSync } from 'read-pkg-up'
 
 import { CliOptions } from '../options.js'
+
+const thisDirName = dirname(fileURLToPath(import.meta.url))
 
 export function getFileSize(file: string) {
   function roundOff(value: number) {
@@ -65,4 +70,12 @@ export function resolveComponentName(outputSrcFile: string) {
   let componentName = path.parse(outputSrcFile).name
   componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1)
   return componentName
+}
+
+export function readPackage() {
+  const packageResult = readPackageUpSync({ cwd: thisDirName, normalize: false })
+  if (!packageResult) {
+    throw new Error(`No package.json found at or above ${thisDirName}`)
+  }
+  return packageResult
 }
