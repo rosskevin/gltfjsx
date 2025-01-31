@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
 import { isGroup } from '../../analyze/is.js'
+import { loadGLTF } from '../../loadGLTF.js'
 import { Log } from '../../Log.js'
-import { readGLTF } from '../../readGLTF.js'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,
@@ -27,7 +27,7 @@ describe('AnalyzedGLTF', () => {
 
           beforeEach(async () => {
             assertFileExists(modelFile)
-            m = await readGLTF(modelFile)
+            m = await loadGLTF(modelFile)
             a = new AnalyzedGLTF(m, fixtureAnalyzeOptions())
           })
 

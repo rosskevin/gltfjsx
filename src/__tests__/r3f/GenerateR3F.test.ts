@@ -2,8 +2,8 @@ import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { AnalyzedGLTF } from '../../analyze/AnalyzedGLTF.js'
+import { loadGLTF } from '../../loadGLTF.js'
 import { GeneratedR3F } from '../../r3f/GenerateR3F.js'
-import { readGLTF } from '../../readGLTF.js'
 import { resolveModelLoadPath } from '../../utils/files.js'
 import {
   assertFileExists,
@@ -36,7 +36,7 @@ describe('GenerateR3F', () => {
           }
 
           it('should generate', async () => {
-            const m = await readGLTF(modelFile)
+            const m = await loadGLTF(modelFile)
             const options = fixtureGenerateOptions({
               componentName: modelName,
               draco: type.includes('draco'),

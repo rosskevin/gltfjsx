@@ -1,7 +1,7 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { readGLTF } from '../readGLTF.js'
+import { loadGLTF } from '../loadGLTF.js'
 import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
 
 describe('readGLTF', () => {
@@ -26,7 +26,7 @@ describe('readGLTF', () => {
           }
 
           it('should read', async () => {
-            const m = await readGLTF(modelFile)
+            const m = await loadGLTF(modelFile)
             assertCommon(m)
 
             // use GLTFExporter to export a scene or objects as json .gltf or binary .glb file

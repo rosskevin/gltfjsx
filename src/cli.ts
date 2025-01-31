@@ -8,10 +8,10 @@ import { readPackageUpSync } from 'read-pkg-up'
 
 import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
 import gltfTransform from './gltfTransform.js'
+import { loadGLTF } from './loadGLTF.js'
 import { Log } from './Log.js'
 import { CliOptions } from './options.js'
 import { GeneratedR3F } from './r3f/GenerateR3F.js'
-import { readGLTF } from './readGLTF.js'
 import {
   compareFileSizes,
   resolveComponentName,
@@ -132,7 +132,7 @@ if (cli.input.length === 0) {
   //
   // Read the model
   //
-  const modelGLTF = await readGLTF(transformedModelFile ? transformedModelFile : modelFile)
+  const modelGLTF = await loadGLTF(transformedModelFile ? transformedModelFile : modelFile)
 
   //
   // Analyze the model

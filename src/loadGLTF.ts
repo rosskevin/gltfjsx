@@ -14,7 +14,7 @@ import { readFileToArrayBuffer } from './utils/files.js'
 /**
  * Read a GLTF file and return the GLTF object.
  */
-export async function readGLTF(modelFilename: string): Promise<GLTF> {
+export async function loadGLTF(modelFilename: string): Promise<GLTF> {
   const modelBuffer = readFileToArrayBuffer(modelFilename)
   //
   // Setup loader
