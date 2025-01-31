@@ -27,3 +27,7 @@ tmp*
 New.tsx
 
 test/models/*/Old*
+
+# local testing
+test/models/a6
+test/r3f/GenA6*
