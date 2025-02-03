@@ -2,6 +2,7 @@
  * References:
  *  - https://github.com/Brakebein/node-three-gltf/tree/main (maintained!)
  */
+import fs from 'node:fs'
 import path from 'node:path'
 
 import { DRACOLoader, GLTF, GLTFLoader } from 'node-three-gltf'
@@ -15,6 +16,9 @@ import { readFileToArrayBuffer } from './utils/files.js'
  * Read a GLTF file and return the GLTF object.
  */
 export async function loadGLTF(modelFilename: string): Promise<GLTF> {
+  if (!fs.existsSync(modelFilename)) {
+    throw new Error(`File not found: ${modelFilename}`)
+  }
   const modelBuffer = readFileToArrayBuffer(modelFilename)
   //
   // Setup loader
@@ -29,6 +33,7 @@ export async function loadGLTF(modelFilename: string): Promise<GLTF> {
   loader.setMeshoptDecoder(MeshoptDecoder)
 
   const modelDir = path.parse(modelFilename).dir + path.sep
+
   return new Promise((resolve, reject) => {
     loader.parse(
       modelBuffer,
