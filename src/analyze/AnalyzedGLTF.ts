@@ -202,14 +202,14 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
 
     // Meshes
     if (isMesh(o)) {
+      // Mesh shadows
+      if (this.options.shadows) {
+        props['castShadow'] = true
+        props['receiveShadow'] = true
+      }
+
       // non-instanced
       if (!this.isInstanced(o)) {
-        // Mesh shadows
-        if (this.options.shadows) {
-          props['castShadow'] = true
-          props['receiveShadow'] = true
-        }
-
         if (!isInstancedMesh(o)) {
           // geometry
           props['geometry'] = `${node}.geometry`
