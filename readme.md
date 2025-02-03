@@ -1,14 +1,5 @@
 # GLTFJSX
 
-## Fork differences
-
-- switching to typescript
-- added/updated eslint, prettier configs
-- attempt to allow for pluggability
-- Merge https://github.com/pmndrs/gltfjsx/pull/279 Add options to configure pruning unused vertex attributes
-
-## ---
-
 [![Version](https://img.shields.io/npm/v/gltfjsx?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/gltfjsx) [![Discord Shield](https://img.shields.io/discord/740090768164651008?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=ffffff)](https://discord.gg/ZZjjNvJ)
 
 <https://user-images.githubusercontent.com/2223602/126318148-99da7ed6-a578-48dd-bdd2-21056dbad003.mp4>
@@ -34,34 +25,34 @@ A small command-line tool that turns GLTF assets into declarative and re-usable 
 
 ```text
 Usage
-  $ npx gltfjsx [Model.glb] [options]
+  $ npx gltfjsx <Model.glb> <options>
 
 Options
-  --output, -o        Output file name/path
-  --types, -t         Add Typescript definitions
-  --keepnames, -k     Keep original names
-  --keepgroups, -K    Keep (empty) groups, disable pruning
-  --bones, -b         Lay out bones declaratively (default: false)
-  --meta, -m          Include metadata (as userData)
-  --shadows, s        Let meshes cast and receive shadows
-  --printwidth, w     Prettier printWidth (default: 120)
-  --precision, -p     Number of fractional digits (default: 3)
-  --draco, -d         Draco binary path
-  --root, -r          Sets directory from which .gltf file is served
-  --instance, -i      Instance re-occuring geometry
-  --instanceall, -I   Instance every geometry (for cheaper re-use)
-  --exportdefault, -E Use default export
-  --transform, -T     Transform the asset for the web (draco, prune, resize)
-    --resolution, -R  Resolution for texture resizing (default: 1024)
-    --keepmeshes, -j  Do not join compatible meshes
-    --keepmaterials, -M Do not palette join materials
-    --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture (default: false)
-    --format, -f      Texture format (default: "webp")
-    --simplify, -S    Mesh simplification (default: false)
-      --ratio         Simplifier ratio (default: 0)
-      --error         Simplifier error threshold (default: 0.0001)
-  --console, -c       Log JSX to console, won't produce a file
-  --debug, -D         Debug output
+    --output, -o        Output src file name/path (default: Model.(j|t)sx)
+    --draco, -d         Use draco to load file
+    --types, -t         Write as .tsx file with types (default: true)
+    --keepnames, -k     Keep original names
+    --keepgroups, -K    Keep (empty) groups, disable pruning
+    --bones, -b         Lay out bones declaratively (default: false)
+    --meta, -m          Include metadata (as userData)
+    --shadows, s        Let meshes cast and receive shadows
+    --printwidth, w     Prettier printWidth (default: 120)
+    --precision, -p     Number of fractional digits (default: 3)
+    --root, -r          Sets directory from which .gltf file is served
+    --exportdefault, -E Use default export
+    --console, -c       Log JSX to console, won't produce a file
+    --debug, -D         Debug output
+    The following options apply a series of transformations to the GLTF file via the @gltf-transform libraries:
+        --instance, -i      Instance re-occuring geometry
+        --instanceall, -I   Instance every geometry (for cheaper re-use)
+        --resolution, -R  Resolution for texture resizing (default: 1024)
+        --keepmeshes, -j  Do not join compatible meshes
+        --keepmaterials, -M Do not palette join materials
+        --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
+        --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
+        --simplify, -S    Mesh simplification (default: false)
+        --ratio         Simplifier ratio (default: 0)
+        --error         Simplifier error threshold (default: 0.0001)
 ```
 
 ### A typical use-case
