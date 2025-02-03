@@ -31,7 +31,7 @@ export function compareFileSizes(original: string, transformed: string) {
   )}%)`
 }
 
-// FIXME almost assuredly this is wrong...
+// FIXME This really needs a unit test
 export function resolveModelLoadPath(file: string, root?: string) {
   const filePath = path.resolve(file)
   const rootPath = root ? path.resolve(root) : path.dirname(file)

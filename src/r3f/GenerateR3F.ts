@@ -34,13 +34,14 @@ const stringProps = ['name']
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
 export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
-  protected project: Project
-  protected src: SourceFile
-  protected gltfInterface!: InterfaceDeclaration
-  protected propsInterface!: InterfaceDeclaration
-  protected instancesFn: FunctionDeclaration
-  protected fn!: FunctionDeclaration
-  protected groupRoot!: JsxElement
+  // leave public to allow for external manipulation - in case the user does not want to subclass
+  public project: Project
+  public src: SourceFile
+  public gltfInterface!: InterfaceDeclaration
+  public propsInterface!: InterfaceDeclaration
+  public instancesFn: FunctionDeclaration
+  public fn!: FunctionDeclaration
+  public groupRoot!: JsxElement
 
   constructor(
     private a: AnalyzedGLTF,
@@ -82,10 +83,6 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
-  }
-
-  public getSrc() {
-    return this.src
   }
 
   /**
