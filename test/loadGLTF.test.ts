@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { loadGLTF } from '../src/index.js'
 import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
 
-describe('readGLTF', () => {
+describe('loadGLTF', () => {
   for (const modelName of models) {
     describe(modelName, () => {
       for (const type of types) {
