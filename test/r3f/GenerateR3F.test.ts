@@ -1,7 +1,13 @@
 import { GLTF } from 'node-three-gltf'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { AnalyzedGLTF, GeneratedR3F, loadGLTF, resolveModelLoadPath } from '../../src/index.js'
+import {
+  AnalyzedGLTF,
+  GeneratedR3F,
+  GenerateOptions,
+  loadGLTF,
+  resolveModelLoadPath,
+} from '../../src/index.js'
 import {
   assertFileExists,
   fixtureGenerateOptions,
@@ -17,24 +23,14 @@ describe('GenerateR3F', () => {
         const modelFile = resolveFixtureModelFile(modelName, type)
 
         describe(type, () => {
-          beforeEach(() => {
+          let model: GLTF
+          let options: GenerateOptions
+          let a: AnalyzedGLTF
+
+          beforeEach(async () => {
             assertFileExists(modelFile)
-          })
-
-          function assertCommon(m: GLTF) {
-            // FIXME
-            expect(m.animations).not.toBeNull()
-            expect(m.scenes).not.toBeNull()
-            expect(m.scene).not.toBeNull()
-            expect(m.scene.children).not.toBeNull()
-            expect(m.scene.children.length).toBeGreaterThan(0)
-            expect(m.parser).not.toBeNull()
-            expect(m.parser.json).not.toBeNull()
-          }
-
-          it('should generate', async () => {
-            const m = await loadGLTF(modelFile)
-            const options = fixtureGenerateOptions({
+            model = await loadGLTF(modelFile)
+            options = fixtureGenerateOptions({
               componentName: modelName,
               draco: type.includes('draco'),
               header: 'FOO header',
@@ -44,21 +40,36 @@ describe('GenerateR3F', () => {
               shadows: true,
               instanceall: type.includes('instanceall'),
             })
-            const a = new AnalyzedGLTF(m, options)
+            a = new AnalyzedGLTF(model, options)
+          })
+
+          function assertCommon(g: GeneratedR3F) {
+            expect(g.project).not.toBeNull()
+            expect(g.src).not.toBeNull()
+            expect(g.gltfInterface).not.toBeNull()
+            expect(g.propsInterface).not.toBeNull()
+            expect(g.instancesFn).not.toBeNull()
+            expect(g.fn).not.toBeNull()
+            expect(g.groupRoot).not.toBeNull()
+          }
+
+          it('should generate', async () => {
             const g = new GeneratedR3F(a, options)
+
+            assertCommon(g)
             const tsx = await g.toTsx()
             console.log(tsx)
-            // const jsx = g.toJsx()
-            // console.log(jsx)
-            expect(tsx).toContain('FOO header')
+            const jsx = await g.toJsx()
 
-            if (type.includes('instanceall')) {
-              expect(tsx).toContain('<Merged')
-              expect(tsx).toContain('const instances = React.useMemo(')
-              expect(tsx).toContain('<instances.')
+            for (const code of [tsx, jsx]) {
+              expect(tsx).toContain('FOO header')
+
+              if (type.includes('instanceall')) {
+                expect(tsx).toContain('<Merged')
+                expect(tsx).toContain('const instances = React.useMemo(')
+                expect(tsx).toContain('<instances.')
+              }
             }
-
-            assertCommon(m)
           })
         })
       }
