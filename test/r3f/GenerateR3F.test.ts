@@ -67,7 +67,11 @@ describe('GenerateR3F', () => {
               if (type.includes('instanceall')) {
                 expect(tsx).toContain('<Merged')
                 expect(tsx).toContain('const instances = React.useMemo(')
-                expect(tsx).toContain('<instances.')
+                expect(tsx).toMatch(/<instances\..*castShadow/)
+                expect(tsx).toMatch(/<instances\..*receiveShadow/)
+              } else {
+                expect(tsx).toMatch(/castShadow/)
+                expect(tsx).toMatch(/receiveShadow/)
               }
             }
           })
