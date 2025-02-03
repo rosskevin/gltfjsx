@@ -77,7 +77,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     // set constants - load path, draco
     this.setConstants()
 
-    this.setModelGLTFTypes()
+    this.setGLTFInterfaceTypes()
 
     this.generateChildren()
 
@@ -122,7 +122,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
    *     }
    *   }
    */
-  protected setModelGLTFTypes() {
+  protected setGLTFInterfaceTypes() {
     // nodes
     const meshes: Mesh[] = this.a.getMeshes()
     const bones: Bone[] = this.a.getBones()
