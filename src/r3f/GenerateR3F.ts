@@ -42,6 +42,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   public instancesFn: FunctionDeclaration
   public fn!: FunctionDeclaration
   public groupRoot!: JsxElement
+  protected mappedPropsEncountered = new Set<keyof O['mapComponentProps']>()
 
   constructor(
     private a: AnalyzedGLTF,
@@ -80,6 +81,8 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     this.setGLTFInterfaceTypes()
 
     this.generateChildren()
+
+    this.updateProps()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
@@ -202,12 +205,51 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     return result
   }
 
+  /**
+   * Update the props interface, and destructure variables in the function body
+   */
+  protected updateProps() {
+    // this.propsInterface.addProperty({ name: 'newProperty', ...pv })
+  }
+
+  /**
+   * Iterate over all mapCompentProps and return the prop name if it matches.
+   * @param o
+   * @param to the Object3D property name
+   */
+  protected getMappedComponentProp(
+    o: Object3D,
+    to: string,
+  ): keyof GenerateOptions['mapComponentProps'] | undefined {
+    const { mapComponentProps } = this.options
+    if (!mapComponentProps) return
+
+    for (const [componentProp, mappedProp] of Object.entries(mapComponentProps)) {
+      if (
+        mappedProp.to.includes(to) &&
+        (mappedProp.matcher === undefined || mappedProp?.matcher(o))
+      ) {
+        return componentProp as keyof GenerateOptions['mapComponentProps']
+      }
+    }
+
+    return
+  }
+
   protected writeProps(o: Object3D) {
+    const { log } = this.options
     const props = this.a.calculateProps(o)
+
     return Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const value = props[key]
+        let value = props[key]
+        const componentProp = this.getMappedComponentProp(o, key)
+        if (componentProp) {
+          log.debug(`Mapping ${o.type} ${key} -> ${componentProp} component prop`)
+          value = componentProp
+          this.mappedPropsEncountered.add(componentProp)
+        }
 
         if (stringProps.includes(key)) {
           return `${key}="${value}"`

@@ -75,6 +75,38 @@ describe('GenerateR3F', () => {
               }
             }
           })
+
+          it('should generate mapped props', async () => {
+            const mo: GenerateOptions = {
+              ...options,
+              mapComponentProps: {
+                shadows: {
+                  to: ['castShadow', 'receiveShadow'],
+                  structure: {
+                    type: 'boolean',
+                    hasQuestionToken: true,
+                  },
+                },
+              },
+            }
+            const g = new GeneratedR3F(a, mo)
+            assertCommon(g)
+            const tsx = await g.toTsx()
+            console.log(tsx)
+            const jsx = await g.toJsx()
+
+            for (const code of [tsx, jsx]) {
+              if (type.includes('instanceall')) {
+                expect(tsx).toContain('<Merged')
+                expect(tsx).toContain('const instances = React.useMemo(')
+                expect(tsx).toMatch(/<instances\..*castShadow=\{shadows\}/)
+                expect(tsx).toMatch(/<instances\..*receiveShadow=\{shadows\}/)
+              } else {
+                expect(tsx).toMatch(/castShadow=\{shadows\}/)
+                expect(tsx).toMatch(/receiveShadow=\{shadows\}/)
+              }
+            }
+          })
         })
       }
     })

@@ -1,4 +1,6 @@
 import { TextureCompressOptions } from '@gltf-transform/functions'
+import { Object3D } from 'three'
+import { OptionalKind, PropertySignatureStructure } from 'ts-morph'
 
 export interface LogOptions {
   silent: boolean
@@ -49,11 +51,33 @@ export interface AnalyzedGLTFOptions extends PropsOptions {
   precision: number
 }
 
+export type MappedProp = {
+  /**
+   * Object3D prop(s)
+   * e.g. castShadow | [castShadow, receiveShadow]
+   * */
+  to: string | string[]
+  /**
+   * Match a specific type of object.
+   * If not provided, matches all that have the {to} prop
+   * */
+  matcher?: (o: Object3D) => boolean
+  /**
+   * ts-morph prop structure (name is already supplied)
+   * */
+  structure: Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+}
+
 export interface GenerateOptions extends PropsOptions {
   componentName: string
   draco: boolean
   exportdefault: boolean
   header?: string
+  /**
+   * Map component prop -> Object3D props
+   * e.g. shadows->[castShadow, receiveShadow]
+   */
+  mapComponentProps?: Record<string, MappedProp>
   modelLoadPath: string
   precision: number
   size?: string // human readable size
