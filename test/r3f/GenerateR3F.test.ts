@@ -77,36 +77,70 @@ describe('GenerateR3F', () => {
             }
           })
 
-          it('should generate mapped prop for Object3D to[]', async () => {
-            const mo: GenerateOptions = {
-              ...options,
-              exposeProps: {
-                shadows: {
-                  to: ['castShadow', 'receiveShadow'],
-                  structure: {
-                    type: 'boolean',
-                    hasQuestionToken: true,
+          describe('exposeProps', () => {
+            it('should generate to[]', async () => {
+              const mo: GenerateOptions = {
+                ...options,
+                exposeProps: {
+                  shadows: {
+                    to: ['castShadow', 'receiveShadow'],
+                    structure: {
+                      type: 'boolean',
+                      hasQuestionToken: true,
+                    },
                   },
                 },
-              },
-            }
-            const g = new GeneratedR3F(a, mo)
-            assertCommon(g)
-            const tsx = await g.toTsx()
-            console.log(tsx)
-            const jsx = await g.toJsx()
-
-            for (const code of [tsx, jsx]) {
-              if (type.includes('instanceall')) {
-                expect(tsx).toContain('<Merged')
-                expect(tsx).toContain('const instances = React.useMemo(')
-                expect(tsx).toMatch(/<instances\..*castShadow=\{shadows\}/)
-                expect(tsx).toMatch(/<instances\..*receiveShadow=\{shadows\}/)
-              } else {
-                expect(tsx).toMatch(/castShadow=\{shadows\}/)
-                expect(tsx).toMatch(/receiveShadow=\{shadows\}/)
               }
-            }
+              const g = new GeneratedR3F(a, mo)
+              assertCommon(g)
+              const tsx = await g.toTsx()
+              console.log(tsx)
+              const jsx = await g.toJsx()
+
+              for (const code of [tsx, jsx]) {
+                if (type.includes('instanceall')) {
+                  expect(tsx).toContain('<Merged')
+                  expect(tsx).toContain('const instances = React.useMemo(')
+                  expect(tsx).toMatch(/<instances\..*castShadow=\{shadows\}/)
+                  expect(tsx).toMatch(/<instances\..*receiveShadow=\{shadows\}/)
+                } else {
+                  expect(tsx).toMatch(/castShadow=\{shadows\}/)
+                  expect(tsx).toMatch(/receiveShadow=\{shadows\}/)
+                }
+              }
+            })
+
+            it('should generate to (singular)', async () => {
+              const mo: GenerateOptions = {
+                ...options,
+                exposeProps: {
+                  shadows: {
+                    to: 'castShadow',
+                    structure: {
+                      type: 'boolean',
+                      hasQuestionToken: true,
+                    },
+                  },
+                },
+              }
+              const g = new GeneratedR3F(a, mo)
+              assertCommon(g)
+              const tsx = await g.toTsx()
+              console.log(tsx)
+              const jsx = await g.toJsx()
+
+              for (const code of [tsx, jsx]) {
+                if (type.includes('instanceall')) {
+                  expect(tsx).toContain('<Merged')
+                  expect(tsx).toContain('const instances = React.useMemo(')
+                  expect(tsx).toMatch(/<instances\..*castShadow=\{shadows\}/)
+                  expect(tsx).toMatch(/<instances\..*receiveShadow /)
+                } else {
+                  expect(tsx).toMatch(/castShadow=\{shadows\}/)
+                  expect(tsx).toMatch(/receiveShadow\n/)
+                }
+              }
+            })
           })
         })
       }
