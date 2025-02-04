@@ -9,6 +9,7 @@ import {
   ScriptTarget,
   SourceFile,
   SyntaxKind,
+  ts,
 } from 'ts-morph'
 
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
@@ -53,7 +54,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       compilerOptions: {
         target: ScriptTarget.ESNext,
-        jsx: 1, // JsxEmit.Preserve bug https://github.com/dsherret/ts-morph/issues/1605
+        jsx: ts.JsxEmit.Preserve,
       } as any,
     })
     this.src = this.project.createSourceFile(`${options.componentName}.tsx`, this.getTemplate())
