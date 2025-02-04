@@ -107,11 +107,8 @@ export interface CliOptions
     Omit<AnalyzedGLTFOptions, 'log'> {
   console: boolean
   debug: boolean
-  draco: boolean
-  // delay: number
   output?: string
   root?: string
-  // timeout: number
   transform?: boolean
   types: boolean
 }
