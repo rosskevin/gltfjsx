@@ -49,11 +49,15 @@ export async function main(modelFile: string, cliOptions: CliOptions) {
   //
   let dracoLoader: DRACOLoader | undefined = undefined // global instance, instantiate once, dispose once
   if (cliOptions.draco) {
+    log.debug('Instantiating DracoLoader')
     dracoLoader = new DRACOLoader()
   }
   log.debug('Loading model: ', modelFile)
   try {
-    const modelGLTF = await loadGLTF(transformedModelFile ? transformedModelFile : modelFile)
+    const modelGLTF = await loadGLTF(
+      transformedModelFile ? transformedModelFile : modelFile,
+      dracoLoader,
+    )
 
     //
     // Analyze the model
@@ -86,6 +90,7 @@ Command: npx gltfjsx@${readPackage().packageJson.version} ${process.argv.slice(2
       console.log('Wrote file: ', outputSrcFile)
     }
   } finally {
+    log.debug('Disposing of DracoLoader')
     dracoLoader?.dispose()
   }
 }
