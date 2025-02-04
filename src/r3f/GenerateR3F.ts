@@ -1,17 +1,7 @@
-import * as prettier from 'prettier'
-import babelParser from 'prettier/parser-babel.js'
 import { Bone, Mesh, Object3D } from 'three'
-import {
-  FunctionDeclaration,
-  InterfaceDeclaration,
-  JsxElement,
-  Project,
-  ScriptTarget,
-  SourceFile,
-  SyntaxKind,
-  ts,
-} from 'ts-morph'
+import { FunctionDeclaration, InterfaceDeclaration, JsxElement, SyntaxKind } from 'ts-morph'
 
+import { AbstractGenerate } from '../AbstractGenerate.js'
 import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { isBone, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
@@ -35,10 +25,8 @@ const stringProps = ['name']
  *
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
-export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
+export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends AbstractGenerate {
   // leave public to allow for external manipulation - in case the user does not want to subclass
-  public project: Project
-  public src: SourceFile
   public gltfInterface!: InterfaceDeclaration
   public propsInterface!: InterfaceDeclaration
   public instancesFn: FunctionDeclaration
@@ -50,15 +38,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
     private a: AnalyzedGLTF,
     private options: Readonly<O>,
   ) {
-    this.project = new Project({
-      useInMemoryFileSystem: true,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      compilerOptions: {
-        target: ScriptTarget.ESNext,
-        jsx: ts.JsxEmit.Preserve,
-      } as any,
-    })
-    this.src = this.project.createSourceFile(`${options.componentName}.tsx`, this.getTemplate())
+    super(options.componentName)
 
     // gather references before we rename them
     this.gltfInterface = this.getInterface(this.getModelGLTFName())
@@ -88,22 +68,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
-  }
-
-  /**
-   * @returns the source as tsx
-   */
-  public async toTsx() {
-    return this.formatCode(this.src.getFullText())
-  }
-
-  /**
-   * @returns the source as jsx
-   */
-  public async toJsx() {
-    // npx tsc --jsx preserve -t esnext --outDir js --noEmit false
-    const result = this.project.emitToMemory()
-    return this.formatCode(result.getFiles()[0].text)
   }
 
   protected setConstants() {
@@ -333,21 +297,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
     return props
   }
 
-  protected async formatCode(code: string) {
-    return prettier.format(code, this.getPrettierSettings())
-  }
-
-  protected getPrettierSettings() {
-    return {
-      semi: false,
-      printWidth: 100,
-      singleQuote: true,
-      jsxBracketSameLine: true,
-      parser: 'babel-ts',
-      plugins: [babelParser],
-    }
-  }
-
   protected getModelPropsName() {
     return this.options.componentName + 'Props'
   }
@@ -375,7 +324,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
    *
    * @returns
    */
-  protected getTemplate() {
+  protected getTemplate(): string {
     const { componentName, exportDefault: exportdefault, header, size } = this.options
     const modelGLTFName = this.getModelGLTFName()
     const modelActionName = this.getModelActionName()
@@ -478,12 +427,5 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
       useGLTF.preload(modelLoadPath, draco)
       `
     return template
-  }
-
-  /** convenience */
-  private getInterface(name: string) {
-    const i = this.src.getInterface(name)
-    if (!i) throw new Error(`${name} interface not found`)
-    return i
   }
 }
