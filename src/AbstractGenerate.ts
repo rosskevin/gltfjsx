@@ -65,9 +65,4 @@ export abstract class AbstractGenerate {
     if (!i) throw new Error(`${name} interface not found`)
     return i
   }
-
-  /**
-   * Create the source file
-   */
-  protected abstract createSource(): SourceFile
 }
