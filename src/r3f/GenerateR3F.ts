@@ -17,6 +17,7 @@ import { isBone, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { nodeName } from '../analyze/utils.js'
 import { GenerateOptions } from '../options.js'
+import { Props } from '../utils/types.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
 // controls writing of prop values in writeProps()
@@ -267,7 +268,42 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     return
   }
 
-  protected writeProps(o: Object3D) {
+  /**
+   * Determine and write the props as a string
+   */
+  protected writeProps(o: Object3D): string {
+    const { log } = this.options
+    const props = this.determineProps(o)
+
+    const propString = Object.keys(props)
+      .map((key: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        let value = props[key]
+        const componentProp = this.getMappedComponentProp(o, key)
+        if (componentProp) {
+          log.debug(`Mapping ${componentProp} <${getJsxElementName(o, this.a)} ${key}`)
+          value = componentProp
+          this.exposedPropsEncountered.add(componentProp)
+        }
+
+        if (stringProps.includes(key)) {
+          return `${key}="${value}"`
+        }
+        if (value === true) {
+          return key // e.g. castShadow
+        }
+        return `${key}={${value}}`
+      })
+      .join(' ')
+
+    return propString
+  }
+
+  /**
+   * Determine the props for the Object3D, including exposed component props.  Leave as protected
+   *  method allowing for easy customization in subclasses.
+   */
+  protected determineProps(o: Object3D): Props {
     const { exposeProps, log } = this.options
     const props = this.a.calculateProps(o)
 
@@ -294,29 +330,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
         }
       }
     }
-
-    const propString = Object.keys(props)
-      .map((key: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        let value = props[key]
-        const componentProp = this.getMappedComponentProp(o, key)
-        if (componentProp) {
-          log.debug(`Mapping ${componentProp} <${getJsxElementName(o, this.a)} ${key}`)
-          value = componentProp
-          this.exposedPropsEncountered.add(componentProp)
-        }
-
-        if (stringProps.includes(key)) {
-          return `${key}="${value}"`
-        }
-        if (value === true) {
-          return key // e.g. castShadow
-        }
-        return `${key}={${value}}`
-      })
-      .join(' ')
-
-    return propString
+    return props
   }
 
   protected async formatCode(code: string) {
