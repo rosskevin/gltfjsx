@@ -1,5 +1,5 @@
-import { GLTF } from 'node-three-gltf'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { DRACOLoader, GLTF } from 'node-three-gltf'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { AnalyzedGLTF, isGroup, loadGLTF, Log } from '../../src/index.js'
 import {
@@ -18,13 +18,21 @@ describe('AnalyzedGLTF', () => {
       for (const type of types) {
         const modelFile = resolveFixtureModelFile(modelName, type)
 
+        let dracoLoader: DRACOLoader
+        beforeAll(() => {
+          dracoLoader = new DRACOLoader()
+        })
+        afterAll(() => {
+          dracoLoader.dispose()
+        })
+
         describe(type, () => {
           let m: GLTF
           let a: AnalyzedGLTF
 
           beforeEach(async () => {
             assertFileExists(modelFile)
-            m = await loadGLTF(modelFile)
+            m = await loadGLTF(modelFile, dracoLoader)
             a = new AnalyzedGLTF(m, fixtureAnalyzeOptions())
           })
 

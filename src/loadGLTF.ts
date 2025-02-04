@@ -14,8 +14,11 @@ import { readFileToArrayBuffer } from './utils/files.js'
 
 /**
  * Read a GLTF file and return the GLTF object.
+ * @param modelFilename - The path to the GLTF file.
+ * @param dracoLoader - The DRACOLoader instance to use, this should be global,
+ *  instantiatied once, and disposed once after all usage. see: https://github.com/Brakebein/node-three-gltf/issues/19
  */
-export async function loadGLTF(modelFilename: string): Promise<GLTF> {
+export async function loadGLTF(modelFilename: string, dracoLoader?: DRACOLoader): Promise<GLTF> {
   if (!fs.existsSync(modelFilename)) {
     throw new Error(`File not found: ${modelFilename}`)
   }
@@ -23,12 +26,13 @@ export async function loadGLTF(modelFilename: string): Promise<GLTF> {
   //
   // Setup loader
   //
-  const dracoLoader = new DRACOLoader()
   const ktx2Loader = new KTX2Loader()
   ktx2Loader.setTranscoderPath('three/addons/jsm/libs/basis/')
 
   const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
+  if (dracoLoader) {
+    loader.setDRACOLoader(dracoLoader)
+  }
   loader.setKTX2Loader(ktx2Loader)
   loader.setMeshoptDecoder(MeshoptDecoder)
 
@@ -44,7 +48,6 @@ export async function loadGLTF(modelFilename: string): Promise<GLTF> {
           // Wrap scene in a GLTF Structure
           gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
         }
-        dracoLoader.dispose() // https://github.com/Brakebein/node-three-gltf/issues/19
         resolve(gltf)
       },
       (error) => {

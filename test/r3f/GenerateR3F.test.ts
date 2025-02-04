@@ -1,6 +1,6 @@
-import { GLTF } from 'node-three-gltf'
+import { DRACOLoader, GLTF } from 'node-three-gltf'
 import { SyntaxKind } from 'ts-morph'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
@@ -28,10 +28,18 @@ describe('GenerateR3F', () => {
         let model: GLTF
         let options: GenerateOptions
         let a: AnalyzedGLTF
+        let dracoLoader: DRACOLoader
+
+        beforeAll(() => {
+          dracoLoader = new DRACOLoader()
+        })
+        afterAll(() => {
+          dracoLoader.dispose()
+        })
 
         beforeEach(async () => {
           assertFileExists(modelFile)
-          model = await loadGLTF(modelFile)
+          model = await loadGLTF(modelFile, dracoLoader)
           options = fixtureGenerateOptions({
             componentName: modelName,
             draco: type.includes('draco'),

@@ -1,5 +1,5 @@
-import { GLTF } from 'node-three-gltf'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { DRACOLoader, GLTF } from 'node-three-gltf'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { loadGLTF } from '../src/index.js'
 import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
@@ -9,6 +9,13 @@ describe('loadGLTF', () => {
     describe(modelName, () => {
       for (const type of types) {
         const modelFile = resolveFixtureModelFile(modelName, type)
+        let dracoLoader: DRACOLoader
+        beforeAll(() => {
+          dracoLoader = new DRACOLoader()
+        })
+        afterAll(() => {
+          dracoLoader.dispose()
+        })
 
         describe(type, () => {
           beforeEach(() => {
@@ -26,7 +33,7 @@ describe('loadGLTF', () => {
           }
 
           it('should read', async () => {
-            const m = await loadGLTF(modelFile)
+            const m = await loadGLTF(modelFile, dracoLoader)
             assertCommon(m)
 
             // use GLTFExporter to export a scene or objects as json .gltf or binary .glb file
