@@ -204,9 +204,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     // (last) rename the argument in the function signature (without renaming all usages)
     this.fn.getParameters()[0].set({ name: 'props' })
 
-    // destructure the props variable in the function body with a ...rest
+    // destructure the props variable in the function body with a ...rest.  Add this after `useGLTF()` call
     this.fn.insertStatements(
-      0,
+      1,
       `const { ${[...this.exposedPropsEncountered].join(', ')}, ...rest } = props`,
     )
   }
