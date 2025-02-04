@@ -10,14 +10,14 @@ import { Project, ScriptTarget, SourceFile, ts } from 'ts-morph'
 export abstract class AbstractGenerate {
   // leave public to allow for external manipulation - in case the user does not want to subclass
   public project: Project
-  public src: SourceFile
+  /** subclass must assign */
+  public src!: SourceFile
 
   /**
    *
-   * @param filename in-memory filename
    * @param options
    */
-  constructor(filename: string) {
+  constructor() {
     this.project = new Project({
       useInMemoryFileSystem: true,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -26,7 +26,6 @@ export abstract class AbstractGenerate {
         jsx: ts.JsxEmit.Preserve,
       } as any,
     })
-    this.src = this.project.createSourceFile(`${filename}.tsx`, this.getTemplate())
   }
 
   /**
@@ -68,7 +67,7 @@ export abstract class AbstractGenerate {
   }
 
   /**
-   * Provides the template for the generated source file.
+   * Create the source file
    */
-  protected abstract getTemplate(): string
+  protected abstract createSource(): SourceFile
 }

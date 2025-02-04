@@ -35,10 +35,14 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   protected exposedPropsEncountered = new Set<keyof O['exposeProps']>()
 
   constructor(
-    private a: AnalyzedGLTF,
-    private options: Readonly<O>,
+    protected a: AnalyzedGLTF,
+    protected options: Readonly<O>,
   ) {
-    super(options.componentName)
+    super()
+    this.src = this.project.createSourceFile(
+      `${this.options.componentName}.tsx`,
+      this.getTemplate(),
+    )
 
     // gather references before we rename them
     this.gltfInterface = this.getInterface(this.getModelGLTFName())
