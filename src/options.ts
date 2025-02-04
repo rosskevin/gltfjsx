@@ -2,6 +2,8 @@ import { TextureCompressOptions } from '@gltf-transform/functions'
 import { Object3D } from 'three'
 import { OptionalKind, PropertySignatureStructure } from 'ts-morph'
 
+import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
+
 export interface LogOptions {
   silent: boolean
   debug: boolean
@@ -61,7 +63,7 @@ export type MappedProp = {
    * Match a specific type of object.
    * If not provided, matches all that have the {to} prop
    * */
-  matcher?: (o: Object3D) => boolean
+  matcher?: (o: Object3D, a: AnalyzedGLTF) => boolean
   /**
    * ts-morph prop structure (name is already supplied)
    * */

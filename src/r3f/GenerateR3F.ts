@@ -274,6 +274,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   protected determineProps(o: Object3D): Props {
     const { exposeProps, log } = this.options
     const props = this.a.calculateProps(o)
+    const propKeys = Object.keys(props)
 
     // find explicit matches from exposeProps matchers and add to calculated props
     // e.g. propagate visible=true where it is defaulted true.
@@ -281,8 +282,8 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
         if (
           mappedProp.matcher &&
-          mappedProp.matcher(o) &&
-          !Object.keys(props).includes(componentProp)
+          mappedProp.matcher(o, this.a) &&
+          !propKeys.includes(componentProp)
         ) {
           let toArray = mappedProp.to
           if (!Array.isArray(mappedProp.to)) {
@@ -290,7 +291,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           }
           for (const to of toArray) {
             log.debug(
-              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to} />`,
+              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to} name='${o.name}' />`,
             )
             // fabricate a value to be remapped
             props[to] = 'foobarbaz'
