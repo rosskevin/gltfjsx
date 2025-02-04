@@ -42,7 +42,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   public instancesFn: FunctionDeclaration
   public fn!: FunctionDeclaration
   public groupRoot!: JsxElement
-  protected mappedPropsEncountered = new Set<keyof O['mapComponentProps']>()
+  protected exposedPropsEncountered = new Set<keyof O['exposeProps']>()
 
   constructor(
     private a: AnalyzedGLTF,
@@ -82,7 +82,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
 
     this.generateChildren()
 
-    this.exposeComponentProps()
+    this.exposeProps()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
@@ -211,12 +211,12 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
    * - change the identifer on the <group {...rest} /> element
    * - set the argument in the function signature
    */
-  protected exposeComponentProps() {
-    if (this.mappedPropsEncountered.size === 0) return
+  protected exposeProps() {
+    if (this.exposedPropsEncountered.size === 0) return
 
     // add all mapped props to the ModelProps interface
-    for (const prop of this.mappedPropsEncountered) {
-      const { to, matcher, structure } = this.options.mapComponentProps![prop]
+    for (const prop of this.exposedPropsEncountered) {
+      const { to, matcher, structure } = this.options.exposeProps![prop]
       const pv = { ...structure, name: prop as string }
 
       // update the props interface
@@ -237,7 +237,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
     // destructure the props variable in the function body with a ...rest
     this.fn.insertStatements(
       0,
-      `const { ${[...this.mappedPropsEncountered].join(', ')}, ...rest } = props`,
+      `const { ${[...this.exposedPropsEncountered].join(', ')}, ...rest } = props`,
     )
   }
 
@@ -249,16 +249,16 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   protected getMappedComponentProp(
     o: Object3D,
     to: string,
-  ): keyof GenerateOptions['mapComponentProps'] | undefined {
-    const { mapComponentProps } = this.options
-    if (!mapComponentProps) return
+  ): keyof GenerateOptions['exposeProps'] | undefined {
+    const { exposeProps } = this.options
+    if (!exposeProps) return
 
-    for (const [componentProp, mappedProp] of Object.entries(mapComponentProps)) {
+    for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
       if (
         mappedProp.to.includes(to) &&
         (mappedProp.matcher === undefined || mappedProp?.matcher(o))
       ) {
-        return componentProp as keyof GenerateOptions['mapComponentProps']
+        return componentProp as keyof GenerateOptions['exposeProps']
       }
     }
 
@@ -277,7 +277,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
         if (componentProp) {
           log.debug(`Mapping ${o.type} ${key} -> ${componentProp} component prop`)
           value = componentProp
-          this.mappedPropsEncountered.add(componentProp)
+          this.exposedPropsEncountered.add(componentProp)
         }
 
         if (stringProps.includes(key)) {
@@ -334,7 +334,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
    * @returns
    */
   protected getTemplate() {
-    const { componentName, exportdefault, header, size } = this.options
+    const { componentName, exportDefault: exportdefault, header, size } = this.options
     const modelGLTFName = this.getModelGLTFName()
     const modelActionName = this.getModelActionName()
     const modelPropsName = this.getModelPropsName()

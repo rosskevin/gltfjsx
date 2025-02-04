@@ -10,6 +10,7 @@ import {
 } from '../../src/index.js'
 import {
   assertFileExists,
+  fixtureAnalyzeOptions,
   fixtureGenerateOptions,
   models,
   resolveFixtureModelFile,
@@ -40,7 +41,7 @@ describe('GenerateR3F', () => {
               shadows: true,
               instanceall: type.includes('instanceall'),
             })
-            a = new AnalyzedGLTF(model, options)
+            a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
           })
 
           function assertCommon(g: GeneratedR3F) {
@@ -79,7 +80,7 @@ describe('GenerateR3F', () => {
           it('should generate mapped prop for Object3D to[]', async () => {
             const mo: GenerateOptions = {
               ...options,
-              mapComponentProps: {
+              exposeProps: {
                 shadows: {
                   to: ['castShadow', 'receiveShadow'],
                   structure: {

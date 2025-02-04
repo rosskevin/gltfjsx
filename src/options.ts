@@ -69,17 +69,35 @@ export type MappedProp = {
 }
 
 export interface GenerateOptions extends PropsOptions {
+  /**
+   * Set the component name (default: 'Model') which also
+   *  is used to determine the
+   */
   componentName: string
+  /**
+   * Use draco compression in useGLTF()
+   */
   draco: boolean
-  exportdefault: boolean
+  /**
+   * Export the component as default
+   */
+  exportDefault: boolean
+  /**
+   * Set the source file header
+   */
   header?: string
   /**
-   * Map component prop -> Object3D props
+   * Expose component prop and propagate to matching Object3D props
    * e.g. shadows->[castShadow, receiveShadow]
    */
-  mapComponentProps?: Record<string, MappedProp>
+  exposeProps?: Record<string, MappedProp>
+  /**
+   * Load path for the model for useGLTF()
+   */
   modelLoadPath: string
-  precision: number
+  /**
+   * file size to include in auto-generated header (assuming header option is undefined)
+   */
   size?: string // human readable size
 }
 
