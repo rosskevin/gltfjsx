@@ -284,7 +284,9 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
             toArray = [mappedProp.to]
           }
           for (const to of toArray) {
-            log.debug(`Forcing propagation of ${o.type} ${to} -> ${componentProp} component prop`)
+            log.debug(
+              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to} />`,
+            )
             // fabricate a value to be remapped
             props[to] = 'foobarbaz'
           }
@@ -298,7 +300,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
         let value = props[key]
         const componentProp = this.getMappedComponentProp(o, key)
         if (componentProp) {
-          log.debug(`Mapping ${o.type} ${key} -> ${componentProp} component prop`)
+          log.debug(`Mapping ${componentProp} <${getJsxElementName(o, this.a)} ${key}`)
           value = componentProp
           this.exposedPropsEncountered.add(componentProp)
         }
