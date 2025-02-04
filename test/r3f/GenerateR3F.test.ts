@@ -76,7 +76,7 @@ describe('GenerateR3F', () => {
             }
           })
 
-          it('should generate mapped props', async () => {
+          it('should generate mapped prop for Object3D to[]', async () => {
             const mo: GenerateOptions = {
               ...options,
               mapComponentProps: {

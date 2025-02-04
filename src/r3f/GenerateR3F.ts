@@ -82,7 +82,7 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
 
     this.generateChildren()
 
-    this.updateProps()
+    this.exposeComponentProps()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
@@ -206,10 +206,39 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   }
 
   /**
-   * Update the props interface, and destructure variables in the function body
+   * - add all mapped props to the ModelProps interface
+   * - destructure variables in the function body with a ...rest
+   * - change the identifer on the <group {...rest} /> element
+   * - set the argument in the function signature
    */
-  protected updateProps() {
-    // this.propsInterface.addProperty({ name: 'newProperty', ...pv })
+  protected exposeComponentProps() {
+    if (this.mappedPropsEncountered.size === 0) return
+
+    // add all mapped props to the ModelProps interface
+    for (const prop of this.mappedPropsEncountered) {
+      const { to, matcher, structure } = this.options.mapComponentProps![prop]
+      const pv = { ...structure, name: prop as string }
+
+      // update the props interface
+      this.propsInterface.addProperty(pv)
+    }
+
+    // change the identifier on the group JsxSpreadAttribute (causes rename of all usages)
+    const spreadIdentifier = this.groupRoot
+      .getOpeningElement()
+      .getAttributes()
+      .find((a) => a.getKind() === SyntaxKind.JsxSpreadAttribute)
+      ?.getFirstChildByKind(SyntaxKind.Identifier)
+    spreadIdentifier?.rename('rest') // this will rename usages, so we need to set he fn arg name last
+
+    // (last) rename the argument in the function signature (without renaming all usages)
+    this.fn.getParameters()[0].set({ name: 'props' })
+
+    // destructure the props variable in the function body with a ...rest
+    this.fn.insertStatements(
+      0,
+      `const { ${[...this.mappedPropsEncountered].join(', ')}, ...rest } = props`,
+    )
   }
 
   /**
