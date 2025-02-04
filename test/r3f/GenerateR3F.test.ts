@@ -59,6 +59,11 @@ describe('GenerateR3F', () => {
             ).toEqual(6)
           }
 
+          function assertInstanceAllCommon(code: string) {
+            expect(code).toContain('<Merged')
+            expect(code).toContain('const instances = React.useMemo(')
+          }
+
           it('should generate', async () => {
             const g = new GeneratedR3F(a, options)
 
@@ -71,8 +76,7 @@ describe('GenerateR3F', () => {
               expect(code).toContain('FOO header')
 
               if (type.includes('instanceall')) {
-                expect(code).toContain('<Merged')
-                expect(code).toContain('const instances = React.useMemo(')
+                assertInstanceAllCommon(code)
                 expect(code.match(/<instances\..*castShadow/g)?.length).toEqual(6)
                 expect(code.match(/<instances\..*receiveShadow/g)?.length).toEqual(6)
               } else {
@@ -104,8 +108,7 @@ describe('GenerateR3F', () => {
 
               for (const code of [tsx, jsx]) {
                 if (type.includes('instanceall')) {
-                  expect(code).toContain('<Merged')
-                  expect(code).toContain('const instances = React.useMemo(')
+                  assertInstanceAllCommon(code)
                   expect(code.match(/<instances/g)?.length).toEqual(6)
                   expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
                   expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
@@ -137,8 +140,7 @@ describe('GenerateR3F', () => {
 
               for (const code of [tsx, jsx]) {
                 if (type.includes('instanceall')) {
-                  expect(code).toContain('<Merged')
-                  expect(code).toContain('const instances = React.useMemo(')
+                  assertInstanceAllCommon(code)
                   expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(6)
                   expect(code.match(/<instances\..*receiveShadow /g)?.length).toEqual(6)
                 } else {
@@ -171,13 +173,44 @@ describe('GenerateR3F', () => {
 
                 for (const code of [tsx, jsx]) {
                   if (type.includes('instanceall')) {
-                    expect(code).toContain('<Merged')
-                    expect(code).toContain('const instances = React.useMemo(')
+                    assertInstanceAllCommon(code)
                     expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(1)
                     expect(code.match(/<instances\..*receiveShadow /g)?.length).toEqual(6)
                   } else {
                     expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(1)
                     expect(code.match(/receiveShadow\n/g)?.length).toEqual(6)
+                  }
+                }
+              })
+
+              // e.g. visible - it may not be present in calculated (because it defaults to true),
+              // but we need to be sure we add it to a matched case to ensure propagation
+              it('should propagate non-calculated property', async () => {
+                const mo: GenerateOptions = {
+                  ...options,
+                  exposeProps: {
+                    hoseVisible: {
+                      to: 'visible',
+                      structure: {
+                        type: 'boolean',
+                        hasQuestionToken: true,
+                      },
+                      matcher: (o) => isMesh(o) && o.name === 'Hose_low',
+                    },
+                  },
+                }
+                const g = new GeneratedR3F(a, mo)
+                assertCommon(g)
+                const tsx = await g.toTsx()
+                console.log(tsx)
+                const jsx = await g.toJsx()
+
+                for (const code of [tsx, jsx]) {
+                  if (type.includes('instanceall')) {
+                    assertInstanceAllCommon(code)
+                    expect(code.match(/<instances\..*visible=\{hoseVisible\}/g)?.length).toEqual(1)
+                  } else {
+                    expect(code.match(/visible=\{hoseVisible\}/g)?.length).toEqual(1)
                   }
                 }
               })

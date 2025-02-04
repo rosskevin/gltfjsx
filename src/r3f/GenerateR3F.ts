@@ -242,9 +242,10 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   }
 
   /**
-   * Iterate over all mapCompentProps and return the prop name if it matches.
+   * Iterate over all exposeProps and return the component prop name if it matches.
    * @param o
    * @param to the Object3D property name
+   * @returns the component prop name if it matches
    */
   protected getMappedComponentProp(
     o: Object3D,
@@ -266,10 +267,32 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
   }
 
   protected writeProps(o: Object3D) {
-    const { log } = this.options
+    const { exposeProps, log } = this.options
     const props = this.a.calculateProps(o)
 
-    return Object.keys(props)
+    // find explicit matches from exposeProps matchers and add to calculated props
+    // e.g. propagate visible=true where it is defaulted true.
+    if (exposeProps) {
+      for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
+        if (
+          mappedProp.matcher &&
+          mappedProp.matcher(o) &&
+          !Object.keys(props).includes(componentProp)
+        ) {
+          let toArray = mappedProp.to
+          if (!Array.isArray(mappedProp.to)) {
+            toArray = [mappedProp.to]
+          }
+          for (const to of toArray) {
+            log.debug(`Forcing propagation of ${o.type} ${to} -> ${componentProp} component prop`)
+            // fabricate a value to be remapped
+            props[to] = 'foobarbaz'
+          }
+        }
+      }
+    }
+
+    const propString = Object.keys(props)
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let value = props[key]
@@ -289,6 +312,8 @@ export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
         return `${key}={${value}}`
       })
       .join(' ')
+
+    return propString
   }
 
   protected async formatCode(code: string) {
