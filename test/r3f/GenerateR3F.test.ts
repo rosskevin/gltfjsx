@@ -14,112 +14,143 @@ import {
   assertFileExists,
   fixtureAnalyzeOptions,
   fixtureGenerateOptions,
-  models,
   resolveFixtureModelFile,
   types,
 } from '../fixtures.js'
 
+const modelName = 'FlightHelmet'
 describe('GenerateR3F', () => {
-  for (const modelName of models) {
-    describe(modelName, () => {
-      for (const type of types) {
-        const modelFile = resolveFixtureModelFile(modelName, type)
+  describe(modelName, () => {
+    for (const type of types) {
+      const modelFile = resolveFixtureModelFile(modelName, type)
 
-        describe(type, () => {
-          let model: GLTF
-          let options: GenerateOptions
-          let a: AnalyzedGLTF
+      describe(type, () => {
+        let model: GLTF
+        let options: GenerateOptions
+        let a: AnalyzedGLTF
 
-          beforeEach(async () => {
-            assertFileExists(modelFile)
-            model = await loadGLTF(modelFile)
-            options = fixtureGenerateOptions({
-              componentName: modelName,
-              draco: type.includes('draco'),
-              header: 'FOO header',
-              modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
-              // types: true,
-              keepnames: true,
-              shadows: true,
-              instanceall: type.includes('instanceall'),
-            })
-            a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
+        beforeEach(async () => {
+          assertFileExists(modelFile)
+          model = await loadGLTF(modelFile)
+          options = fixtureGenerateOptions({
+            componentName: modelName,
+            draco: type.includes('draco'),
+            header: 'FOO header',
+            modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+            // types: true,
+            keepnames: true,
+            shadows: true,
+            instanceall: type.includes('instanceall'),
           })
+          a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
+        })
 
-          function assertCommon(g: GeneratedR3F) {
-            expect(g.project).not.toBeNull()
-            expect(g.src).not.toBeNull()
-            expect(g.gltfInterface).not.toBeNull()
-            expect(g.propsInterface).not.toBeNull()
-            expect(g.instancesFn).not.toBeNull()
-            expect(g.fn).not.toBeNull()
-            expect(g.groupRoot).not.toBeNull()
-            expect(
-              g.groupRoot.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement).length,
-            ).toEqual(6)
+        function assertCommon(g: GeneratedR3F) {
+          expect(g.project).not.toBeNull()
+          expect(g.src).not.toBeNull()
+          expect(g.gltfInterface).not.toBeNull()
+          expect(g.propsInterface).not.toBeNull()
+          expect(g.instancesFn).not.toBeNull()
+          expect(g.fn).not.toBeNull()
+          expect(g.groupRoot).not.toBeNull()
+          expect(g.groupRoot.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement).length).toEqual(
+            6,
+          )
+        }
+
+        function assertInstanceAllCommon(code: string) {
+          expect(code).toContain('<Merged')
+          expect(code).toContain('const instances = React.useMemo(')
+        }
+
+        it.concurrent('should generate', async () => {
+          const g = new GeneratedR3F(a, options)
+
+          const tsx = await g.toTsx()
+          console.log(tsx)
+          const jsx = await g.toJsx()
+          assertCommon(g)
+
+          for (const code of [tsx, jsx]) {
+            expect(code).toContain('FOO header')
+
+            if (type.includes('instanceall')) {
+              assertInstanceAllCommon(code)
+              expect(code.match(/<instances\..*castShadow/g)?.length).toEqual(6)
+              expect(code.match(/<instances\..*receiveShadow/g)?.length).toEqual(6)
+            } else {
+              expect(code.match(/castShadow/g)?.length).toEqual(6)
+              expect(code.match(/receiveShadow/g)?.length).toEqual(6)
+            }
           }
+        })
 
-          function assertInstanceAllCommon(code: string) {
-            expect(code).toContain('<Merged')
-            expect(code).toContain('const instances = React.useMemo(')
-          }
-
-          it('should generate', async () => {
-            const g = new GeneratedR3F(a, options)
-
+        describe('exposeProps', () => {
+          it.concurrent('should generate to[]', async () => {
+            const mo: GenerateOptions = {
+              ...options,
+              exposeProps: {
+                shadows: {
+                  to: ['castShadow', 'receiveShadow'],
+                  structure: {
+                    type: 'boolean',
+                    hasQuestionToken: true,
+                  },
+                },
+              },
+            }
+            const g = new GeneratedR3F(a, mo)
+            assertCommon(g)
             const tsx = await g.toTsx()
             console.log(tsx)
             const jsx = await g.toJsx()
-            assertCommon(g)
 
             for (const code of [tsx, jsx]) {
-              expect(code).toContain('FOO header')
-
               if (type.includes('instanceall')) {
                 assertInstanceAllCommon(code)
-                expect(code.match(/<instances\..*castShadow/g)?.length).toEqual(6)
-                expect(code.match(/<instances\..*receiveShadow/g)?.length).toEqual(6)
+                expect(code.match(/<instances/g)?.length).toEqual(6)
+                expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
               } else {
-                expect(code.match(/castShadow/g)?.length).toEqual(6)
-                expect(code.match(/receiveShadow/g)?.length).toEqual(6)
+                expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
               }
             }
           })
 
-          describe('exposeProps', () => {
-            it('should generate to[]', async () => {
-              const mo: GenerateOptions = {
-                ...options,
-                exposeProps: {
-                  shadows: {
-                    to: ['castShadow', 'receiveShadow'],
-                    structure: {
-                      type: 'boolean',
-                      hasQuestionToken: true,
-                    },
+          it.concurrent('should generate to (singular)', async () => {
+            const mo: GenerateOptions = {
+              ...options,
+              exposeProps: {
+                shadows: {
+                  to: 'castShadow',
+                  structure: {
+                    type: 'boolean',
+                    hasQuestionToken: true,
                   },
                 },
-              }
-              const g = new GeneratedR3F(a, mo)
-              assertCommon(g)
-              const tsx = await g.toTsx()
-              console.log(tsx)
-              const jsx = await g.toJsx()
+              },
+            }
+            const g = new GeneratedR3F(a, mo)
+            assertCommon(g)
+            const tsx = await g.toTsx()
+            console.log(tsx)
+            const jsx = await g.toJsx()
 
-              for (const code of [tsx, jsx]) {
-                if (type.includes('instanceall')) {
-                  assertInstanceAllCommon(code)
-                  expect(code.match(/<instances/g)?.length).toEqual(6)
-                  expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
-                  expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
-                } else {
-                  expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
-                  expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
-                }
+            for (const code of [tsx, jsx]) {
+              if (type.includes('instanceall')) {
+                assertInstanceAllCommon(code)
+                expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/<instances\..*receiveShadow /g)?.length).toEqual(6)
+              } else {
+                expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/receiveShadow\n/g)?.length).toEqual(6)
               }
-            })
+            }
+          })
 
-            it('should generate to (singular)', async () => {
+          describe('matcher', () => {
+            it.concurrent('should limit matches', async () => {
               const mo: GenerateOptions = {
                 ...options,
                 exposeProps: {
@@ -129,6 +160,7 @@ describe('GenerateR3F', () => {
                       type: 'boolean',
                       hasQuestionToken: true,
                     },
+                    matcher: (o) => isMesh(o) && o.name === 'GlassPlastic_low',
                   },
                 },
               }
@@ -141,83 +173,49 @@ describe('GenerateR3F', () => {
               for (const code of [tsx, jsx]) {
                 if (type.includes('instanceall')) {
                   assertInstanceAllCommon(code)
-                  expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(6)
+                  expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(1)
                   expect(code.match(/<instances\..*receiveShadow /g)?.length).toEqual(6)
                 } else {
-                  expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
+                  expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(1)
                   expect(code.match(/receiveShadow\n/g)?.length).toEqual(6)
                 }
               }
             })
 
-            describe('matcher', () => {
-              it('should limit matches', async () => {
-                const mo: GenerateOptions = {
-                  ...options,
-                  exposeProps: {
-                    shadows: {
-                      to: 'castShadow',
-                      structure: {
-                        type: 'boolean',
-                        hasQuestionToken: true,
-                      },
-                      matcher: (o) => isMesh(o) && o.name === 'GlassPlastic_low',
+            // e.g. visible - it may not be present in calculated (because it defaults to true),
+            // but we need to be sure we add it to a matched case to ensure propagation
+            it.concurrent('should propagate non-calculated property', async () => {
+              const mo: GenerateOptions = {
+                ...options,
+                exposeProps: {
+                  hoseVisible: {
+                    to: 'visible',
+                    structure: {
+                      type: 'boolean',
+                      hasQuestionToken: true,
                     },
+                    matcher: (o) => isMesh(o) && o.name === 'Hose_low',
                   },
-                }
-                const g = new GeneratedR3F(a, mo)
-                assertCommon(g)
-                const tsx = await g.toTsx()
-                console.log(tsx)
-                const jsx = await g.toJsx()
+                },
+              }
+              const g = new GeneratedR3F(a, mo)
+              assertCommon(g)
+              const tsx = await g.toTsx()
+              console.log(tsx)
+              const jsx = await g.toJsx()
 
-                for (const code of [tsx, jsx]) {
-                  if (type.includes('instanceall')) {
-                    assertInstanceAllCommon(code)
-                    expect(code.match(/<instances\..*castShadow=\{shadows\}/g)?.length).toEqual(1)
-                    expect(code.match(/<instances\..*receiveShadow /g)?.length).toEqual(6)
-                  } else {
-                    expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(1)
-                    expect(code.match(/receiveShadow\n/g)?.length).toEqual(6)
-                  }
+              for (const code of [tsx, jsx]) {
+                if (type.includes('instanceall')) {
+                  assertInstanceAllCommon(code)
+                  expect(code.match(/<instances\..*visible=\{hoseVisible\}/g)?.length).toEqual(1)
+                } else {
+                  expect(code.match(/visible=\{hoseVisible\}/g)?.length).toEqual(1)
                 }
-              })
-
-              // e.g. visible - it may not be present in calculated (because it defaults to true),
-              // but we need to be sure we add it to a matched case to ensure propagation
-              it('should propagate non-calculated property', async () => {
-                const mo: GenerateOptions = {
-                  ...options,
-                  exposeProps: {
-                    hoseVisible: {
-                      to: 'visible',
-                      structure: {
-                        type: 'boolean',
-                        hasQuestionToken: true,
-                      },
-                      matcher: (o) => isMesh(o) && o.name === 'Hose_low',
-                    },
-                  },
-                }
-                const g = new GeneratedR3F(a, mo)
-                assertCommon(g)
-                const tsx = await g.toTsx()
-                console.log(tsx)
-                const jsx = await g.toJsx()
-
-                for (const code of [tsx, jsx]) {
-                  if (type.includes('instanceall')) {
-                    assertInstanceAllCommon(code)
-                    expect(code.match(/<instances\..*visible=\{hoseVisible\}/g)?.length).toEqual(1)
-                  } else {
-                    expect(code.match(/visible=\{hoseVisible\}/g)?.length).toEqual(1)
-                  }
-                }
-              })
+              }
             })
           })
         })
-      }
-    })
-  }
+      })
+    }
+  })
 })
