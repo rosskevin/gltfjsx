@@ -35,7 +35,7 @@ const stringProps = ['name']
  *
  * @see https://ts-ast-viewer.com to help navigate/understand the AST
  */
-export class GeneratedR3F<O extends GenerateOptions = GenerateOptions> {
+export class GenerateR3F<O extends GenerateOptions = GenerateOptions> {
   // leave public to allow for external manipulation - in case the user does not want to subclass
   public project: Project
   public src: SourceFile

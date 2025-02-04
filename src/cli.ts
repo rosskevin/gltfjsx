@@ -12,7 +12,7 @@ import gltfTransform from './gltfTransform.js'
 import { loadGLTF } from './loadGLTF.js'
 import { Log } from './Log.js'
 import { CliOptions } from './options.js'
-import { GeneratedR3F } from './r3f/GenerateR3F.js'
+import { GenerateR3F } from './r3f/GenerateR3F.js'
 import {
   compareFileSizes,
   readPackage,
@@ -79,7 +79,7 @@ Command: npx gltfjsx@${readPackage().packageJson.version} ${process.argv.slice(2
       ...cliOptions,
     }
     log.debug('GenerateOptions: ', genOptions)
-    const g = new GeneratedR3F(a, genOptions)
+    const g = new GenerateR3F(a, genOptions)
 
     // write the tsx or jsx file
     const code = cliOptions.types ? await g.toTsx() : await g.toJsx()

@@ -4,8 +4,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
-  GeneratedR3F,
   GenerateOptions,
+  GenerateR3F,
   isMesh,
   loadGLTF,
   resolveModelLoadPath,
@@ -53,7 +53,7 @@ describe('GenerateR3F', () => {
           a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
         })
 
-        function assertCommon(g: GeneratedR3F) {
+        function assertCommon(g: GenerateR3F) {
           expect(g.project).not.toBeNull()
           expect(g.src).not.toBeNull()
           expect(g.gltfInterface).not.toBeNull()
@@ -72,7 +72,7 @@ describe('GenerateR3F', () => {
         }
 
         it.concurrent('should generate', async () => {
-          const g = new GeneratedR3F(a, options)
+          const g = new GenerateR3F(a, options)
 
           const tsx = await g.toTsx()
           console.log(tsx)
@@ -107,7 +107,7 @@ describe('GenerateR3F', () => {
                 },
               },
             }
-            const g = new GeneratedR3F(a, mo)
+            const g = new GenerateR3F(a, mo)
             assertCommon(g)
             const tsx = await g.toTsx()
             console.log(tsx)
@@ -139,7 +139,7 @@ describe('GenerateR3F', () => {
                 },
               },
             }
-            const g = new GeneratedR3F(a, mo)
+            const g = new GenerateR3F(a, mo)
             assertCommon(g)
             const tsx = await g.toTsx()
             console.log(tsx)
@@ -172,7 +172,7 @@ describe('GenerateR3F', () => {
                   },
                 },
               }
-              const g = new GeneratedR3F(a, mo)
+              const g = new GenerateR3F(a, mo)
               assertCommon(g)
               const tsx = await g.toTsx()
               console.log(tsx)
@@ -206,7 +206,7 @@ describe('GenerateR3F', () => {
                   },
                 },
               }
-              const g = new GeneratedR3F(a, mo)
+              const g = new GenerateR3F(a, mo)
               assertCommon(g)
               const tsx = await g.toTsx()
               console.log(tsx)
