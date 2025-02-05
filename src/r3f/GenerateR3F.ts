@@ -227,7 +227,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
       if (
         mappedProp.to.includes(to) &&
-        (mappedProp.matcher === undefined || mappedProp?.matcher(o))
+        (mappedProp.matcher === undefined || mappedProp?.matcher(o, this.a))
       ) {
         return componentProp as keyof GenerateOptions['exposeProps']
       }
@@ -249,7 +249,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
         let value = props[key]
         const componentProp = this.getMappedComponentProp(o, key)
         if (componentProp) {
-          log.debug(`Mapping ${componentProp} <${getJsxElementName(o, this.a)} ${key}`)
+          log.debug(
+            `Mapping ${componentProp} -> <${getJsxElementName(o, this.a)} ${key}={${componentProp}} name='${o.name}' />`,
+          )
           value = componentProp
           this.exposedPropsEncountered.add(componentProp)
         }
@@ -291,7 +293,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           }
           for (const to of toArray) {
             log.debug(
-              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to} name='${o.name}' />`,
+              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to}={${componentProp}} name='${o.name}' />`,
             )
             // fabricate a value to be remapped
             props[to] = 'foobarbaz'
