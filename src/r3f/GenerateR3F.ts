@@ -250,7 +250,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
         const componentProp = this.getMappedComponentProp(o, key)
         if (componentProp) {
           log.debug(
-            `Mapping ${componentProp} -> <${getJsxElementName(o, this.a)} ${key}={${componentProp}} name='${o.name}' />`,
+            `Propagating ${key}={${componentProp}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
           )
           value = componentProp
           this.exposedPropsEncountered.add(componentProp)
@@ -292,9 +292,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
             toArray = [mappedProp.to]
           }
           for (const to of toArray) {
-            log.debug(
-              `Forcing propagation of ${componentProp} -> <${getJsxElementName(o, this.a)} ${to}={${componentProp}} name='${o.name}' />`,
-            )
+            log.debug(`Forcing propagation of ${to}={${componentProp}} name='${o.name}'`)
             // fabricate a value to be remapped
             props[to] = 'foobarbaz'
           }
