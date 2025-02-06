@@ -1,10 +1,13 @@
-# GLTFJSX
+![MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Version](https://img.shields.io/github/package-json/v/rosskevin/gltfjsx?style=for-the-badge)
+![CI](https://img.shields.io/github/actions/workflow/status/rosskevin/gltfjsx/build.yml?style=for-the-badge)
+![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)
 
-[![Version](https://img.shields.io/npm/v/gltfjsx?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/gltfjsx) [![Discord Shield](https://img.shields.io/discord/740090768164651008?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=ffffff)](https://discord.gg/ZZjjNvJ)
+# @rosskevin/gltfjsx
 
-<https://user-images.githubusercontent.com/2223602/126318148-99da7ed6-a578-48dd-bdd2-21056dbad003.mp4>
+> This is _intended to be a temporary_ fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx). I submitted [a large PR#286](https://github.com/pmndrs/gltfjsx/pull/286) with this in hopes of having it merged, but the repository appears neglected and I am unsure if it will be reviewed. Given the delay, I needed to get published and move forward with our work in using my changes. I still hope this finds a home in the original repository as I appreciate the original authors and contributors. If my PR is not accepted, I intend to keep this up-to-date for our purposes and accept PRs (that have tests!).
 
-A small command-line tool that turns GLTF assets into declarative and re-usable [react-three-fiber](https://github.com/pmndrs/react-three-fiber) JSX components.
+This is an API+CLI tool that turns GLTF assets into declarative and reusable components. At this time we focus on generating [react-three-fiber](https://github.com/pmndrs/react-three-fiber) JSX/TSX components, but the API can be used independently to generate code for other frameworks.
 
 ## The GLTF workflow on the web is not ideal
 
@@ -15,17 +18,21 @@ A small command-line tool that turns GLTF assets into declarative and re-usable 
 - Model compression is complex and not easily achieved
 - Models often have unnecessary nodes that cause extra work and matrix updates
 
-### GLTFJSX fixes that
+### @rosskevin/gltfjsx fixes that
 
 - 🧑‍💻 It creates a virtual graph of all objects and materials. Now you can easily alter contents and re-use.
 - 🏎️ The graph gets pruned (empty groups, unnecessary transforms, ...) and will perform better.
 - ⚡️ It will optionally compress your model with up to 70%-90% size reduction.
 
+### Demo
+
+<https://user-images.githubusercontent.com/2223602/126318148-99da7ed6-a578-48dd-bdd2-21056dbad003.mp4>
+
 ## Usage
 
 ```text
 Usage
-  $ npx gltfjsx <Model.glb> <options>
+  $ npx @rosskevin/gltfjsx <Model.glb> <options>
 
 Options
     --output, -o        Output src file name/path (default: Model.(j|t)sx)
@@ -60,7 +67,7 @@ Options
 First you run your model through gltfjsx. `npx` allows you to use npm packages without installing them.
 
 ```bash
-npx gltfjsx model.gltf --transform
+npx @rosskevin/gltfjsx model.gltf --transform
 ```
 
 This will create a `Model.jsx` file that plots out all of the assets contents.

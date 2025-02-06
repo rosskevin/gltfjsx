@@ -1,5 +1,5 @@
 {
-  "name": "gltfjsx",
+  "name": "@rosskevin/gltfjsx",
   "version": "7.0.0",
   "description": "GLTF to JSX converter",
   "prettier": "@alienfast/prettier-config",
