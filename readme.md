@@ -21,6 +21,10 @@ A small command-line tool that turns GLTF assets into declarative and re-usable 
 - 🏎️ The graph gets pruned (empty groups, unnecessary transforms, ...) and will perform better.
 - ⚡️ It will optionally compress your model with up to 70%-90% size reduction.
 
+### Demo
+
+<https://user-images.githubusercontent.com/2223602/126318148-99da7ed6-a578-48dd-bdd2-21056dbad003.mp4>
+
 ## Usage
 
 ```text
@@ -327,6 +331,112 @@ g.src.insertStatements(1, `const foo = 'bar'`)
 g.toJsx()
 g.toTsx()
 ```
+
+#### `exposeProps` - simple example
+
+Instead of instrumenting code by hand, especially for large models, you can `exposeProps` that map the component props to arbitrary `jsx` children.
+
+For example, if you want to be able to turn on/off shadows via `shadows: true` property, the following options:
+
+```ts
+  exposeProps: {
+    shadows: {
+      to: ['castShadow', 'receiveShadow'],
+      structure: {
+        type: 'boolean',
+        hasQuestionToken: true,
+      },
+    },
+  },
+```
+
+would generate code using `ts-morph` that will:
+
+- Add all mapped props to the `ModelProps` interface
+- Destructure variables in the function body with a ...rest
+- Change the identifer on the root `<group {...rest} />` element
+- Set the argument in the function signature
+
+This roughly equates to this output:
+
+```tsx
+export interface FlightHelmetProps extends GroupProps {
+  shadows?: boolean
+}
+
+export function FlightHelmet(props: FlightHelmetProps) {
+  const { nodes, materials } = useGLTF(modelLoadPath, draco) as FlightHelmetGLTF
+  const { shadows, ...rest } = props
+
+  return (
+    <group {...rest} dispose={null}>
+      <mesh castShadow={shadows} receiveShadow={shadows} />
+    </group>
+  )
+}
+```
+
+NOTE: if the `Object3D` property does not exist as part of calculated properties, it cannot be known at generation time that it is safe to add. If you want to force it to be added, use a `matcher` (see next section).
+
+#### `exposeProps` - advanced example with `matcher`
+
+A more powerful option is using the match specific nodes and expose those properties. Observe the following pseudo types (truncated for simplicity, see source for full type information):
+
+```ts
+interface GenerateOptions {
+  /**
+   * Expose component prop and propagate to matching Object3D props
+   * e.g. shadows->[castShadow, receiveShadow]
+   */
+  exposeProps?: Record<string, MappedProp>
+}
+
+interface MappedProp {
+  /**
+   * Object3D prop(s)
+   * e.g. castShadow | [castShadow, receiveShadow]
+   * */
+  to: string | string[]
+  /**
+   * Match a specific type of object.
+   * If not provided, matches all that have the {to} prop
+   * */
+  matcher?: (o: Object3D, a: AnalyzedGLTF) => boolean
+  /**
+   * ts-morph prop structure (name is already supplied)
+   * */
+  structure: Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+}
+```
+
+This allows flexible exposure on arbitrary elements specified by the `matcher`. For example, if I wanted to toggle visibility on/off for some named elements:
+
+```tsx
+for (const search of ['base', 'side', 'top']) {
+  options.exposeProps![search] = {
+    to: ['visible'],
+    structure: {
+      type: 'boolean',
+      hasQuestionToken: true,
+    },
+    matcher: (o, a) =>
+      // note isGroup doesn't work, because the model may be Object3D that is converted at generation time
+      (isMesh(o) || getJsxElementName(o, a) == 'group') && o.name?.toLowerCase().includes(search),
+  }
+}
+```
+
+this would map:
+
+```tsx
+export interface FooProps extends GroupProps {
+  base?: boolean
+  side?: boolean
+  top?: boolean
+}
+```
+
+to related elements. Because a `matcher` is specified, the property will be added to every element matched.
 
 ## Requirements
 
