@@ -5,7 +5,11 @@
 
 # @rosskevin/gltfjsx
 
-> This is _intended to be a temporary_ fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx). I submitted [a large PR#286](https://github.com/pmndrs/gltfjsx/pull/286) with this in hopes of having it merged, but the repository appears neglected and I am unsure if it will be reviewed. Given the delay, I needed to get published and move forward with our work in using my changes. I still hope this finds a home in the original repository as I appreciate the original authors and contributors. If my PR is not accepted, I intend to keep this up-to-date for our purposes and accept PRs (that have tests!).
+> This is _intended to be a temporary_ fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx). I submitted [a large PR#286](https://github.com/pmndrs/gltfjsx/pull/286) with this in hopes of having it merged, but the orginal repository appears neglected and I am unsure if it will be reviewed and accepted.
+>
+> Given the delay, I needed to get published and move forward with our work in using my changes. I still hope this finds a home in the original repository as I appreciate the original authors and contributors.
+>
+> If my PR is not accepted, I intend to keep this up-to-date for our purposes and accept PRs (that have tests!).
 
 This is an API+CLI tool that turns GLTF assets into declarative and reusable components. At this time we focus on generating [react-three-fiber](https://github.com/pmndrs/react-three-fiber) JSX/TSX components, but the API can be used independently to generate code for other frameworks.
 
