@@ -361,7 +361,7 @@ would generate code using `ts-morph` that will:
 
 - Add all mapped props to the `ModelProps` interface
 - Destructure variables in the function body with a ...rest
-- Change the identifer on the root <group {...rest} /> element
+- Change the identifer on the root `<group {...rest} />` element
 - Set the argument in the function signature
 
 This roughly equates to this output:
@@ -443,7 +443,7 @@ export interface FooProps extends GroupProps {
 }
 ```
 
-to related elements. Because a `matcher` is specified, the property on the element will be added to every matching property.
+to related elements. Because a `matcher` is specified, the property will be added to every element matched.
 
 ## Requirements
 
