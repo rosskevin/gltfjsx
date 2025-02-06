@@ -1304,7 +1304,7 @@ __metadata:
     "@gltf-transform/extensions": "npm:4.1.1"
     "@gltf-transform/functions": "npm:4.1.1"
     "@types/draco3dgltf": "npm:^1.4.3"
-    "@types/node": "npm:^22.13.0"
+    "@types/node": "npm:^22.13.1"
     "@types/three": "npm:^0.173.0"
     auto: "npm:^11.3.0"
     chalk: "npm:^5.4.1"
@@ -1318,17 +1318,17 @@ __metadata:
     lint-staged: "npm:^15.4.3"
     meow: "npm:^13.2.0"
     meshoptimizer: "npm:^0.22.0"
-    node-three-gltf: "npm:2.0.0"
+    node-three-gltf: "npm:2.0.1"
     prettier: "npm:^3.4.2"
     read-pkg-up: "npm:^11.0.0"
     sharp: "npm:^0.33.5"
     three: "npm:0.173.0"
     three-stdlib: "npm:^2.35.13"
-    ts-morph: "npm:^25.0.0"
+    ts-morph: "npm:^25.0.1"
     tsup: "npm:^8.3.6"
     typescript: "npm:^5.7.3"
-    typescript-eslint: "npm:^8.22.0"
-    vitest: "npm:^3.0.4"
+    typescript-eslint: "npm:^8.23.0"
+    vitest: "npm:^3.0.5"
   dependenciesMeta:
     libvips:
       optional: true
@@ -2807,9 +2807,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.93
-  resolution: "electron-to-chromium@npm:1.5.93"
-  checksum: 10/14fed9c0a0b4db86aff4267aa66afa5072a1b779b687252a059e25b2e72d2bf7c09147cf4ae8eae866c1ed7552b022d0f18239a00cda9e31b216eb5f203c72cc
+  version: 1.5.94
+  resolution: "electron-to-chromium@npm:1.5.94"
+  checksum: 10/def9b4738a6847f272f3915b48b9e90336dd71b457427a67c79ec88c6791811b5f03f31bb3564ba8b8eb7cf3e59c0b5fe10f93239cf1afcee5c72e7f84755e74
   languageName: node
   linkType: hard
 
@@ -4045,56 +4045,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< Updated upstream
-=======
-"gltfjsx@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "gltfjsx@workspace:."
-  dependencies:
-    "@alienfast/eslint-config": "npm:^5.1.25"
-    "@alienfast/prettier-config": "npm:^1.0.1"
-    "@alienfast/tsconfig": "npm:^1.0.4"
-    "@auto-it/all-contributors": "npm:^11.3.0"
-    "@auto-it/first-time-contributor": "npm:^11.3.0"
-    "@auto-it/released": "npm:^11.3.0"
-    "@gltf-transform/core": "npm:4.1.1"
-    "@gltf-transform/extensions": "npm:4.1.1"
-    "@gltf-transform/functions": "npm:4.1.1"
-    "@types/draco3dgltf": "npm:^1.4.3"
-    "@types/node": "npm:^22.13.1"
-    "@types/three": "npm:^0.173.0"
-    auto: "npm:^11.3.0"
-    chalk: "npm:^5.4.1"
-    draco3dgltf: "npm:^1.5.7"
-    eslint: "npm:^9.19.0"
-    fast-glob: "npm:^3.3.3"
-    fs-extra: "npm:^11.3.0"
-    is-var-name: "npm:^2.0.0"
-    keyframe-resample: "npm:^0.1.0"
-    libvips: "npm:^0.0.2"
-    lint-staged: "npm:^15.4.3"
-    meow: "npm:^13.2.0"
-    meshoptimizer: "npm:^0.22.0"
-    node-three-gltf: "npm:2.0.1"
-    prettier: "npm:^3.4.2"
-    read-pkg-up: "npm:^11.0.0"
-    sharp: "npm:^0.33.5"
-    three: "npm:0.173.0"
-    three-stdlib: "npm:^2.35.13"
-    ts-morph: "npm:^25.0.1"
-    tsup: "npm:^8.3.6"
-    typescript: "npm:^5.7.3"
-    typescript-eslint: "npm:^8.23.0"
-    vitest: "npm:^3.0.5"
-  dependenciesMeta:
-    libvips:
-      optional: true
-  bin:
-    gltfjsx: ./dist/cli.js
-  languageName: unknown
-  linkType: soft
-
->>>>>>> Stashed changes
 "gopd@npm:^1.0.1, gopd@npm:^1.2.0":
   version: 1.2.0
   resolution: "gopd@npm:1.2.0"
