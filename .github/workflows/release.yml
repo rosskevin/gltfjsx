@@ -22,6 +22,7 @@ jobs:
 
       # allow the lock file to change (updating our own workspace versions in monorepo)
       - run: yarn install --no-immutable
+      - run: yarn auto info
       - run: yarn test
       - run: yarn build
 
