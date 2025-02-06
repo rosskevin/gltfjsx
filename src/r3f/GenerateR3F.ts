@@ -176,10 +176,10 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   /**
-   * - add all mapped props to the ModelProps interface
-   * - destructure variables in the function body with a ...rest
-   * - change the identifer on the <group {...rest} /> element
-   * - set the argument in the function signature
+   * - Add all mapped props to the ModelProps interface
+   * - Destructure variables in the function body with a ...rest
+   * - Change the identifer on the root <group {...rest} /> element
+   * - Set the argument in the function signature
    */
   protected exposeProps() {
     if (this.exposedPropsEncountered.size === 0) return
