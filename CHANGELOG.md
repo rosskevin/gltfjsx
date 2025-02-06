@@ -1,3 +1,15 @@
+# v7.0.4 (Thu Feb 06 2025)
+
+#### 🐛 Bug Fix
+
+- docs - add `exposeProps` examples to readme [#5](https://github.com/rosskevin/gltfjsx/pull/5) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.3 (Thu Feb 06 2025)
 
 #### 🐛 Bug Fix
