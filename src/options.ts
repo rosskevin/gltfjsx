@@ -53,7 +53,7 @@ export interface AnalyzedGLTFOptions extends PropsOptions {
   precision: number
 }
 
-export type MappedProp = {
+export interface MappedProp {
   /**
    * Object3D prop(s)
    * e.g. castShadow | [castShadow, receiveShadow]
