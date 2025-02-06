@@ -1,3 +1,15 @@
+# v7.0.3 (Thu Feb 06 2025)
+
+#### 🐛 Bug Fix
+
+- Check auto info for release [#4](https://github.com/rosskevin/gltfjsx/pull/4) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.2 (Thu Feb 06 2025)
 
 :tada: This release contains work from new contributors! :tada:
