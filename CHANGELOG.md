@@ -1,3 +1,15 @@
+# v7.0.5 (Fri Feb 07 2025)
+
+#### ⚠️ Pushed to `main`
+
+- make some options optional/align defaults ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.4 (Thu Feb 06 2025)
 
 #### 🐛 Bug Fix
