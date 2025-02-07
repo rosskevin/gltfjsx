@@ -1,3 +1,16 @@
+# v7.0.8 (Fri Feb 07 2025)
+
+#### ⚠️ Pushed to `main`
+
+- ncu bump ([@rosskevin](https://github.com/rosskevin))
+- Force public due to org prefix - it appears ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.7 (Fri Feb 07 2025)
 
 #### ⚠️ Pushed to `main`
