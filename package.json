@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pmndrs/gltfjsx.git"
+    "url": "git+https://github.com/rosskevin/gltfjsx.git"
   },
   "bugs": {
-    "url": "https://github.com/pmndrs/gltfjsx/issues"
+    "url": "https://github.com/rosskevin/gltfjsx/issues"
   },
-  "homepage": "https://github.com/pmndrs/gltfjsx#readme",
+  "homepage": "https://github.com/rosskevin/gltfjsx#readme",
   "engines": {
     "node": ">=16"
   },
