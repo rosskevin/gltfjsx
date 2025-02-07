@@ -1,6 +1,9 @@
 {
   "name": "@rosskevin/gltfjsx",
   "version": "7.0.7",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "GLTF to JSX converter",
   "prettier": "@alienfast/prettier-config",
   "scripts": {
