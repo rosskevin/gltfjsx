@@ -12,5 +12,5 @@ export default tseslint.config({
   rules: {
     'no-console': 'off',
   },
-  ignores: ['node_modules', 'dist', 'test/models'],
+  ignores: ['node_modules', 'dist', 'test/models', 'readme.md'],
 })

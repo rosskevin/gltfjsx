@@ -64,8 +64,8 @@
     "libvips": "^0.0.2"
   },
   "devDependencies": {
-    "@alienfast/eslint-config": "^5.1.25",
-    "@alienfast/prettier-config": "^1.0.1",
+    "@alienfast/eslint-config": "^5.2.6",
+    "@alienfast/prettier-config": "^1.0.2",
     "@alienfast/tsconfig": "^1.0.4",
     "@auto-it/all-contributors": "^11.3.0",
     "@auto-it/first-time-contributor": "^11.3.0",
