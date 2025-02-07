@@ -44,13 +44,13 @@ export interface TransformOptions extends BaseOptions {
 
 export interface PropsOptions extends BaseOptions {
   log: Logger
-  bones: boolean
+  bones?: boolean
   meta?: boolean
   shadows?: boolean
 }
 
 export interface AnalyzedGLTFOptions extends PropsOptions {
-  precision: number
+  precision?: number
 }
 
 export interface MappedProp {
@@ -79,11 +79,11 @@ export interface GenerateOptions extends PropsOptions {
   /**
    * Use draco compression in useGLTF()
    */
-  draco: boolean
+  draco?: boolean
   /**
    * Export the component as default
    */
-  exportDefault: boolean
+  exportDefault?: boolean
   /**
    * Set the source file header
    */
