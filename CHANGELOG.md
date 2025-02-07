@@ -1,3 +1,15 @@
+# v7.0.10 (Fri Feb 07 2025)
+
+#### ⚠️ Pushed to `main`
+
+- fix npm pack size ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.9 (Fri Feb 07 2025)
 
 #### ⚠️ Pushed to `main`
