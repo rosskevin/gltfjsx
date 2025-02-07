@@ -1,3 +1,15 @@
+# v7.0.7 (Fri Feb 07 2025)
+
+#### ⚠️ Pushed to `main`
+
+- push public repo for deps ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.6 (Fri Feb 07 2025)
 
 #### ⚠️ Pushed to `main`
