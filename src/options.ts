@@ -16,7 +16,7 @@ export interface Logger {
   error: LogFn
   info: LogFn
 
-  isDebug: () => boolean
+  isDebugEnabled: () => boolean
 }
 
 interface BaseOptions {

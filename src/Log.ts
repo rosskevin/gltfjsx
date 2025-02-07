@@ -15,12 +15,12 @@ export class Log implements Logger {
     this.options = options
   }
 
-  public isDebug() {
-    return this.options.debug
+  public isDebugEnabled() {
+    return this.options.debug && !this.options.silent
   }
 
   public debug(...args: any[]) {
-    if (this.options.debug && !this.options.silent) {
+    if (this.isDebugEnabled()) {
       this.writeLog('debug', ...args)
     }
   }
