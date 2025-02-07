@@ -314,7 +314,7 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
 
   //
   protected rNbr(n: number) {
-    return parseFloat(n.toFixed(Math.round(this.options.precision || 2)))
+    return parseFloat(n.toFixed(Math.round(this.options.precision || 3)))
   }
 
   protected rDeg(n: number) {

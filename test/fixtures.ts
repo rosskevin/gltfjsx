@@ -39,7 +39,6 @@ export const assertFileExists = (path: string) => {
 }
 
 const sharedFixtureOptions = {
-  bones: false,
   log,
 }
 
@@ -47,7 +46,6 @@ export const fixtureAnalyzeOptions = (
   input: Partial<AnalyzedGLTFOptions> = {},
 ): AnalyzedGLTFOptions => {
   const o: AnalyzedGLTFOptions = {
-    precision: 3,
     ...sharedFixtureOptions,
     ...input,
   }
@@ -59,7 +57,6 @@ export const fixtureGenerateOptions = (
 ): GenerateOptions => {
   const o: GenerateOptions = {
     ...sharedFixtureOptions,
-    exportDefault: false,
     ...input,
   }
   return o
