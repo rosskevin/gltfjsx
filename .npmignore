@@ -11,3 +11,6 @@ logo.svg
 tsconfig.*
 tsup.config.*
 yarn.lock
+test
+CHANGELOG.md
+tmp*
