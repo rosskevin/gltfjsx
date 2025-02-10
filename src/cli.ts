@@ -124,6 +124,7 @@ try {
         --keepmeshes, -j  Do not join compatible meshes
         --keepmaterials, -M Do not palette join materials
         --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
+        --flatten,        Flatten the scene graph (default: true)
         --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
         --simplify, -S    Mesh simplification (default: false)
           --ratio         Simplifier ratio (default: 0)
@@ -153,6 +154,7 @@ try {
         keepmeshes: { type: 'boolean', shortFlag: 'j', default: false },
         keepmaterials: { type: 'boolean', shortFlag: 'M', default: false },
         keepattributes: { type: 'boolean', default: false },
+        flatten: { type: 'boolean', default: true },
         format: {
           type: 'string',
           choices: ['jpeg', 'png', 'webp', 'avif'],
