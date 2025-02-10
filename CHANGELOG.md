@@ -1,3 +1,17 @@
+# v7.0.16 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- looser options for easier external use ([@rosskevin](https://github.com/rosskevin))
+- ncu ([@rosskevin](https://github.com/rosskevin))
+- doc ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.15 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
