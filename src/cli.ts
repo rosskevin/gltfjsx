@@ -8,11 +8,11 @@ import { DRACOLoader } from 'node-three-gltf'
 
 // should be your first import
 import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
-import gltfTransform from './gltfTransform.js'
 import { loadGLTF } from './loadGLTF.js'
 import { Log } from './Log.js'
 import { CliOptions } from './options.js'
 import { GenerateR3F } from './r3f/GenerateR3F.js'
+import gltfTransform from './transform/gltfTransform.js'
 import {
   compareFileSizes,
   readPackage,
