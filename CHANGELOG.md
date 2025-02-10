@@ -1,3 +1,15 @@
+# v7.0.18 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- better docs for gltfTransform ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.17 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
