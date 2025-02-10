@@ -1,3 +1,15 @@
+# v7.0.12 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- doc and expose Simplifier options with better API access ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.11 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
