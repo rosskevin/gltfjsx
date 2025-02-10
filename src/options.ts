@@ -43,7 +43,7 @@ export interface TransformOptions extends BaseOptions {
   resolution?: number
 
   /**
-   * Simplify meshes.
+   * Simplify meshes via @gltf-transform/extensions
    *
    * If true/no options specified, defaults apply:
    *  - error: 0.001

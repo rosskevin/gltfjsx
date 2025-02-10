@@ -117,7 +117,7 @@ try {
     --exportdefault, -E Use default export
     --console, -c       Log JSX to console, won't produce a file
     --debug, -D         Debug output
-    The following options apply a series of transformations to the GLTF file via the @gltf-transform libraries:
+    --transform, -T     Apply a series of transformations to the GLTF file via the @gltf-transform libraries
         --instance, -i      Instance re-occuring geometry
         --instanceall, -I   Instance every geometry (for cheaper re-use)
         --resolution, -R  Resolution for texture resizing (default: 1024)
@@ -146,7 +146,7 @@ try {
         root: { type: 'string', shortFlag: 'r' },
         instance: { type: 'boolean', shortFlag: 'i' },
         instanceall: { type: 'boolean', shortFlag: 'I' },
-        // transform: { type: 'boolean', shortFlag: 'T' },
+        transform: { type: 'boolean', shortFlag: 'T' },
         resolution: { type: 'number', shortFlag: 'R', default: 1024 },
         degrade: { type: 'string', shortFlag: 'q', default: '' },
         degraderesolution: { type: 'number', shortFlag: 'Q', default: 512 },
