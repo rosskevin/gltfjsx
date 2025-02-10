@@ -28,16 +28,16 @@ interface BaseOptions {
 }
 
 export interface TransformOptions extends BaseOptions {
-  console: boolean
-  degrade: string
+  console?: boolean
+  degrade?: string
   /** default 512 */
   degraderesolution?: number
 
   format: TextureCompressOptions['targetFormat']
 
-  keepattributes: boolean
-  keepmaterials: boolean
-  keepmeshes: boolean
+  keepattributes?: boolean
+  keepmaterials?: boolean
+  keepmeshes?: boolean
 
   /** default 1024 */
   resolution?: number
