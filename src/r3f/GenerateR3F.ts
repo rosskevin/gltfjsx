@@ -1,4 +1,4 @@
-import { Bone, Mesh, Object3D } from 'three'
+import { Object3D } from 'three'
 import { FunctionDeclaration, InterfaceDeclaration, JsxElement, SyntaxKind } from 'ts-morph'
 
 import { AbstractGenerate } from '../AbstractGenerate.js'
@@ -64,7 +64,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     // set constants - load path, draco
     this.setConstants()
 
-    this.setGLTFInterfaceTypes()
+    this.generateGLTFInterface()
 
     this.generateChildren()
 
@@ -93,14 +93,19 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
    *     }
    *   }
    */
-  protected setGLTFInterfaceTypes() {
+  protected generateGLTFInterface() {
+    const { log } = this.options
     // nodes
-    const meshes: Mesh[] = this.a.getMeshes()
-    const bones: Bone[] = this.a.getBones()
     const nodes = this.gltfInterface.getProperty('nodes')
     if (!nodes) throw new Error('gltfInterface nodes not found')
+
     nodes.setType(
-      `{ ${[...meshes, ...bones].map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': ' + type).join(', ')} }`,
+      `{ 
+        ${this.a
+          .getUniqueNamedNodes()
+          .map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': ' + type)
+          .join(', ')} 
+      }`,
     )
 
     // materials
