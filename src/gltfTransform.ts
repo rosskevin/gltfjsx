@@ -10,7 +10,8 @@ import {
   prune,
   reorder,
   resample,
-  simplify,
+  simplify as simplifyFn,
+  SimplifyOptions,
   sparse,
   textureCompress,
   unpartition,
@@ -29,8 +30,9 @@ import { TransformOptions } from './options.js'
 async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
   outFilename: string,
-  config: Readonly<O>,
+  o: Readonly<O>,
 ) {
+  const { simplify, ...options } = o
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -39,16 +41,16 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
     'meshopt.decoder': MeshoptDecoder,
     'meshopt.encoder': MeshoptEncoder,
   })
-  if (config.console) io.setLogger(new Logger(Logger.Verbosity.ERROR))
+  if (options.console) io.setLogger(new Logger(Logger.Verbosity.ERROR))
   else io.setLogger(new Logger(Logger.Verbosity.WARN))
 
   const document = await io.read(inFilename)
-  const resolution = config.resolution ?? 1024
+  const resolution = options.resolution ?? 1024
   const normalResolution = Math.max(resolution, 2048)
-  const degradeResolution = config.degraderesolution ?? 512
+  const degradeResolution = options.degraderesolution ?? 512
   const functions = [unpartition()]
 
-  if (!config.keepmaterials) functions.push(palette({ min: 5 }))
+  if (!options.keepmaterials) functions.push(palette({ min: 5 }))
 
   functions.push(
     reorder({ encoder: MeshoptEncoder }),
@@ -59,7 +61,7 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
     dequantize(), // ...
   )
 
-  if (!config.keepmeshes) {
+  if (!options.keepmeshes) {
     functions.push(
       join(), // ...
     )
@@ -70,36 +72,45 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
     weld(),
   )
 
-  if (config.simplify) {
+  if (simplify !== false && simplify !== undefined) {
+    let simplifyOptions: SimplifyOptions = { simplifier: MeshoptSimplifier }
+    if (typeof simplify === 'boolean') {
+      simplifyOptions = {
+        ...simplifyOptions,
+        ratio: 0.75, // sync with cli defaults if changed
+        error: 0.001,
+      }
+    } else {
+      simplifyOptions = {
+        ...simplifyOptions,
+        ...simplify,
+      }
+    }
     functions.push(
       // Simplify meshes
-      simplify({
-        simplifier: MeshoptSimplifier,
-        ratio: config.ratio ?? 0,
-        error: config.error ?? 0.0001,
-      }),
+      simplifyFn(simplifyOptions),
     )
   }
 
   functions.push(
     resample({ ready: resampleReady, resample: resampleWASM }),
-    prune({ keepAttributes: config.keepattributes ?? false, keepLeaves: false }),
+    prune({ keepAttributes: options.keepattributes ?? false, keepLeaves: false }),
     sparse(),
   )
 
-  if (config.degrade) {
+  if (options.degrade) {
     // Custom per-file resolution
     functions.push(
       textureCompress({
         encoder: sharp,
-        pattern: new RegExp(`^(?=${config.degrade}).*$`),
-        targetFormat: config.format,
+        pattern: new RegExp(`^(?=${options.degrade}).*$`),
+        targetFormat: options.format,
         resize: [degradeResolution, degradeResolution],
       }),
       textureCompress({
         encoder: sharp,
-        pattern: new RegExp(`^(?!${config.degrade}).*$`),
-        targetFormat: config.format,
+        pattern: new RegExp(`^(?!${options.degrade}).*$`),
+        targetFormat: options.format,
         resize: [resolution, resolution],
       }),
     )
@@ -109,7 +120,7 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
       textureCompress({
         slots: /^(?!normalTexture).*$/, // exclude normal maps
         encoder: sharp,
-        targetFormat: config.format,
+        targetFormat: options.format,
         resize: [resolution, resolution],
       }),
       textureCompress({
