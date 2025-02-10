@@ -1,8 +1,29 @@
+import { ILogger } from '@gltf-transform/core'
 import { SimplifyOptions } from '@gltf-transform/functions'
 import { MeshoptSimplifier } from 'meshoptimizer'
 
-import { TransformOptions } from '../options.js'
+import { Logger, TransformOptions } from '../options.js'
 import { WithRequired } from '../utils/types.js'
+
+export class LogAdapter implements ILogger {
+  constructor(private log: Logger) {}
+
+  public debug(message: string): void {
+    this.log.debug(message)
+  }
+
+  public info(message: string): void {
+    this.log.info(message)
+  }
+
+  public warn(message: string): void {
+    this.log.warn(message)
+  }
+
+  public error(message: string): void {
+    this.log.error(message)
+  }
+}
 
 export function resolveSimplifyOptions(
   simplify: WithRequired<TransformOptions, 'simplify'>['simplify'],
