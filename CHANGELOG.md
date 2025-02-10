@@ -1,3 +1,15 @@
+# v7.0.20 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- fix issue where ts interface nodes has duplicate names after gltfTransform ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.19 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
