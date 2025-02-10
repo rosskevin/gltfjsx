@@ -1,3 +1,15 @@
+# v7.0.19 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- Make flatten optional as it can destroy named hierarchies that the user may want ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.18 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
