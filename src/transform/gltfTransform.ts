@@ -10,7 +10,7 @@ import {
   prune,
   reorder,
   resample,
-  simplify as simplifyFn,
+  simplify,
   sparse,
   textureCompress,
   unpartition,
@@ -30,9 +30,8 @@ import { resolveSimplifyOptions } from './utils.js'
 async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
   outFilename: string,
-  o: Readonly<O>,
+  options: Readonly<O>,
 ) {
-  const { ...options } = o
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -75,7 +74,7 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
   if (options.simplify !== undefined) {
     functions.push(
       // Simplify meshes
-      simplifyFn(resolveSimplifyOptions(options.simplify)),
+      simplify(resolveSimplifyOptions(options.simplify)),
     )
   }
 
