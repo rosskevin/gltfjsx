@@ -27,7 +27,7 @@ import { resolveSimplifyOptions } from './utils.js'
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
  */
-async function gltfTransform<O extends TransformOptions = TransformOptions>(
+export async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
   outFilename: string,
   options: Readonly<O>,
@@ -123,5 +123,3 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
   await document.transform(...functions)
   await io.write(outFilename, document)
 }
-
-export default gltfTransform

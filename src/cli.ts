@@ -12,7 +12,7 @@ import { loadGLTF } from './loadGLTF.js'
 import { Log } from './Log.js'
 import { CliOptions } from './options.js'
 import { GenerateR3F } from './r3f/GenerateR3F.js'
-import gltfTransform from './transform/gltfTransform.js'
+import { gltfTransform } from './transform/gltfTransform.js'
 import {
   compareFileSizes,
   readPackage,
