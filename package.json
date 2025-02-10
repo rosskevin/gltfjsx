@@ -1,6 +1,6 @@
 {
   "name": "@rosskevin/gltfjsx",
-  "version": "7.0.13",
+  "version": "7.0.14",
   "publishConfig": {
     "access": "public"
   },
