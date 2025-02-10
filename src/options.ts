@@ -1,8 +1,9 @@
-import { TextureCompressOptions } from '@gltf-transform/functions'
+import { SimplifyOptions, TextureCompressOptions } from '@gltf-transform/functions'
 import { Object3D } from 'three'
 import { OptionalKind, PropertySignatureStructure } from 'ts-morph'
 
 import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
+import { WithOptional } from './utils/types.js'
 
 export interface LogOptions {
   silent: boolean
@@ -29,17 +30,26 @@ interface BaseOptions {
 export interface TransformOptions extends BaseOptions {
   console: boolean
   degrade: string
-  degraderesolution: number
-  error: number
+  /** default 512 */
+  degraderesolution?: number
+
   format: TextureCompressOptions['targetFormat']
 
   keepattributes: boolean
   keepmaterials: boolean
   keepmeshes: boolean
 
-  ratio: number
-  resolution: number
-  simplify: boolean
+  /** default 1024 */
+  resolution?: number
+
+  /**
+   * Simplify meshes.
+   *
+   * If true/no options specified, defaults apply:
+   *  - error: 0.001
+   *  - ratio: 0.75
+   */
+  simplify?: boolean | WithOptional<SimplifyOptions, 'simplifier'>
 }
 
 export interface PropsOptions extends BaseOptions {

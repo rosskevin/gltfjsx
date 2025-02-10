@@ -126,8 +126,8 @@ try {
         --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
         --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
         --simplify, -S    Mesh simplification (default: false)
-        --ratio         Simplifier ratio (default: 0)
-        --error         Simplifier error threshold (default: 0.0001)
+          --ratio         Simplifier ratio (default: 0)
+          --error         Simplifier error threshold (default: 0.0001)
 `,
     {
       importMeta: import.meta,
@@ -150,7 +150,6 @@ try {
         resolution: { type: 'number', shortFlag: 'R', default: 1024 },
         degrade: { type: 'string', shortFlag: 'q', default: '' },
         degraderesolution: { type: 'number', shortFlag: 'Q', default: 512 },
-        simplify: { type: 'boolean', shortFlag: 'S', default: false },
         keepmeshes: { type: 'boolean', shortFlag: 'j', default: false },
         keepmaterials: { type: 'boolean', shortFlag: 'M', default: false },
         keepattributes: { type: 'boolean', default: false },
@@ -162,10 +161,12 @@ try {
           default: 'webp',
         },
         exportdefault: { type: 'boolean', shortFlag: 'E', default: false },
-        ratio: { type: 'number', default: 0.75 },
-        error: { type: 'number', default: 0.001 },
         console: { type: 'boolean', shortFlag: 'c', default: false },
         debug: { type: 'boolean', shortFlag: 'D', default: false },
+        // simplifier options
+        simplify: { type: 'boolean', shortFlag: 'S', default: false },
+        error: { type: 'number', default: 0.001 }, //sync changes with defaults in gltfTransform
+        ratio: { type: 'number', default: 0.75 },
       },
     },
   )
@@ -173,8 +174,16 @@ try {
   if (cli.input.length === 0) {
     console.log(cli.help)
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const cliOptions: CliOptions = cli.flags as any satisfies CliOptions // issue with format choices
+    const { simplify, error, ratio, format, ...rawOptions } = cli.flags
+    const cliOptions: CliOptions = {
+      ...rawOptions,
+      format: format as 'jpeg' | 'png' | 'webp' | 'avif', // issue with format choices
+    }
+    // simplifer options as object
+    if (simplify) {
+      cliOptions.simplify = { error, ratio }
+    }
+
     // ./public/Model.{glb|gltf}
     const modelFile = path.resolve(cli.input[0])
     await main(modelFile, cliOptions)
