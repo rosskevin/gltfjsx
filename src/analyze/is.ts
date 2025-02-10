@@ -82,6 +82,18 @@ export const setRemoved = (o: any, value = true): void => {
   o.__removed = value
 }
 
+// export const isNotRemovedIncludingAncestors = (o: Object3D): boolean => {
+//   if (isRemoved(o)) return false
+
+//   let ancestor = o.parent
+//   while (ancestor) {
+//     if (isRemoved(ancestor)) return false
+//     ancestor = ancestor.parent
+//   }
+
+//   return true
+// }
+
 interface Colored {
   color: Color
 }

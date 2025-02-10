@@ -116,6 +116,32 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     ) as any
   }
 
+  public getUniqueNamedNodes(): Object3D[] {
+    const { log } = this.options
+    const meshes: Mesh[] = this.getMeshes()
+    const bones: Bone[] = this.getBones()
+    log.debug(
+      'Total named nodes: ',
+      meshes.length + bones.length,
+      'Meshes: ',
+      meshes.length,
+      ' Bones: ',
+      bones.length,
+    )
+
+    // remove the potential for duplicate names in the meshes
+    const namedObjectMap = new Map<string, Object3D>()
+    for (const m of [...meshes, ...bones]) {
+      if (namedObjectMap.has(m.name)) {
+        continue
+      }
+      namedObjectMap.set(m.name, m)
+    }
+    const uniqueObjects = Array.from(namedObjectMap.values())
+    log.debug('Unique named nodes: ', uniqueObjects.length)
+    return uniqueObjects
+  }
+
   public getMaterials(): Material[] {
     return [...new Set(this.getMeshes().flatMap((o) => collectMaterials(o.material)))]
   }
