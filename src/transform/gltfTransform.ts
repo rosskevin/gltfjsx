@@ -1,4 +1,4 @@
-import { ILogger, NodeIO } from '@gltf-transform/core'
+import { NodeIO } from '@gltf-transform/core'
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import {
   dedup,
@@ -21,28 +21,8 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { Logger, TransformOptions } from '../options.js'
-import { resolveSimplifyOptions } from './utils.js'
-
-class LogAdapter implements ILogger {
-  constructor(private log: Logger) {}
-
-  public debug(message: string): void {
-    this.log.debug(message)
-  }
-
-  public info(message: string): void {
-    this.log.info(message)
-  }
-
-  public warn(message: string): void {
-    this.log.warn(message)
-  }
-
-  public error(message: string): void {
-    this.log.error(message)
-  }
-}
+import { TransformOptions } from '../options.js'
+import { LogAdapter, resolveSimplifyOptions } from './utils.js'
 
 /**
  * Apply a series of transformations to the GLTF file via the @gltf-transform libraries.
@@ -67,46 +47,87 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
   const resolution = options.resolution ?? 1024
   const normalResolution = Math.max(resolution, 2048)
   const degradeResolution = options.degraderesolution ?? 512
-  const functions = [unpartition()]
+  const transformations = []
 
-  if (!options.keepmaterials) functions.push(palette({ min: 5 }))
+  // Removes partitions from the binary payload of a glTF file, so that the asset contains at most one (1) .bin Buffer.
+  // This process reverses the changes from a partition transform.
+  // @see https://gltf-transform.dev/modules/functions/functions/unpartition
+  transformations.push(unpartition())
 
-  functions.push(
+  // Creates palette textures containing all unique values of scalar Material properties within the scene, then merges materials.
+  // @see https://gltf-transform.dev/modules/functions/functions/palette
+  if (!options.keepmaterials) {
+    transformations.push(palette({ min: 5 }))
+  }
+
+  transformations.push(
+    // Optimizes Mesh Primitives for locality of reference.
+    // @see https://gltf-transform.dev/modules/functions/functions/reorder
     reorder({ encoder: MeshoptEncoder }),
+    // Removes duplicate Accessor, Mesh, Texture, and Material properties.
+    // Only accessors in mesh primitives, morph targets, and animation samplers are processed.
+    // @see https://gltf-transform.dev/modules/functions/functions/dedup
     dedup(),
+
     // This seems problematic ...
     // instance({ min: 5 }),
+
+    // Flattens the scene graph, leaving Nodes with Meshes, Cameras, and other attachments as direct children of the Scene.
+    // Skeletons and their descendants are left in their original Node structure.
+    // @see https://gltf-transform.dev/modules/functions/functions/flatten
     flatten(),
+
+    // Dequantize Primitives, removing KHR_mesh_quantization if present. Dequantization will increase the size of the mesh on disk
+    // and in memory, but may be necessary for compatibility with applications that don't support quantization.
+    // @see https://gltf-transform.dev/modules/functions/functions/dequantize
     dequantize(), // ...
   )
 
+  // Joins compatible Primitives and reduces draw calls. Primitives are eligible for joining if they are members of the same
+  // Mesh or, optionally, attached to sibling Nodes in the scene hierarchy. For best results, apply dedup and flatten first
+  // to maximize the number of Primitives that can be joined.
+  // @see https://gltf-transform.dev/modules/functions/functions/join
   if (!options.keepmeshes) {
-    functions.push(
+    transformations.push(
       join(), // ...
     )
   }
 
-  functions.push(
+  // Welds Primitives, merging bitwise identical vertices. When merged and indexed, data is shared more efficiently between
+  // vertices. File size can be reduced, and the GPU uses the vertex cache more efficiently.
+  // @see https://gltf-transform.dev/modules/functions/functions/weld
+  transformations.push(
     // Weld vertices
     weld(),
   )
 
+  // Simplification algorithm, based on meshoptimizer, producing meshes with fewer triangles and vertices. Simplification is
+  // lossy, but the algorithm aims to preserve visual quality as much as possible for given parameters.
+  // @see https://gltf-transform.dev/modules/functions/functions/simplify
   if (options.simplify !== undefined) {
-    functions.push(
+    transformations.push(
       // Simplify meshes
       simplify(resolveSimplifyOptions(options.simplify)),
     )
   }
 
-  functions.push(
+  transformations.push(
+    // Resample AnimationChannels, losslessly deduplicating keyframes to reduce file size.
+    // @see https://gltf-transform.dev/modules/functions/functions/resample
     resample({ ready: resampleReady, resample: resampleWASM }),
+    // Removes properties from the file if they are not referenced by a Scene. Commonly helpful for cleaning up after other operations
+    // @see https://gltf-transform.dev/modules/functions/functions/prune
     prune({ keepAttributes: options.keepattributes ?? false, keepLeaves: false }),
+    // Scans all Accessors in the Document, detecting whether each Accessor would benefit from sparse data storage.
+    // @see https://gltf-transform.dev/modules/functions/functions/sparse
     sparse(),
   )
 
+  // Convert textures to the `format` e.g. webp (Requires glTF Transform v3 and Node.js).
+  // @see https://gltf-transform.dev/modules/functions/functions/textureCompress
   if (options.degrade) {
     // Custom per-file resolution
-    functions.push(
+    transformations.push(
       textureCompress({
         encoder: sharp,
         pattern: new RegExp(`^(?=${options.degrade}).*$`),
@@ -122,7 +143,7 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
     )
   } else {
     // Keep normal maps near lossless
-    functions.push(
+    transformations.push(
       textureCompress({
         slots: /^(?!normalTexture).*$/, // exclude normal maps
         encoder: sharp,
@@ -138,8 +159,11 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
     )
   }
 
-  functions.push(draco())
+  // Applies Draco compression using KHR_draco_mesh_compression. This type of compression can reduce the size of triangle geometry.
+  // @see https://gltf-transform.dev/modules/functions/functions/draco
+  transformations.push(draco())
 
-  await document.transform(...functions)
+  // Execute the transformations.
+  await document.transform(...transformations)
   await io.write(outFilename, document)
 }
