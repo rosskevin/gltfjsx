@@ -1,4 +1,4 @@
-import { Logger, NodeIO } from '@gltf-transform/core'
+import { ILogger, NodeIO } from '@gltf-transform/core'
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import {
   dedup,
@@ -21,8 +21,28 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { TransformOptions } from '../options.js'
+import { Logger, TransformOptions } from '../options.js'
 import { resolveSimplifyOptions } from './utils.js'
+
+class LogAdapter implements ILogger {
+  constructor(private log: Logger) {}
+
+  public debug(message: string): void {
+    this.log.debug(message)
+  }
+
+  public info(message: string): void {
+    this.log.info(message)
+  }
+
+  public warn(message: string): void {
+    this.log.warn(message)
+  }
+
+  public error(message: string): void {
+    this.log.error(message)
+  }
+}
 
 /**
  * Apply a series of transformations to the GLTF file via the @gltf-transform libraries.
@@ -40,8 +60,8 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
     'meshopt.decoder': MeshoptDecoder,
     'meshopt.encoder': MeshoptEncoder,
   })
-  if (options.console) io.setLogger(new Logger(Logger.Verbosity.ERROR))
-  else io.setLogger(new Logger(Logger.Verbosity.WARN))
+
+  io.setLogger(new LogAdapter(options.log))
 
   const document = await io.read(inFilename)
   const resolution = options.resolution ?? 1024

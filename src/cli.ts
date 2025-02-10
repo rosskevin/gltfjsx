@@ -40,7 +40,7 @@ export async function main(modelFile: string, cliOptions: CliOptions) {
   let transformedModelFile: string | undefined = undefined
   if (cliOptions.transform || cliOptions.instance || cliOptions.instanceall) {
     transformedModelFile = path.resolve(inputDir, inputName + '-transformed.glb')
-    await gltfTransform(modelFile, transformedModelFile, cliOptions)
+    await gltfTransform(modelFile, transformedModelFile, { log, ...cliOptions })
     size = compareFileSizes(modelFile, transformedModelFile)
   }
 

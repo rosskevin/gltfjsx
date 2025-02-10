@@ -31,6 +31,12 @@ export class Log implements Logger {
     }
   }
 
+  public warn(...args: any[]) {
+    if (!this.options.silent) {
+      this.writeLog('warn', ...args)
+    }
+  }
+
   public error(...args: any[]) {
     this.writeLog('error', ...args)
   }

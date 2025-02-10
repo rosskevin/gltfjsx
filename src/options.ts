@@ -14,8 +14,9 @@ export type LogFn = (...args: any[]) => void
 
 export interface Logger {
   debug: LogFn
-  error: LogFn
   info: LogFn
+  warn: LogFn
+  error: LogFn
 
   isDebugEnabled: () => boolean
 }
@@ -25,10 +26,10 @@ interface BaseOptions {
   instanceall?: boolean
   keepgroups?: boolean
   keepnames?: boolean
+  log: Logger
 }
 
 export interface TransformOptions extends BaseOptions {
-  console?: boolean
   degrade?: string
   /** default 512 */
   degraderesolution?: number
@@ -53,7 +54,6 @@ export interface TransformOptions extends BaseOptions {
 }
 
 export interface PropsOptions extends BaseOptions {
-  log: Logger
   bones?: boolean
   meta?: boolean
   shadows?: boolean
@@ -114,7 +114,7 @@ export interface GenerateOptions extends PropsOptions {
 }
 
 export interface CliOptions
-  extends TransformOptions,
+  extends Omit<TransformOptions, 'log'>,
     Omit<GenerateOptions, 'componentName' | 'modelLoadPath' | 'log'>,
     Omit<AnalyzedGLTFOptions, 'log'> {
   console: boolean
