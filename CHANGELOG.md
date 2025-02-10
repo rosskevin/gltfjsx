@@ -1,3 +1,15 @@
+# v7.0.15 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- switch to named export for easier verification of naming for external use ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.14 (Mon Feb 10 2025)
 
 #### ⚠️ Pushed to `main`
