@@ -75,9 +75,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   protected setConstants() {
-    const { draco, modelLoadPath: inModelLoadPath } = this.options
-    const modelLoadPath =
-      (inModelLoadPath.toLowerCase().startsWith('http') ? '' : '/') + inModelLoadPath
+    const { draco, modelLoadPath } = this.options
     this.src.getVariableDeclaration('modelLoadPath')?.setInitializer(`'${modelLoadPath}'`)
     this.src.getVariableDeclaration('draco')?.setInitializer(draco ? 'true' : 'false')
   }
