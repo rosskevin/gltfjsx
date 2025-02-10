@@ -60,28 +60,32 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
     transformations.push(palette({ min: 5 }))
   }
 
-  transformations.push(
-    // Optimizes Mesh Primitives for locality of reference.
-    // @see https://gltf-transform.dev/modules/functions/functions/reorder
-    reorder({ encoder: MeshoptEncoder }),
-    // Removes duplicate Accessor, Mesh, Texture, and Material properties.
-    // Only accessors in mesh primitives, morph targets, and animation samplers are processed.
-    // @see https://gltf-transform.dev/modules/functions/functions/dedup
-    dedup(),
+  // Optimizes Mesh Primitives for locality of reference.
+  // @see https://gltf-transform.dev/modules/functions/functions/reorder
+  transformations.push(reorder({ encoder: MeshoptEncoder }))
 
-    // This seems problematic ...
-    // instance({ min: 5 }),
+  // Removes duplicate Accessor, Mesh, Texture, and Material properties.
+  // Only accessors in mesh primitives, morph targets, and animation samplers are processed.
+  // @see https://gltf-transform.dev/modules/functions/functions/dedup
+  transformations.push(dedup())
 
-    // Flattens the scene graph, leaving Nodes with Meshes, Cameras, and other attachments as direct children of the Scene.
-    // Skeletons and their descendants are left in their original Node structure.
-    // @see https://gltf-transform.dev/modules/functions/functions/flatten
-    flatten(),
+  // This seems problematic ...
+  // instance({ min: 5 }),
 
-    // Dequantize Primitives, removing KHR_mesh_quantization if present. Dequantization will increase the size of the mesh on disk
-    // and in memory, but may be necessary for compatibility with applications that don't support quantization.
-    // @see https://gltf-transform.dev/modules/functions/functions/dequantize
-    dequantize(), // ...
-  )
+  // Flattens the scene graph, leaving Nodes with Meshes, Cameras, and other attachments as direct children of the Scene.
+  // Skeletons and their descendants are left in their original Node structure.
+  //
+  // NOTE: this can cause issues when trying to keep names and find those nodes by name.
+  //
+  // @see https://gltf-transform.dev/modules/functions/functions/flatten
+  if (options.flatten === undefined || options.flatten) {
+    transformations.push(flatten())
+  }
+
+  // Dequantize Primitives, removing KHR_mesh_quantization if present. Dequantization will increase the size of the mesh on disk
+  // and in memory, but may be necessary for compatibility with applications that don't support quantization.
+  // @see https://gltf-transform.dev/modules/functions/functions/dequantize
+  transformations.push(dequantize())
 
   // Joins compatible Primitives and reduces draw calls. Primitives are eligible for joining if they are members of the same
   // Mesh or, optionally, attached to sibling Nodes in the scene hierarchy. For best results, apply dedup and flatten first

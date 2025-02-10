@@ -34,6 +34,8 @@ export interface TransformOptions extends BaseOptions {
   /** default 512 */
   degraderesolution?: number
 
+  /** default: true */
+  flatten?: boolean
   format: TextureCompressOptions['targetFormat']
 
   keepattributes?: boolean
