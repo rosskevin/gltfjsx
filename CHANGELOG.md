@@ -1,3 +1,15 @@
+# v7.0.11 (Mon Feb 10 2025)
+
+#### ⚠️ Pushed to `main`
+
+- setConstants shouldn’t manipulate the modelLoadPath and add a leading / ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.10 (Fri Feb 07 2025)
 
 #### ⚠️ Pushed to `main`
