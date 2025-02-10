@@ -25,7 +25,7 @@ import { TransformOptions } from '../options.js'
 import { resolveSimplifyOptions } from './utils.js'
 
 /**
- * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
+ * Apply a series of transformations to the GLTF file via the @gltf-transform libraries.
  */
 export async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
