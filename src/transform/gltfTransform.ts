@@ -11,7 +11,6 @@ import {
   reorder,
   resample,
   simplify as simplifyFn,
-  SimplifyOptions,
   sparse,
   textureCompress,
   unpartition,
@@ -19,10 +18,11 @@ import {
 } from '@gltf-transform/functions'
 import draco3d from 'draco3dgltf'
 import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
-import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
+import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { TransformOptions } from './options.js'
+import { TransformOptions } from '../options.js'
+import { resolveSimplifyOptions } from './utils.js'
 
 /**
  * If transform is true, apply a series of transformations to the GLTF file via the @gltf-transform libraries.
@@ -32,7 +32,7 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
   outFilename: string,
   o: Readonly<O>,
 ) {
-  const { simplify, ...options } = o
+  const { ...options } = o
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -72,23 +72,10 @@ async function gltfTransform<O extends TransformOptions = TransformOptions>(
     weld(),
   )
 
-  if (simplify !== false && simplify !== undefined) {
-    let simplifyOptions: SimplifyOptions = { simplifier: MeshoptSimplifier }
-    if (typeof simplify === 'boolean') {
-      simplifyOptions = {
-        ...simplifyOptions,
-        ratio: 0.75, // sync with cli defaults if changed
-        error: 0.001,
-      }
-    } else {
-      simplifyOptions = {
-        ...simplifyOptions,
-        ...simplify,
-      }
-    }
+  if (options.simplify !== undefined) {
     functions.push(
       // Simplify meshes
-      simplifyFn(simplifyOptions),
+      simplifyFn(resolveSimplifyOptions(options.simplify)),
     )
   }
 
