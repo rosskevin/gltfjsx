@@ -65,6 +65,8 @@ export interface AnalyzedGLTFOptions extends PropsOptions {
   precision?: number
 }
 
+export type Matcher = (o: Object3D, a: AnalyzedGLTF) => boolean
+
 export interface MappedProp {
   /**
    * Object3D prop(s)
@@ -75,7 +77,7 @@ export interface MappedProp {
    * Match a specific type of object.
    * If not provided, matches all that have the {to} prop
    * */
-  matcher?: (o: Object3D, a: AnalyzedGLTF) => boolean
+  matcher?: Matcher
   /**
    * ts-morph prop structure (name is already supplied)
    * */
