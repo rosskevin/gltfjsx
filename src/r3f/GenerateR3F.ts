@@ -62,19 +62,22 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     this.instancesFn = this.src.getFunction(this.getModelInstancesName())!
 
     // set constants - load path, draco
-    this.setConstants()
+    this.generateConstants()
 
     this.generateGLTFInterface()
 
     this.generateChildren()
 
-    this.exposeProps()
+    this.generateExposedProps()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
   }
 
-  protected setConstants() {
+  /**
+   * Set the constants for the modelLoadPath and draco
+   */
+  protected generateConstants() {
     const { draco, modelLoadPath } = this.options
     this.src.getVariableDeclaration('modelLoadPath')?.setInitializer(`'${modelLoadPath}'`)
     this.src.getVariableDeclaration('draco')?.setInitializer(draco ? 'true' : 'false')
@@ -184,7 +187,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
    * - Change the identifer on the root <group {...rest} /> element
    * - Set the argument in the function signature
    */
-  protected exposeProps() {
+  protected generateExposedProps() {
     if (this.exposedPropsEncountered.size === 0) return
 
     // add all mapped props to the ModelProps interface
