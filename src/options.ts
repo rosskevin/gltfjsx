@@ -67,6 +67,8 @@ export interface AnalyzedGLTFOptions extends PropsOptions {
 
 export type Matcher = (o: Object3D, a: AnalyzedGLTF) => boolean
 
+export type ExposePropStructure = Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+
 export interface ExposedProp {
   /**
    * Object3D prop(s)
@@ -81,7 +83,7 @@ export interface ExposedProp {
   /**
    * ts-morph prop structure (name is already supplied)
    * */
-  structure: Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+  structure: ExposePropStructure
 }
 
 export interface GenerateOptions extends PropsOptions {
