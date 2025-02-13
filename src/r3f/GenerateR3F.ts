@@ -364,7 +364,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
       import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
-      import { AnimationClip, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
+      import { AnimationClip, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
       import { GLTF, SkeletonUtils } from 'three-stdlib'
 
       ${
