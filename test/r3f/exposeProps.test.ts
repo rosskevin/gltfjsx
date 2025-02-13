@@ -226,7 +226,7 @@ describe('exposeProps', () => {
                     ).toEqual(1)
                   } else {
                     expect(
-                      code.match(/visible=\{hoseVisible || materials.HoseMat\}/g)?.length,
+                      code.match(/visible=\{hoseVisible \|\| materials.HoseMat\}/g)?.length,
                     ).toEqual(1)
                   }
                 }

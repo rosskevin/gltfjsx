@@ -218,22 +218,22 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   /**
-   * Iterate over all exposeProps and return the component prop name if it matches.
+   * Iterate over all exposeProps and return the component prop name if it explicitly matches.
    * @param o
    * @param to the Object3D property name
    * @returns the component prop name if it matches
    */
-  protected getMappedComponentProp(
+  protected getExposedComponentProp(
     o: Object3D,
     to: string,
   ): keyof GenerateOptions['exposeProps'] | undefined {
     const { exposeProps } = this.options
     if (!exposeProps) return
 
-    for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
+    for (const [componentProp, exposeProp] of Object.entries(exposeProps)) {
       if (
-        mappedProp.to.includes(to) &&
-        (mappedProp.matcher === undefined || mappedProp?.matcher(o, this.a))
+        exposeProp.to.includes(to) &&
+        (exposeProp.matcher === undefined || exposeProp?.matcher(o, this.a))
       ) {
         return componentProp as keyof GenerateOptions['exposeProps']
       }
@@ -253,7 +253,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let value = props[key]
-        const componentProp = this.getMappedComponentProp(o, key)
+        const componentProp = this.getExposedComponentProp(o, key)
         if (componentProp) {
           log.debug(
             `Propagating ${key}={${componentProp}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
