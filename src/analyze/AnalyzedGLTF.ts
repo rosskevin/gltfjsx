@@ -116,6 +116,13 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     ) as any
   }
 
+  /**
+   * In some cases, there are potential for duplicate names in the meshes + bones.
+   * This method will return the unique named nodes and omit duplicates, useful for
+   * generating the final typescript interface for the model `nodes` property.
+   *
+   * @returns Unique named nodes meshes and bones the scene
+   */
   public getUniqueNamedNodes(): Object3D[] {
     const { log } = this.options
     const meshes: Mesh[] = this.getMeshes()
