@@ -1,3 +1,15 @@
+# v7.0.22 (Thu Feb 13 2025)
+
+#### ⚠️ Pushed to `main`
+
+- expose Matcher fn type ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.21 (Thu Feb 13 2025)
 
 #### ⚠️ Pushed to `main`
