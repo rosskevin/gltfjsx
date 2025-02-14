@@ -1,4 +1,4 @@
-import { NodeIO } from '@gltf-transform/core'
+import { NodeIO, Transform } from '@gltf-transform/core'
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import {
   dedup,
@@ -26,11 +26,17 @@ import { LogAdapter, resolveSimplifyOptions } from './utils.js'
 
 /**
  * Apply a series of transformations to the GLTF file via the @gltf-transform libraries.
+ *
+ * @param inFilename - The input filename.
+ * @param outFilename - The output filename.
+ * @param options - The options to apply.
+ * @param additionalTransformations - Additional transformations to apply (if any).
  */
 export async function gltfTransform<O extends TransformOptions = TransformOptions>(
   inFilename: string,
   outFilename: string,
   options: Readonly<O>,
+  additionalTransformations: Transform[] = [],
 ) {
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
@@ -47,7 +53,7 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
   const resolution = options.resolution ?? 1024
   const normalResolution = Math.max(resolution, 2048)
   const degradeResolution = options.degraderesolution ?? 512
-  const transformations = []
+  const transformations = [...additionalTransformations]
 
   // Removes partitions from the binary payload of a glTF file, so that the asset contains at most one (1) .bin Buffer.
   // This process reverses the changes from a partition transform.
