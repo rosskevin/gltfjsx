@@ -1,5 +1,5 @@
 import { DRACOLoader, GLTF } from 'node-three-gltf'
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
@@ -29,14 +29,8 @@ describe('exposeProps', () => {
         let a: AnalyzedGLTF
         let dracoLoader: DRACOLoader
 
-        beforeAll(() => {
+        beforeAll(async () => {
           dracoLoader = new DRACOLoader()
-        })
-        afterAll(() => {
-          dracoLoader.dispose()
-        })
-
-        beforeEach(async () => {
           assertFileExists(modelFile)
           model = await loadGLTF(modelFile, dracoLoader)
           options = fixtureGenerateOptions({
@@ -51,6 +45,12 @@ describe('exposeProps', () => {
           })
           a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
         })
+        afterAll(() => {
+          dracoLoader.dispose()
+        })
+
+        // beforeEach(async () => {
+        // })
 
         describe('no matcher', () => {
           it.concurrent('should generate to[]', async () => {

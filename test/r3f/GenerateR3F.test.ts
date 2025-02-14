@@ -1,6 +1,6 @@
 import { DRACOLoader, GLTF } from 'node-three-gltf'
 import { SyntaxKind } from 'ts-morph'
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
@@ -28,14 +28,8 @@ describe('GenerateR3F', () => {
         let a: AnalyzedGLTF
         let dracoLoader: DRACOLoader
 
-        beforeAll(() => {
+        beforeAll(async () => {
           dracoLoader = new DRACOLoader()
-        })
-        afterAll(() => {
-          dracoLoader.dispose()
-        })
-
-        beforeEach(async () => {
           assertFileExists(modelFile)
           model = await loadGLTF(modelFile, dracoLoader)
           options = fixtureGenerateOptions({
@@ -50,6 +44,12 @@ describe('GenerateR3F', () => {
           })
           a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
         })
+        afterAll(() => {
+          dracoLoader.dispose()
+        })
+
+        // beforeEach(async () => {
+        // })
 
         function assertCommon(g: GenerateR3F) {
           expect(g.project).not.toBeNull()
