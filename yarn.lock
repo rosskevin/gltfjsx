@@ -1325,6 +1325,7 @@ __metadata:
     auto: "npm:^11.3.0"
     chalk: "npm:^5.4.1"
     draco3dgltf: "npm:^1.5.7"
+    es-toolkit: "npm:^1.32.0"
     eslint: "npm:^9.20.0"
     fast-glob: "npm:^3.3.3"
     fs-extra: "npm:^11.3.0"
@@ -3168,6 +3169,18 @@ __metadata:
     is-date-object: "npm:^1.0.5"
     is-symbol: "npm:^1.0.4"
   checksum: 10/17faf35c221aad59a16286cbf58ef6f080bf3c485dff202c490d074d8e74da07884e29b852c245d894eac84f73c58330ec956dfd6d02c0b449d75eb1012a3f9b
+  languageName: node
+  linkType: hard
+
+"es-toolkit@npm:^1.32.0":
+  version: 1.32.0
+  resolution: "es-toolkit@npm:1.32.0"
+  dependenciesMeta:
+    "@trivago/prettier-plugin-sort-imports@4.3.0":
+      unplugged: true
+    prettier-plugin-sort-re-exports@0.0.1:
+      unplugged: true
+  checksum: 10/98eaf802d5d2fbb2bd7ab69073034b7571b56abfa8e7cb046f22a501718b288c901b4f61a53f36b000549ab57c4265b2f8b86ba255e1a7d6e841ff86822e01be
   languageName: node
   linkType: hard
 

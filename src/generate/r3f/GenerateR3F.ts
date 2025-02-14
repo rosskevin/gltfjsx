@@ -12,6 +12,7 @@ import {
 import { ExposePropStructure, GenerateOptions } from '../../options.js'
 import { Props } from '../../utils/index.js'
 import { AbstractGenerate } from '../AbstractGenerate.js'
+import { NodeUtils } from '../NodeUtils.js'
 import { getJsxElementName, isPrimitive } from '../utils.js'
 
 // controls writing of prop values in writeProps()
@@ -74,11 +75,16 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
 
     this.generateExposedProps()
 
-    // sort the props
-    // this.propsInterface.sortMembers()
+    // sort the source file
+    this.sort()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
+  }
+
+  protected sort() {
+    NodeUtils.sortPropertySignatures(this.gltfInterface)
+    NodeUtils.sortPropertySignatures(this.propsInterface)
   }
 
   /**

@@ -1,11 +1,12 @@
 import { Object3D } from 'three'
+import { InterfaceDeclaration, PropertySignature } from 'ts-morph'
 
 import { AnalyzedGLTF, isBone, isInstancedMesh, isMesh, isTargetedLight } from '../analyze/index.js'
 
 /**
  * r3f specific determination of jsx component?  If not, this could be moved to AnalyzeGLTF.
  */
-export function getJsxElementName(o: Object3D, a: AnalyzedGLTF): string {
+export const getJsxElementName = (o: Object3D, a: AnalyzedGLTF): string => {
   let e = o.type.charAt(0).toLowerCase() + o.type.slice(1)
 
   // least specific to most specific, last one wins
@@ -21,7 +22,7 @@ export function getJsxElementName(o: Object3D, a: AnalyzedGLTF): string {
   return e
 }
 
-export function isPrimitive(o: Object3D) {
+export const isPrimitive = (o: Object3D) => {
   if (isTargetedLight(o)) {
     return true
   }
@@ -30,4 +31,8 @@ export function isPrimitive(o: Object3D) {
   }
 
   return false
+}
+
+export const stripQuotes = (value: string): string => {
+  return value.replace(/["']/g, '')
 }
