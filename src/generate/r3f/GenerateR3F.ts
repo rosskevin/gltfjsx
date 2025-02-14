@@ -12,7 +12,7 @@ import {
 import { ExposePropStructure, GenerateOptions } from '../../options.js'
 import { Props } from '../../utils/index.js'
 import { AbstractGenerate } from '../AbstractGenerate.js'
-import { getJsxElementName, isPrimitive } from './utils.js'
+import { getJsxElementName, isPrimitive } from '../utils.js'
 
 // controls writing of prop values in writeProps()
 const stringProps = ['name']

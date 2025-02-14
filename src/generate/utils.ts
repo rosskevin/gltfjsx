@@ -1,12 +1,6 @@
 import { Object3D } from 'three'
 
-import {
-  AnalyzedGLTF,
-  isBone,
-  isInstancedMesh,
-  isMesh,
-  isTargetedLight,
-} from '../../analyze/index.js'
+import { AnalyzedGLTF, isBone, isInstancedMesh, isMesh, isTargetedLight } from '../analyze/index.js'
 
 /**
  * r3f specific determination of jsx component?  If not, this could be moved to AnalyzeGLTF.
