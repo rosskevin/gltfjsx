@@ -1,3 +1,15 @@
+# v7.1.0 (Fri Feb 14 2025)
+
+#### 🚀 Enhancement
+
+- exposeProps should provide for overwriting as well as fallback for optional props [#7](https://github.com/rosskevin/gltfjsx/pull/7) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.0.22 (Thu Feb 13 2025)
 
 #### ⚠️ Pushed to `main`
