@@ -53,35 +53,39 @@ describe('exposeProps', () => {
         // })
 
         describe('no matcher', () => {
-          it.concurrent('should generate to[]', async () => {
-            const mo: GenerateOptions = {
-              ...options,
-              exposeProps: {
-                shadows: {
-                  to: ['castShadow', 'receiveShadow'],
-                  structure: {
-                    type: 'boolean',
-                    hasQuestionToken: true,
+          it.concurrent(
+            'should generate to[]',
+            async () => {
+              const mo: GenerateOptions = {
+                ...options,
+                exposeProps: {
+                  shadows: {
+                    to: ['castShadow', 'receiveShadow'],
+                    structure: {
+                      type: 'boolean',
+                      hasQuestionToken: true,
+                    },
                   },
                 },
-              },
-            }
-            const g = new GenerateR3F(a, mo)
-            const tsx = await g.toTsx()
-            console.log(tsx)
-            const jsx = await g.toJsx()
-
-            for (const code of [tsx, jsx]) {
-              if (type.includes('instanceall')) {
-                expect(code.match(/<instances/g)?.length).toEqual(6)
-                expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
-                expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
-              } else {
-                expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
-                expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
               }
-            }
-          })
+              const g = new GenerateR3F(a, mo)
+              const tsx = await g.toTsx()
+              console.log(tsx)
+              const jsx = await g.toJsx()
+
+              for (const code of [tsx, jsx]) {
+                if (type.includes('instanceall')) {
+                  expect(code.match(/<instances/g)?.length).toEqual(6)
+                  expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
+                  expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
+                } else {
+                  expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
+                  expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
+                }
+              }
+            },
+            10000, // increase timeout for ci - typical timeout if 5000ms
+          )
 
           it.concurrent('should generate to (singular)', async () => {
             const mo: GenerateOptions = {
