@@ -1,3 +1,15 @@
+# v7.1.2 (Fri Feb 14 2025)
+
+#### 🐛 Bug Fix
+
+- Add helper for exposeProps api reuse isMatchIncludingAncestors [#8](https://github.com/rosskevin/gltfjsx/pull/8) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.1.1 (Fri Feb 14 2025)
 
 #### ⚠️ Pushed to `main`
