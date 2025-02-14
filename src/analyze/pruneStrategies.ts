@@ -1,7 +1,6 @@
 import { Object3D } from 'three'
 
-import { descObj3D } from '../Log.js'
-import { Props } from '../utils/types.js'
+import { descObj3D, Props } from '../utils/index.js'
 import { AnalyzedGLTF } from './AnalyzedGLTF.js'
 import { isChildless, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.js'
 import { equalOrNegated } from './utils.js'

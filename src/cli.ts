@@ -8,18 +8,18 @@ import { DRACOLoader } from 'node-three-gltf'
 
 // should be your first import
 import { AnalyzedGLTF } from './analyze/AnalyzedGLTF.js'
-import { loadGLTF } from './loadGLTF.js'
-import { Log } from './Log.js'
+import { GenerateR3F } from './generate/index.js'
+import { loadGLTF } from './load/index.js'
 import { CliOptions } from './options.js'
-import { GenerateR3F } from './r3f/GenerateR3F.js'
-import { gltfTransform } from './transform/gltfTransform.js'
+import { gltfTransform } from './transform/index.js'
 import {
   compareFileSizes,
+  Log,
   readPackage,
   resolveComponentName,
   resolveModelLoadPath,
   resolveOutputSrcFile,
-} from './utils/files.js'
+} from './utils/index.js'
 
 /**
  * Separate the CLI from the main function to allow for testing and external API use/customization.
