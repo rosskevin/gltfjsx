@@ -1,13 +1,17 @@
 import { Object3D } from 'three'
 import { FunctionDeclaration, InterfaceDeclaration, JsxElement, SyntaxKind } from 'ts-morph'
 
-import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
-import { isBone, isRemoved, isTargetedLight } from '../analyze/is.js'
-import isVarName from '../analyze/isVarName.js'
-import { nodeName } from '../analyze/utils.js'
-import { AbstractGenerate } from '../generate/AbstractGenerate.js'
-import { ExposePropStructure, GenerateOptions } from '../options.js'
-import { Props } from '../utils/types.js'
+import {
+  AnalyzedGLTF,
+  isBone,
+  isRemoved,
+  isTargetedLight,
+  isVarName,
+  nodeName,
+} from '../../analyze/index.js'
+import { ExposePropStructure, GenerateOptions } from '../../options.js'
+import { Props } from '../../utils/index.js'
+import { AbstractGenerate } from '../AbstractGenerate.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
 // controls writing of prop values in writeProps()
@@ -71,7 +75,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     this.generateExposedProps()
 
     // sort the props
-    this.propsInterface.sortMembers()
+    // this.propsInterface.sortMembers()
 
     // basic ts format after manipulation - see toTsx() and toJsx() for better formatting
     this.src.formatText()
