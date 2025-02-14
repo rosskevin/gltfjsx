@@ -53,7 +53,7 @@ describe('exposeProps', () => {
         })
 
         describe('no matcher', () => {
-          it('should generate to[]', async () => {
+          it.concurrent('should generate to[]', async () => {
             const mo: GenerateOptions = {
               ...options,
               exposeProps: {
@@ -83,7 +83,7 @@ describe('exposeProps', () => {
             }
           })
 
-          it('should generate to (singular)', async () => {
+          it.concurrent('should generate to (singular)', async () => {
             const mo: GenerateOptions = {
               ...options,
               exposeProps: {
@@ -114,7 +114,7 @@ describe('exposeProps', () => {
         })
 
         describe('matcher', () => {
-          it('should limit matches', async () => {
+          it.concurrent('should limit matches', async () => {
             const mo: GenerateOptions = {
               ...options,
               exposeProps: {
@@ -135,10 +135,12 @@ describe('exposeProps', () => {
 
             for (const code of [tsx, jsx]) {
               if (type.includes('instanceall')) {
-                expect(code.match(/<instances\.Hose_low.*castShadow=\{shadows\}/g)?.length).toEqual(
+                expect(
+                  code.match(/<instances\.GlassPlastic_low.*castShadow=\{shadows\}/g)?.length,
+                ).toEqual(1)
+                expect(code.match(/<instances\.GlassPlastic_low.*receiveShadow /g)?.length).toEqual(
                   1,
                 )
-                expect(code.match(/<instances\.Hose_low.*receiveShadow /g)?.length).toEqual(6)
               } else {
                 expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(1)
                 expect(code.match(/receiveShadow\n/g)?.length).toEqual(6)
@@ -149,7 +151,7 @@ describe('exposeProps', () => {
           describe('non-existing (non-calculated)', () => {
             // e.g. visible - it may not be present in calculated (because it defaults to true),
             // but we need to be sure we add it to a matched case to ensure propagation
-            it('should propagate property', async () => {
+            it.concurrent('should propagate property', async () => {
               const mo: GenerateOptions = {
                 ...options,
                 exposeProps: {
@@ -182,7 +184,7 @@ describe('exposeProps', () => {
 
           describe('pre-existing (calculated)', () => {
             // provided prop is not `undefined` type or `hasQuestionToken: true`
-            it('should overwrite required property', async () => {
+            it.concurrent('should overwrite required property', async () => {
               const mo: GenerateOptions = {
                 ...options,
                 exposeProps: {
@@ -220,19 +222,17 @@ describe('exposeProps', () => {
                 for (const code of [tsx, jsx]) {
                   if (type.includes('instanceall')) {
                     expect(
-                      code.match(
-                        /<instances\.Hose_low.*visible=\{hoseVisible || materials.HoseMat\}/g,
-                      )?.length,
+                      code.match(/<instances\.Hose_low.*material=\{hoseMaterial\}/g)?.length,
                     ).toEqual(1)
                   } else {
                     expect(
-                      code.match(/visible=\{hoseVisible \|\| materials.HoseMat\}/g)?.length,
+                      code.match(/material=\{hoseMaterial \|\| materials.HoseMat\}/g)?.length,
                     ).toEqual(1)
                   }
                 }
               }
 
-              it('should override property with hasQuestionToken', async () => {
+              it.concurrent('should override property with hasQuestionToken', async () => {
                 const mo: GenerateOptions = {
                   ...options,
                   exposeProps: {
@@ -250,7 +250,7 @@ describe('exposeProps', () => {
                 await assertFallback(g)
               })
 
-              it('should override property with type contains undefined', async () => {
+              it.concurrent('should override property with type contains undefined', async () => {
                 const mo: GenerateOptions = {
                   ...options,
                   exposeProps: {

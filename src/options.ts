@@ -81,7 +81,12 @@ export interface ExposedProp {
    * */
   matcher?: Matcher
   /**
-   * ts-morph prop structure (name is already supplied)
+   * ts-morph prop type structure (name is already supplied)
+   * e.g.
+   *    structure: {
+   *      type: 'boolean',
+   *      hasQuestionToken: true,
+   *    },
    * */
   structure: ExposePropStructure
 }

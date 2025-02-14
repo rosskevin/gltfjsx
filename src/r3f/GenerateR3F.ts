@@ -263,10 +263,12 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
         const exposed = this.getExposedComponentProp(o, key)
         if (exposed) {
           const { componentProp, structure } = exposed
-          // if component prop is optional, ensure the fallback to the original model
+          // if component prop is optional, is not boolean, and is not currently undefined, allow fallback to the original model value
           if (
-            structure.hasQuestionToken == true ||
-            (typeof structure.type === 'string' && structure.type.includes('undefined'))
+            value !== undefined &&
+            structure.type !== 'boolean' &&
+            (structure.hasQuestionToken == true ||
+              (typeof structure.type === 'string' && structure.type.includes('undefined')))
           ) {
             value = `${componentProp} || ${value}`
           } else {
@@ -274,11 +276,10 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
             value = componentProp
           }
           log.debug(
-            `Propagating ${key}={${componentProp}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
+            `Propagating ${key}={${value}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
           )
           this.exposedPropsEncountered.add(componentProp)
         }
-
         if (stringProps.includes(key)) {
           return `${key}="${value}"`
         }
@@ -316,8 +317,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           }
           for (const to of toArray) {
             log.debug(`Forcing propagation of ${to}={${componentProp}} name='${o.name}'`)
-            // fabricate a value to be remapped
-            props[to] = 'foobarbaz'
+            // Use an existing value (for potential fallback), or fabricate a value to be remapped
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            props[to] = props[to] || undefined
           }
         }
       }
