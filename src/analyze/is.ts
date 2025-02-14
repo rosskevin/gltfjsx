@@ -18,6 +18,9 @@ import {
   SpotLight,
 } from 'three'
 
+import { Matcher } from '../options.js'
+import { AnalyzedGLTF } from './AnalyzedGLTF.js'
+
 export type isFn = (o: any) => boolean
 
 export const isObject3D = (o: any): o is Object3D => (o as any).isObject3D
@@ -82,17 +85,24 @@ export const setRemoved = (o: any, value = true): void => {
   o.__removed = value
 }
 
-// export const isNotRemovedIncludingAncestors = (o: Object3D): boolean => {
-//   if (isRemoved(o)) return false
+/**
+ * Helper for external matchers to determine if node is of interest e.g. `exposeProps`
+ */
+export const isMatchIncludingAncestors = (
+  o: Object3D,
+  a: AnalyzedGLTF,
+  matcher: Matcher,
+): boolean => {
+  if (matcher(o, a)) return true
 
-//   let ancestor = o.parent
-//   while (ancestor) {
-//     if (isRemoved(ancestor)) return false
-//     ancestor = ancestor.parent
-//   }
+  let ancestor = o.parent
+  while (ancestor) {
+    if (matcher(ancestor, a)) return true
+    ancestor = ancestor.parent
+  }
 
-//   return true
-// }
+  return false
+}
 
 interface Colored {
   color: Color
