@@ -1,3 +1,15 @@
+# v7.1.1 (Fri Feb 14 2025)
+
+#### ⚠️ Pushed to `main`
+
+- allow for additional supplied transforms ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.1.0 (Fri Feb 14 2025)
 
 #### 🚀 Enhancement
