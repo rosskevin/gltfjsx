@@ -67,7 +67,9 @@ export interface AnalyzedGLTFOptions extends PropsOptions {
 
 export type Matcher = (o: Object3D, a: AnalyzedGLTF) => boolean
 
-export interface MappedProp {
+export type ExposePropStructure = Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+
+export interface ExposedProp {
   /**
    * Object3D prop(s)
    * e.g. castShadow | [castShadow, receiveShadow]
@@ -79,9 +81,14 @@ export interface MappedProp {
    * */
   matcher?: Matcher
   /**
-   * ts-morph prop structure (name is already supplied)
+   * ts-morph prop type structure (name is already supplied)
+   * e.g.
+   *    structure: {
+   *      type: 'boolean',
+   *      hasQuestionToken: true,
+   *    },
    * */
-  structure: Omit<OptionalKind<PropertySignatureStructure>, 'name'>
+  structure: ExposePropStructure
 }
 
 export interface GenerateOptions extends PropsOptions {
@@ -106,7 +113,7 @@ export interface GenerateOptions extends PropsOptions {
    * Expose component prop and propagate to matching Object3D props
    * e.g. shadows->[castShadow, receiveShadow]
    */
-  exposeProps?: Record<string, MappedProp>
+  exposeProps?: Record<string, ExposedProp>
   /**
    * Load path for the model for useGLTF()
    */

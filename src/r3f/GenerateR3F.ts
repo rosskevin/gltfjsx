@@ -6,7 +6,7 @@ import { AnalyzedGLTF } from '../analyze/AnalyzedGLTF.js'
 import { isBone, isRemoved, isTargetedLight } from '../analyze/is.js'
 import isVarName from '../analyze/isVarName.js'
 import { nodeName } from '../analyze/utils.js'
-import { GenerateOptions } from '../options.js'
+import { ExposePropStructure, GenerateOptions } from '../options.js'
 import { Props } from '../utils/types.js'
 import { getJsxElementName, isPrimitive } from './utils.js'
 
@@ -182,6 +182,8 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   /**
+   * This generates the exposed props side effects only, it does not affect the generated element. For element side effects, see writeProps()
+   *
    * - Add all mapped props to the ModelProps interface
    * - Destructure variables in the function body with a ...rest
    * - Change the identifer on the root <group {...rest} /> element
@@ -196,7 +198,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       const pv = { ...structure, name: prop as string }
 
       // update the props interface
-      this.propsInterface.addProperty(pv)
+      this.propsInterface.addProperty(pv) // this may be required or undefined
     }
 
     // change the identifier on the group JsxSpreadAttribute (causes rename of all usages)
@@ -218,24 +220,29 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   /**
-   * Iterate over all exposeProps and return the component prop name if it matches.
+   * Iterate over all exposeProps and return the component prop name if it explicitly matches.
    * @param o
    * @param to the Object3D property name
    * @returns the component prop name if it matches
    */
-  protected getMappedComponentProp(
+  protected getExposedComponentProp(
     o: Object3D,
     to: string,
-  ): keyof GenerateOptions['exposeProps'] | undefined {
+  ):
+    | { structure: ExposePropStructure; componentProp: keyof GenerateOptions['exposeProps'] }
+    | undefined {
     const { exposeProps } = this.options
     if (!exposeProps) return
 
-    for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
+    for (const [componentProp, exposeProp] of Object.entries(exposeProps)) {
       if (
-        mappedProp.to.includes(to) &&
-        (mappedProp.matcher === undefined || mappedProp?.matcher(o, this.a))
+        exposeProp.to.includes(to) &&
+        (exposeProp.matcher === undefined || exposeProp?.matcher(o, this.a))
       ) {
-        return componentProp as keyof GenerateOptions['exposeProps']
+        return {
+          componentProp: componentProp as keyof GenerateOptions['exposeProps'],
+          structure: exposeProp.structure,
+        }
       }
     }
 
@@ -253,15 +260,26 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       .map((key: string) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let value = props[key]
-        const componentProp = this.getMappedComponentProp(o, key)
-        if (componentProp) {
+        const exposed = this.getExposedComponentProp(o, key)
+        if (exposed) {
+          const { componentProp, structure } = exposed
+          // if component prop is optional, is not boolean, and is not currently undefined, allow fallback to the original model value
+          if (
+            value !== undefined &&
+            structure.type !== 'boolean' &&
+            (structure.hasQuestionToken == true ||
+              (typeof structure.type === 'string' && structure.type.includes('undefined')))
+          ) {
+            value = `${componentProp} || ${value}`
+          } else {
+            // exposed prop is required, overwrite regardless of value
+            value = componentProp
+          }
           log.debug(
-            `Propagating ${key}={${componentProp}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
+            `Propagating ${key}={${value}} on <${getJsxElementName(o, this.a)} name='${o.name}'/>`,
           )
-          value = componentProp
           this.exposedPropsEncountered.add(componentProp)
         }
-
         if (stringProps.includes(key)) {
           return `${key}="${value}"`
         }
@@ -299,8 +317,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           }
           for (const to of toArray) {
             log.debug(`Forcing propagation of ${to}={${componentProp}} name='${o.name}'`)
-            // fabricate a value to be remapped
-            props[to] = 'foobarbaz'
+            // Use an existing value (for potential fallback), or fabricate a value to be remapped
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            props[to] = props[to] || undefined
           }
         }
       }
@@ -364,7 +383,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
       import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
       import * as React from 'react'
-      import { AnimationClip, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
+      import { AnimationClip, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
       import { GLTF, SkeletonUtils } from 'three-stdlib'
 
       ${
