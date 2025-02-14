@@ -8,14 +8,14 @@ import {
   GenerateR3F,
   loadGLTF,
   resolveModelLoadPath,
-} from '../../src/index.js'
+} from '../../../src/index.js'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,
   fixtureGenerateOptions,
   resolveFixtureModelFile,
   types,
-} from '../fixtures.js'
+} from '../../fixtures.js'
 
 const modelName = 'FlightHelmet'
 describe('GenerateR3F', () => {
