@@ -2,7 +2,7 @@
 
 import { Object3D } from 'three'
 
-import { Logger } from './options.js'
+import { Logger } from '../options.js'
 
 export interface Options {
   silent: boolean

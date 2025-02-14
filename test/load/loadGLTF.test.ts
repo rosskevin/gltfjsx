@@ -1,8 +1,8 @@
 import { DRACOLoader, GLTF } from 'node-three-gltf'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import { loadGLTF } from '../src/index.js'
-import { assertFileExists, models, resolveFixtureModelFile, types } from './fixtures.js'
+import { loadGLTF } from '../../src/index.js'
+import { assertFileExists, models, resolveFixtureModelFile, types } from '../fixtures.js'
 
 describe('loadGLTF', () => {
   for (const modelName of models) {

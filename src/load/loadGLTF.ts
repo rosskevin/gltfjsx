@@ -9,8 +9,8 @@ import { DRACOLoader, GLTF, GLTFLoader } from 'node-three-gltf'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 
-import { isObject3D } from './analyze/is.js'
-import { readFileToArrayBuffer } from './utils/files.js'
+import { isObject3D } from '../analyze/index.js'
+import { readFileToArrayBuffer } from '../utils/index.js'
 
 /**
  * Read a GLTF file and return the GLTF object.

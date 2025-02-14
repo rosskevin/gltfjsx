@@ -1,4 +1,4 @@
-import { Props } from '../utils/types.js'
+import { Props } from '../utils/index.js'
 
 const compareArrays = (ia1: any[], ia2: any[]) => {
   if (ia1.length !== ia2.length) {

@@ -1,7 +1,7 @@
 import { Euler, Material, Mesh, Object3D } from 'three'
 
 import { isMaterial } from './is.js'
-import isVarName from './isVarName.js'
+import { isVarName } from './isVarName.js'
 
 /**
  * Analysis related utilities non-specific to any component library such as react-three-fiber.

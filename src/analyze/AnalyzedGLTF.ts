@@ -1,9 +1,8 @@
 import { GLTF } from 'node-three-gltf'
 import { Bone, Material, Mesh, Object3D, Vector3 } from 'three'
 
-import { descObj3D } from '../Log.js'
 import { AnalyzedGLTFOptions } from '../options.js'
-import { Props } from '../utils/types.js'
+import { descObj3D, Props } from '../utils/index.js'
 import {
   isBone,
   isColored,
