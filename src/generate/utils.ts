@@ -1,5 +1,4 @@
 import { Object3D } from 'three'
-import { InterfaceDeclaration, PropertySignature } from 'ts-morph'
 
 import { AnalyzedGLTF, isBone, isInstancedMesh, isMesh, isTargetedLight } from '../analyze/index.js'
 
