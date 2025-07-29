@@ -1,3 +1,15 @@
+# v7.1.5 (Tue Jul 29 2025)
+
+#### ⚠️ Pushed to `main`
+
+- bump jsdom to fix form-data vulnerability ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.1.4 (Tue Jul 29 2025)
 
 #### 🐛 Bug Fix
