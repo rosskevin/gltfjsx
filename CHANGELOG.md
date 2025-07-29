@@ -1,3 +1,15 @@
+# v7.1.4 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- update yarn and all deps [#11](https://github.com/rosskevin/gltfjsx/pull/11) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.1.3 (Fri Feb 14 2025)
 
 #### 🐛 Bug Fix
