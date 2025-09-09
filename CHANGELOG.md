@@ -1,3 +1,15 @@
+# v7.2.0 (Tue Sep 09 2025)
+
+#### 🚀 Enhancement
+
+- Bump vite from 7.0.6 to 7.1.5 in the npm_and_yarn group across 1 directory [#13](https://github.com/rosskevin/gltfjsx/pull/13) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### Authors: 1
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+---
+
 # v7.1.5 (Tue Jul 29 2025)
 
 #### ⚠️ Pushed to `main`
