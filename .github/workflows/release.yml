@@ -29,11 +29,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       # allow the lock file to change
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm exec auto info
       - run: pnpm test
       - run: pnpm build
 
