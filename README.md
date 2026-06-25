@@ -46,24 +46,26 @@ Options
     --keepgroups, -K    Keep (empty) groups, disable pruning
     --bones, -b         Lay out bones declaratively (default: false)
     --meta, -m          Include metadata (as userData)
-    --shadows, s        Let meshes cast and receive shadows
-    --printwidth, w     Prettier printWidth (default: 120)
+    --shadows, -s       Let meshes cast and receive shadows
     --precision, -p     Number of fractional digits (default: 3)
     --root, -r          Sets directory from which .gltf file is served
     --exportdefault, -E Use default export
     --console, -c       Log JSX to console, won't produce a file
     --debug, -D         Debug output
-    The following options apply a series of transformations to the GLTF file via the @gltf-transform libraries:
+    --transform, -T     Apply a series of transformations to the GLTF file via the @gltf-transform libraries
         --instance, -i      Instance re-occuring geometry
         --instanceall, -I   Instance every geometry (for cheaper re-use)
         --resolution, -R  Resolution for texture resizing (default: 1024)
         --keepmeshes, -j  Do not join compatible meshes
         --keepmaterials, -M Do not palette join materials
-        --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
+        --keepattributes    Keep unused vertex attributes (e.g. UVs without an assigned texture)
+        --flatten           Flatten the scene graph (default: true)
+        --degrade, -q       Downscale textures whose name matches this pattern
+        --degraderesolution, -Q  Resolution for degraded textures (default: 512)
         --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
         --simplify, -S    Mesh simplification (default: false)
-        --ratio         Simplifier ratio (default: 0)
-        --error         Simplifier error threshold (default: 0.0001)
+        --ratio         Simplifier ratio (default: 0.75)
+        --error         Simplifier error threshold (default: 0.001)
 ```
 
 ### A typical use-case
@@ -74,7 +76,7 @@ First you run your model through gltfjsx. `npx` allows you to use npm packages w
 npx @rosskevin/gltfjsx model.gltf --transform
 ```
 
-This will create a `Model.jsx` file that plots out all of the assets contents.
+This will create a `Model.tsx` file that plots out all of the assets contents.
 
 ```jsx
 /*
@@ -131,7 +133,7 @@ You can re-use it, it will re-use geometries and materials out of the box:
 <Model position={[10, 0, -10]} />
 ```
 
-## Common manual changes to generated Model.jsx
+## Common manual changes to generated Model.tsx
 
 ### Change its colors
 
@@ -399,10 +401,10 @@ interface GenerateOptions {
    * Expose component prop and propagate to matching Object3D props
    * e.g. shadows->[castShadow, receiveShadow]
    */
-  exposeProps?: Record<string, MappedProp>
+  exposeProps?: Record<string, ExposedProp>
 }
 
-interface MappedProp {
+interface ExposedProp {
   /**
    * Object3D prop(s)
    * e.g. castShadow | [castShadow, receiveShadow]
@@ -451,7 +453,7 @@ to related elements. Because a `matcher` is specified, the property will be adde
 
 ## Requirements
 
-- Nodejs >= 16 must be installed
+- Nodejs >= 20.19.0 must be installed
 - The GLTF file has to be present in your projects `/public` folder
 - [three](https://github.com/mrdoob/three.js/)
 - [@react-three/fiber](https://github.com/pmndrs/react-three-fiber)

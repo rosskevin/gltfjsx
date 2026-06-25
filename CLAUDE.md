@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`@rosskevin/gltfjsx` — a CLI + library that converts GLTF/GLB 3D models into React Three Fiber (R3F) component source (`.tsx`/`.jsx`). Published to npm as an ESM-only package; the `bin` is `dist/cli.mjs`. It is a (intended-to-be-temporary) fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx) — see `readme.md`. PRs are expected to include tests.
+`@rosskevin/gltfjsx` — a CLI + library that converts GLTF/GLB 3D models into React Three Fiber (R3F) component source (`.tsx`/`.jsx`). Published to npm as an ESM-only package; the `bin` is `dist/cli.mjs`. It is a (intended-to-be-temporary) fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx) — see `README.md`. PRs are expected to include tests.
 
 ## Commands
 
