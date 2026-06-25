@@ -1,7 +1,8 @@
 {
   "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "davidanson.vscode-markdownlint"
+    "biomejs.biome",
+    "vitest.explorer",
+    "DavidAnson.vscode-markdownlint",
+    "yoavbls.pretty-ts-errors"
   ]
 }

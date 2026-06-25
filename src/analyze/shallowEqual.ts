@@ -1,4 +1,4 @@
-import { Props } from '../utils/index.js'
+import type { Props } from '../utils/index.ts'
 
 const compareArrays = (ia1: any[], ia2: any[]) => {
   if (ia1.length !== ia2.length) {
@@ -8,7 +8,7 @@ const compareArrays = (ia1: any[], ia2: any[]) => {
   const a1 = ia1.sort()
   const a2 = ia2.sort()
 
-  const result = a1.every((value, index) => a2[index] == value)
+  const result = a1.every((value, index) => a2[index] === value)
   // console.log("compareArrays sorted", a1, " == ", a2, ": ", result);
   return result
 }

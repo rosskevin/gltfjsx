@@ -2,33 +2,43 @@ name: Release
 
 on: [push]
 
+permissions:
+  # auto pushes version-bump commits/tags and creates GitHub releases via the built-in token
+  contents: write
+  # auto's released / first-time-contributor / canary plugins comment on merged PRs and issues
+  pull-requests: write
+  issues: write
+  # OIDC token for npm trusted publishing (token-less publish + provenance) — configured at npmjs.com
+  id-token: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # built-in token (no PAT to rotate); the permissions block above grants what auto needs
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Prepare repository
         run: git fetch --unshallow --tags
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
-          cache: 'yarn'
+          node-version: 24
+          cache: "pnpm"
 
-      # allow the lock file to change (updating our own workspace versions in monorepo)
-      - run: yarn install --no-immutable
-      - run: yarn auto info
-      - run: yarn test
-      - run: yarn build
+      # allow the lock file to change
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
 
       # commit back the lock file change if it works
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Apply yarn.lock changes
+          commit_message: Apply pnpm-lock.yaml changes
 
-      - run: yarn release
+      - run: pnpm release

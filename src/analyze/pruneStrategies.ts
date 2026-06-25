@@ -1,9 +1,9 @@
-import { Object3D } from 'three'
+import type { Object3D } from 'three'
 
-import { descObj3D, Props } from '../utils/index.js'
-import { AnalyzedGLTF } from './AnalyzedGLTF.js'
-import { isChildless, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.js'
-import { equalOrNegated } from './utils.js'
+import { descObj3D, type Props } from '../utils/index.ts'
+import type { AnalyzedGLTF } from './AnalyzedGLTF.ts'
+import { isChildless, isGroup, isNotRemoved, isRemoved, setRemoved } from './is.ts'
+import { equalOrNegated } from './utils.ts'
 
 export type PruneStrategy = (a: AnalyzedGLTF, o: Object3D, props: Props) => boolean
 
@@ -142,8 +142,10 @@ export const pruneTransformOverlap: PruneStrategy = (a, o, props) => {
 
     // Move props over from the to-be-deleted object to the child
     // This ensures that the child will have the correct transform when pruning is being repeated
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    propsKeys.forEach((key) => (o.children[0] as any)[key].copy((o as any)[key]))
+    propsKeys.forEach((key) => {
+      const child = o.children[0] as any
+      child[key].copy((o as any)[key])
+    })
     // Insert the props into the result string
     a.visitAndPrune(first)
     setRemoved(o)
@@ -159,7 +161,7 @@ export const pruneTransformOverlap: PruneStrategy = (a, o, props) => {
  * Solution:
  *   (delete the whole sub graph)
  */
-export const pruneLackOfContent: PruneStrategy = (a, o, props) => {
+export const pruneLackOfContent: PruneStrategy = (a, o, _props) => {
   const { log } = a.options
 
   const empty: Object3D[] = []
@@ -170,7 +172,9 @@ export const pruneLackOfContent: PruneStrategy = (a, o, props) => {
   })
   if (!empty.length) {
     log.debug('Removed (aggressive: lack of content): ', descObj3D(o))
-    empty.forEach((child) => setRemoved(child))
+    empty.forEach((child) => {
+      setRemoved(child)
+    })
     return true // ''
   }
   return false

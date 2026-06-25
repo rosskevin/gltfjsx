@@ -1,0 +1,21 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
+  "extends": ["@alienfast/biome-config/base"],
+  "files": {
+    // Standalone .svg are assets, not source — don't lint the embedded <style> as CSS (logo.svg).
+    "includes": ["**", "!dist", "!coverage", "!test/models", "!**/*.snap", "!**/*.svg", "!tmp*"]
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        // The generator test suites are intentionally nested (model > type > matcher > state > fallback) past Biome's limit of 5.
+        "noExcessiveNestedTestSuites": "off",
+        // NodeUtils/PropertyUtils are intentional static-only utility classes — PropertyUtils.ts documents why
+        // `this`/es-toolkit `curry` force static members; converting to free functions would fight that constraint.
+        "noStaticOnlyClass": "off"
+      },
+      "correctness": { "noUnresolvedImports": "off" }
+    }
+  },
+  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true }
+}

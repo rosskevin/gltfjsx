@@ -1,14 +1,14 @@
-import { GLTF } from 'node-three-gltf'
-import { Bone, Material, Mesh, Object3D, Vector3 } from 'three'
+import type { GLTF } from 'node-three-gltf'
+import { type Bone, type Material, type Mesh, type Object3D, Vector3 } from 'three'
 
-import { AnalyzedGLTFOptions } from '../options.js'
-import { descObj3D, Props } from '../utils/index.js'
+import type { AnalyzedGLTFOptions } from '../options.ts'
+import { descObj3D, type Props } from '../utils/index.ts'
 import {
   isBone,
   isColored,
   isDecayed,
   isDistanced,
-  isFn,
+  type isFn,
   isInstancedMesh,
   isLight,
   isMesh,
@@ -20,8 +20,8 @@ import {
   isSkinnedMesh,
   isSpotLight,
   isTargetedLight,
-} from './is.js'
-import { allPruneStrategies, PruneStrategy } from './pruneStrategies.js'
+} from './is.ts'
+import { allPruneStrategies, type PruneStrategy } from './pruneStrategies.ts'
 import {
   collectMaterials,
   materialKey,
@@ -29,7 +29,7 @@ import {
   nodeName,
   sanitizeMeshName,
   sanitizeName,
-} from './utils.js'
+} from './utils.ts'
 
 export interface DuplicateGeometry {
   count: number
@@ -89,10 +89,10 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   }
 
   public hasInstances(): boolean {
-    return (this.options.instance || this.options.instanceall) &&
-      Object.keys(this.dupGeometries).length > 0
-      ? true
-      : false
+    return Boolean(
+      (this.options.instance || this.options.instanceall) &&
+        Object.keys(this.dupGeometries).length > 0,
+    )
   }
 
   public getDuplicateGeometryValues(): DuplicateGeometry[] {
@@ -104,12 +104,10 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
   }
 
   public getMeshes(): Mesh[] {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.objects.filter((o) => isMesh(o) && isNotRemoved(o)) as any
   }
 
   public getBones(): Bone[] {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.objects.filter(
       (o) => isBone(o) && !(o.parent && isBone(o.parent)) && isNotRemoved(o),
     ) as any
@@ -215,131 +213,126 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     // name: include name when output is uncompressed or morphTargetDictionaries are present
     if (
       o.name.length &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (this.options.keepnames || (o as any).morphTargetDictionary || this.hasAnimations())
     ) {
-      props['name'] = o.name
+      props.name = o.name
     }
 
     // camera
     if (isPerspectiveCamera(o) || isOrthographicCamera(o)) {
-      props['makeDefault'] = false
-      if (o.zoom !== 1) props['zoom'] = this.rNbr(o.zoom)
-      if (o.far !== 2000) props['far'] = this.rNbr(o.far)
-      if (o.near !== 0.1) props['near'] = this.rNbr(o.near)
+      props.makeDefault = false
+      if (o.zoom !== 1) props.zoom = this.rNbr(o.zoom)
+      if (o.far !== 2000) props.far = this.rNbr(o.far)
+      if (o.near !== 0.1) props.near = this.rNbr(o.near)
     }
     if (isPerspectiveCamera(o)) {
-      if (o.fov !== 50) props['fov'] = this.rNbr(o.fov)
+      if (o.fov !== 50) props.fov = this.rNbr(o.fov)
     }
 
     // Meshes
     if (isMesh(o)) {
       // Mesh shadows
       if (this.options.shadows) {
-        props['castShadow'] = true
-        props['receiveShadow'] = true
+        props.castShadow = true
+        props.receiveShadow = true
       }
 
       // non-instanced
       if (!this.isInstanced(o)) {
         if (!isInstancedMesh(o)) {
           // geometry
-          props['geometry'] = `${node}.geometry`
+          props.geometry = `${node}.geometry`
 
           // material
           const materialName = materialKey(o.material)
-          if (materialName) props['material'] = `materials${sanitizeName(materialName)}`
-          else props['material'] = `${node}.material`
+          if (materialName) props.material = `materials${sanitizeName(materialName)}`
+          else props.material = `${node}.material`
         }
       }
 
       // InstancedMesh
       if (isInstancedMesh(o)) {
-        if (o.instanceMatrix) props['instanceMatrix'] = `${node}.instanceMatrix`
-        if (o.instanceColor) props['instanceColor'] = `${node}.instanceColor`
+        if (o.instanceMatrix) props.instanceMatrix = `${node}.instanceMatrix`
+        if (o.instanceColor) props.instanceColor = `${node}.instanceColor`
 
         const materialName = materialKey(o.material)
         const mat = materialName ? `materials${sanitizeName(materialName)}` : `${node}.material`
-        props['args'] = `[${node}.geometry, ${mat}, ${!o.count ? `${node}.count` : o.count}]`
+        props.args = `[${node}.geometry, ${mat}, ${!o.count ? `${node}.count` : o.count}]`
       }
 
       // SkinnedMesh
-      if (isSkinnedMesh(o)) props['skeleton'] = `${node}.skeleton`
+      if (isSkinnedMesh(o)) props.skeleton = `${node}.skeleton`
     }
 
     // Points
     if (isPoints(o)) {
-      props['morphTargetDictionary'] = `${node}.morphTargetDictionary}`
-      props['morphTargetInfluences'] = `${node}.morphTargetInfluences}`
+      props.morphTargetDictionary = `${node}.morphTargetDictionary}`
+      props.morphTargetInfluences = `${node}.morphTargetInfluences}`
     }
 
     // Lights
     if (isLight(o)) {
-      if (this.rNbr(o.intensity)) props['intensity'] = this.rNbr(o.intensity)
+      if (this.rNbr(o.intensity)) props.intensity = this.rNbr(o.intensity)
 
       //if (o.power && o.power !== 4 * Math.PI) props['power'] = ${this.rNbr(o.power)} `
       if (isSpotLight(o)) {
-        if (o.angle !== Math.PI / 3) props['angle'] = this.rDeg(o.angle)
-        if (o.penumbra && this.rNbr(o.penumbra) !== 0) props['penumbra'] = this.rNbr(o.penumbra)
+        if (o.angle !== Math.PI / 3) props.angle = this.rDeg(o.angle)
+        if (o.penumbra && this.rNbr(o.penumbra) !== 0) props.penumbra = this.rNbr(o.penumbra)
       }
 
       // SpotLight | PointLight
       if (isDecayed(o)) {
-        if (o.decay && this.rNbr(o.decay) !== 1) props['decay'] = this.rNbr(o.decay)
+        if (o.decay && this.rNbr(o.decay) !== 1) props.decay = this.rNbr(o.decay)
       }
       if (isDistanced(o)) {
-        if (o.distance && this.rNbr(o.distance) !== 0) props['distance'] = this.rNbr(o.distance)
+        if (o.distance && this.rNbr(o.distance) !== 0) props.distance = this.rNbr(o.distance)
       }
       // Lights with targets - return
       if (isTargetedLight(o)) {
-        props['target'] = `${node}.target`
+        props.target = `${node}.target`
       }
     }
 
     // Object3D
-    if (o.visible === false) props['visible'] = false
-    if (o.castShadow === true) props['castShadow'] = true
-    if (o.receiveShadow === true) props['receiveShadow'] = true
-    if (o.up && o.up.isVector3 && !o.up.equals(new Vector3(0, 1, 0))) {
-      props['up'] = `[${this.rNbr(o.up.x)}, ${this.rNbr(o.up.y)}, ${this.rNbr(o.up.z)}]`
+    if (o.visible === false) props.visible = false
+    if (o.castShadow === true) props.castShadow = true
+    if (o.receiveShadow === true) props.receiveShadow = true
+    if (o.up?.isVector3 && !o.up.equals(new Vector3(0, 1, 0))) {
+      props.up = `[${this.rNbr(o.up.x)}, ${this.rNbr(o.up.y)}, ${this.rNbr(o.up.z)}]`
     }
 
     // color
     if (isColored(o) && o.color.getHexString() !== 'ffffff') {
-      props['color'] = `"#${o.color.getHexString()}"`
+      props.color = `"#${o.color.getHexString()}"`
     }
     // position
-    if (o.position && o.position.isVector3 && this.rNbr(o.position.length())) {
-      props['position'] =
-        `[${this.rNbr(o.position.x)}, ${this.rNbr(o.position.y)}, ${this.rNbr(o.position.z)}]`
+    if (o.position?.isVector3 && this.rNbr(o.position.length())) {
+      props.position = `[${this.rNbr(o.position.x)}, ${this.rNbr(o.position.y)}, ${this.rNbr(o.position.z)}]`
     }
     // rotation
     if (
-      o.rotation &&
-      o.rotation.isEuler &&
+      o.rotation?.isEuler &&
       this.rNbr(new Vector3(o.rotation.x, o.rotation.y, o.rotation.z).length())
     ) {
-      props['rotation'] =
-        `[${this.rDeg(o.rotation.x)}, ${this.rDeg(o.rotation.y)}, ${this.rDeg(o.rotation.z)}]`
+      props.rotation = `[${this.rDeg(o.rotation.x)}, ${this.rDeg(o.rotation.y)}, ${this.rDeg(o.rotation.z)}]`
     }
     // scale
     if (
-      o.scale &&
-      o.scale.isVector3 &&
+      o.scale?.isVector3 &&
       !(this.rNbr(o.scale.x) === 1 && this.rNbr(o.scale.y) === 1 && this.rNbr(o.scale.z) === 1)
     ) {
       const rX = this.rNbr(o.scale.x)
       const rY = this.rNbr(o.scale.y)
       const rZ = this.rNbr(o.scale.z)
       if (rX === rY && rX === rZ) {
-        props['scale'] = rX
+        props.scale = rX
       } else {
-        props['scale'] = `[${rX}, ${rY}, ${rZ}]`
+        props.scale = `[${rX}, ${rY}, ${rZ}]`
       }
     }
     // userData
     if (this.options.meta && o.userData && Object.keys(o.userData).length) {
-      props['userData'] = JSON.stringify(o.userData)
+      props.userData = JSON.stringify(o.userData)
     }
     return props
   }
@@ -353,11 +346,11 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     const abs = Math.abs(Math.round(n * 100000))
     for (let i = 1; i <= 10; i++) {
       if (abs === Math.round((Math.PI / i) * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ` / ${i}` : ''}`
     }
     for (let i = 1; i <= 10; i++) {
       if (abs === Math.round(Math.PI * i * 100000))
-        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
+        return `${n < 0 ? '-' : ''}Math.PI${i > 1 ? ` * ${i}` : ''}`
     }
     return this.rNbr(n)
   }
@@ -399,7 +392,9 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
 
   private colectDuplicateMaterial(material: Material | Material[]) {
     if (Array.isArray(material)) {
-      material.forEach((m) => this.colectDuplicateMaterial(m))
+      material.forEach((m) => {
+        this.colectDuplicateMaterial(m)
+      })
     } else {
       if (material.name) {
         if (!this.dupMaterials[material.name]) {
@@ -453,7 +448,9 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
         while (parent && isRemoved(parent)) parent = parent.parent
         // If no parent was found it must be the root node
         if (!parent) parent = this.gltf.scene
-        o.children.slice().forEach((child) => parent.add(child))
+        o.children.slice().forEach((child) => {
+          parent.add(child)
+        })
       }
     })
 

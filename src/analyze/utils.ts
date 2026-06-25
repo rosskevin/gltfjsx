@@ -1,7 +1,7 @@
-import { Euler, Material, Mesh, Object3D } from 'three'
+import type { Euler, Material, Mesh, Object3D } from 'three'
 
-import { isMaterial } from './is.js'
-import { isVarName } from './isVarName.js'
+import { isMaterial } from './is.ts'
+import { isVarName } from './isVarName.ts'
 
 /**
  * Analysis related utilities non-specific to any component library such as react-three-fiber.
@@ -30,7 +30,9 @@ export function sanitizeName(name: string) {
 export function materialKey(material: Material | Material[]) {
   if (Array.isArray(material)) {
     const result: string[] = []
-    material.forEach((m) => m.name && result.push(m.name))
+    material.forEach((m) => {
+      if (m.name) result.push(m.name)
+    })
     if (result.length > 0) {
       return result.join('-')
     }
@@ -47,7 +49,7 @@ export function meshKey(mesh: Mesh) {
 }
 
 export function nodeName(o: Object3D) {
-  return 'nodes' + sanitizeName(o.name)
+  return `nodes${sanitizeName(o.name)}`
 }
 
 /**
@@ -59,12 +61,14 @@ export function nodeName(o: Object3D) {
 export function collectMaterials(material: Material | Material[]): Material[] {
   if (Array.isArray(material)) {
     const result: Material[] = []
-    material.forEach((m) => result.concat(collectMaterials(m)), [])
+    material.forEach((m) => {
+      result.push(...collectMaterials(m))
+    })
     const set = new Set(result)
     return Array.from(set)
   } else {
     if (!isMaterial(material)) {
-      throw new Error('Not a material: ' + typeof material)
+      throw new Error(`Not a material: ${typeof material}`)
     }
     return [material]
   }

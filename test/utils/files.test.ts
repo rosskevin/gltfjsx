@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveComponentName } from '../../src/index.js'
+import { resolveComponentName } from '../../src/index.ts'
 
 describe('utils/files', () => {
   for (const ext of ['tsx', 'jsx']) {

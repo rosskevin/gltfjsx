@@ -1,9 +1,9 @@
-import { SimplifyOptions, TextureCompressOptions } from '@gltf-transform/functions'
-import { Object3D } from 'three'
-import { OptionalKind, PropertySignatureStructure } from 'ts-morph'
+import type { SimplifyOptions, TextureCompressOptions } from '@gltf-transform/functions'
+import type { Object3D } from 'three'
+import type { OptionalKind, PropertySignatureStructure } from 'ts-morph'
 
-import { AnalyzedGLTF } from './analyze/index.js'
-import { WithOptional } from './utils/index.js'
+import type { AnalyzedGLTF } from './analyze/index.ts'
+import type { WithOptional } from './utils/index.ts'
 
 export interface LogOptions {
   silent: boolean

@@ -3,7 +3,12 @@ import path from 'node:path'
 
 import { expect } from 'vitest'
 
-import { AnalyzedGLTFOptions, GenerateOptions, Log, WithRequired } from '../src/index.js'
+import {
+  type AnalyzedGLTFOptions,
+  type GenerateOptions,
+  Log,
+  type WithRequired,
+} from '../src/index.ts'
 
 export const types = [
   //
@@ -15,15 +20,15 @@ export const types = [
 
 export const models = ['FlightHelmet']
 
-const log = new Log({ silent: false, debug: false })
+const log = new Log({ debug: false, silent: false })
 
 export const resolveFixtureModelFile = (inModelName: string, type: string) => {
-  let modelName
+  let modelName: string
   const extension = type === 'gltf' ? 'gltf' : 'glb'
 
   switch (type) {
     case 'gltf-transform-draco-instanceall':
-      modelName = inModelName + '-transformed'
+      modelName = `${inModelName}-transformed`
       break
     default:
       modelName = inModelName

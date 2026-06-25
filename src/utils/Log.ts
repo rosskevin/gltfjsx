@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import type { Object3D } from 'three'
 
-import { Object3D } from 'three'
-
-import { Logger } from '../options.js'
+import type { Logger } from '../options.ts'
 
 export interface Options {
   silent: boolean
