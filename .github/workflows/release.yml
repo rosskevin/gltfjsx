@@ -2,13 +2,18 @@ name: Release
 
 on: [push]
 
+permissions:
+  # auto pushes version-bump commits/tags and creates GitHub releases via the token below
+  contents: write
+  # OIDC token for npm trusted publishing (token-less publish + provenance) — configured at npmjs.com
+  id-token: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     env:
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
+          node-version: 24
           cache: 'pnpm'
 
       # allow the lock file to change

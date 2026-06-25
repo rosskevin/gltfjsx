@@ -2,7 +2,12 @@
   "author": "Paul Henschel",
   "auto": {
     "plugins": [
-      "npm",
+      [
+        "npm",
+        {
+          "setRcToken": false
+        }
+      ],
       "all-contributors",
       "first-time-contributor",
       "released"
