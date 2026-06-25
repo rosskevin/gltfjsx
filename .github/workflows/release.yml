@@ -3,8 +3,11 @@ name: Release
 on: [push]
 
 permissions:
-  # auto pushes version-bump commits/tags and creates GitHub releases via the token below
+  # auto pushes version-bump commits/tags and creates GitHub releases via the built-in token
   contents: write
+  # auto's released / first-time-contributor / canary plugins comment on merged PRs and issues
+  pull-requests: write
+  issues: write
   # OIDC token for npm trusted publishing (token-less publish + provenance) — configured at npmjs.com
   id-token: write
 
@@ -13,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      # built-in token (no PAT to rotate); the permissions block above grants what auto needs
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
