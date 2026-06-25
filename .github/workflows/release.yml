@@ -28,7 +28,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          # Pin 24.18.0+: Node 24.17.0 carries an http.Agent regression that makes node-fetch@2 (auto's pinned
+          # octokit) throw false ERR_STREAM_PREMATURE_CLOSE on keep-alive socket reuse — nodejs/node#63989, fixed in 24.18.0.
+          node-version: 24.18.0
           cache: "pnpm"
 
       # allow the lock file to change

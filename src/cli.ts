@@ -107,7 +107,7 @@ try {
     --keepgroups, -K    Keep (empty) groups, disable pruning
     --bones, -b         Lay out bones declaratively (default: false)
     --meta, -m          Include metadata (as userData)
-    --shadows, s        Let meshes cast and receive shadows
+    --shadows, -s       Let meshes cast and receive shadows
     --precision, -p     Number of fractional digits (default: 3)
     --root, -r          Sets directory from which .gltf file is served
     --exportdefault, -E Use default export
@@ -119,12 +119,14 @@ try {
         --resolution, -R  Resolution for texture resizing (default: 1024)
         --keepmeshes, -j  Do not join compatible meshes
         --keepmaterials, -M Do not palette join materials
-        --keepattributes, Whether to keep unused vertex attributes, such as UVs without an assigned texture
-        --flatten,        Flatten the scene graph (default: true)
+        --keepattributes    Keep unused vertex attributes (e.g. UVs without an assigned texture)
+        --flatten           Flatten the scene graph (default: true)
+        --degrade, -q       Downscale textures whose name matches this pattern
+        --degraderesolution, -Q  Resolution for degraded textures (default: 512)
         --format, -f      Texture format jpeg | png | webp | avif (default: "webp")
         --simplify, -S    Mesh simplification (default: false)
-          --ratio         Simplifier ratio (default: 0)
-          --error         Simplifier error threshold (default: 0.0001)
+          --ratio         Simplifier ratio (default: 0.75)
+          --error         Simplifier error threshold (default: 0.001)
 `,
     {
       flags: {
