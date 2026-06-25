@@ -1,16 +1,14 @@
-import { DRACOLoader, GLTF } from 'node-three-gltf'
+import { DRACOLoader, type GLTF } from 'node-three-gltf'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import { AnalyzedGLTF, isGroup, loadGLTF, Log } from '../../src/index.js'
+import { AnalyzedGLTF, isGroup, loadGLTF } from '../../src/index.ts'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,
   models,
   resolveFixtureModelFile,
   types,
-} from '../fixtures.js'
-
-const log = new Log({ silent: false, debug: true })
+} from '../fixtures.ts'
 
 describe('AnalyzedGLTF', () => {
   for (const modelName of models) {

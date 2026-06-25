@@ -1,1 +1,1 @@
-export * from './loadGLTF.js'
+export * from './loadGLTF.ts'

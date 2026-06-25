@@ -1,4 +1,4 @@
-import { NodeIO, Transform } from '@gltf-transform/core'
+import { NodeIO, type Transform } from '@gltf-transform/core'
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import {
   dedup,
@@ -21,8 +21,8 @@ import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resam
 import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer'
 import sharp from 'sharp'
 
-import { TransformOptions } from '../options.js'
-import { LogAdapter, resolveSimplifyOptions } from './utils.js'
+import type { TransformOptions } from '../options.ts'
+import { LogAdapter, resolveSimplifyOptions } from './utils.ts'
 
 /**
  * Apply a series of transformations to the GLTF file via the @gltf-transform libraries.
@@ -141,30 +141,30 @@ export async function gltfTransform<O extends TransformOptions = TransformOption
       textureCompress({
         encoder: sharp,
         pattern: new RegExp(`^(?=${options.degrade}).*$`),
-        targetFormat: options.format,
         resize: [degradeResolution, degradeResolution],
+        targetFormat: options.format,
       }),
       textureCompress({
         encoder: sharp,
         pattern: new RegExp(`^(?!${options.degrade}).*$`),
-        targetFormat: options.format,
         resize: [resolution, resolution],
+        targetFormat: options.format,
       }),
     )
   } else {
     // Keep normal maps near lossless
     transformations.push(
       textureCompress({
-        slots: /^(?!normalTexture).*$/, // exclude normal maps
         encoder: sharp,
-        targetFormat: options.format,
         resize: [resolution, resolution],
+        slots: /^(?!normalTexture).*$/, // exclude normal maps
+        targetFormat: options.format,
       }),
       textureCompress({
-        slots: /^(?=normalTexture).*$/, // include normal maps
         encoder: sharp,
-        targetFormat: 'jpeg',
         resize: [normalResolution, normalResolution],
+        slots: /^(?=normalTexture).*$/, // include normal maps
+        targetFormat: 'jpeg',
       }),
     )
   }

@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import {
+import type {
   Bone,
   Camera,
   Color,
@@ -18,8 +16,8 @@ import {
   SpotLight,
 } from 'three'
 
-import { Matcher } from '../options.js'
-import { AnalyzedGLTF } from './AnalyzedGLTF.js'
+import type { Matcher } from '../options.ts'
+import type { AnalyzedGLTF } from './AnalyzedGLTF.ts'
 
 export type isFn = (o: any) => boolean
 

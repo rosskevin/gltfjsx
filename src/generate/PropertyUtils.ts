@@ -1,6 +1,6 @@
-import { PropertyAssignment, PropertySignature } from 'ts-morph'
+import type { PropertyAssignment, PropertySignature } from 'ts-morph'
 
-import { stripQuotes } from './utils.js'
+import { stripQuotes } from './utils.ts'
 
 type Property = PropertyAssignment | PropertySignature
 
@@ -24,6 +24,6 @@ export class PropertyUtils {
   }
 
   private static strip(property: Property | string) {
-    return stripQuotes(typeof property == 'string' ? property : property.getName())
+    return stripQuotes(typeof property === 'string' ? property : property.getName())
   }
 }

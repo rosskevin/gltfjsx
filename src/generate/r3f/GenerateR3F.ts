@@ -1,19 +1,24 @@
-import { Object3D } from 'three'
-import { FunctionDeclaration, InterfaceDeclaration, JsxElement, SyntaxKind } from 'ts-morph'
+import type { Object3D } from 'three'
+import {
+  type FunctionDeclaration,
+  type InterfaceDeclaration,
+  type JsxElement,
+  SyntaxKind,
+} from 'ts-morph'
 
 import {
-  AnalyzedGLTF,
+  type AnalyzedGLTF,
   isBone,
   isRemoved,
   isTargetedLight,
   isVarName,
   nodeName,
-} from '../../analyze/index.js'
-import { ExposePropStructure, GenerateOptions } from '../../options.js'
-import { Props } from '../../utils/index.js'
-import { AbstractGenerate } from '../AbstractGenerate.js'
-import { NodeUtils } from '../NodeUtils.js'
-import { getJsxElementName, isPrimitive } from '../utils.js'
+} from '../../analyze/index.ts'
+import type { ExposePropStructure, GenerateOptions } from '../../options.ts'
+import type { Props } from '../../utils/index.ts'
+import { AbstractGenerate } from '../AbstractGenerate.ts'
+import { NodeUtils } from '../NodeUtils.ts'
+import { getJsxElementName, isPrimitive } from '../utils.ts'
 
 // controls writing of prop values in writeProps()
 const stringProps = ['name']
@@ -34,7 +39,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   // leave public to allow for external manipulation - in case the user does not want to subclass
   public gltfInterface!: InterfaceDeclaration
   public propsInterface!: InterfaceDeclaration
-  public instancesFn: FunctionDeclaration
+  public instancesFn: FunctionDeclaration | undefined
   public fn!: FunctionDeclaration
   public groupRoot!: JsxElement
   protected exposedPropsEncountered = new Set<keyof O['exposeProps']>()
@@ -64,7 +69,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     this.groupRoot = groupRoot
 
     // may or may not exist
-    this.instancesFn = this.src.getFunction(this.getModelInstancesName())!
+    this.instancesFn = this.src.getFunction(this.getModelInstancesName())
 
     // set constants - load path, draco
     this.generateConstants()
@@ -110,7 +115,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
    *   }
    */
   protected generateGLTFInterface() {
-    const { log } = this.options
     // nodes
     const nodes = this.gltfInterface.getProperty('nodes')
     if (!nodes) throw new Error('gltfInterface nodes not found')
@@ -119,7 +123,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       `{ 
         ${this.a
           .getUniqueNamedNodes()
-          .map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': ' + type)
+          .map(({ name, type }) => `${isVarName(name) ? name : `['${name}']`}: ${type}`)
           .join(', ')} 
       }`,
     )
@@ -130,7 +134,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     materials.setType(
       `{ ${this.a
         .getMaterials()
-        .map(({ name, type }) => (isVarName(name) ? name : `['${name}']`) + ': ' + type)
+        .map(({ name, type }) => `${isVarName(name) ? name : `['${name}']`}: ${type}`)
         .join(', ')} }`,
     )
 
@@ -157,7 +161,10 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     let children = ''
 
     // Children
-    if (o.children) o.children.forEach((child) => (children += this.generate(child)))
+    if (o.children)
+      o.children.forEach((child) => {
+        children += this.generate(child)
+      })
 
     // Bail out if the object was pruned
     if (isRemoved(o)) return children
@@ -207,7 +214,8 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
 
     // add all mapped props to the ModelProps interface
     for (const prop of this.exposedPropsEncountered) {
-      const { to, matcher, structure } = this.options.exposeProps![prop]
+      // biome-ignore lint/style/noNonNullAssertion: exposedPropsEncountered is only populated when options.exposeProps is set
+      const { structure } = this.options.exposeProps![prop]
       const pv = { ...structure, name: prop as string }
 
       // update the props interface
@@ -271,7 +279,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
 
     const propString = Object.keys(props)
       .map((key: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let value = props[key]
         const exposed = this.getExposedComponentProp(o, key)
         if (exposed) {
@@ -280,7 +287,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           if (
             value !== undefined &&
             structure.type !== 'boolean' &&
-            (structure.hasQuestionToken == true ||
+            (structure.hasQuestionToken === true ||
               (typeof structure.type === 'string' && structure.type.includes('undefined')))
           ) {
             value = `${componentProp} || ${value}`
@@ -319,11 +326,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     // e.g. propagate visible=true where it is defaulted true.
     if (exposeProps) {
       for (const [componentProp, mappedProp] of Object.entries(exposeProps)) {
-        if (
-          mappedProp.matcher &&
-          mappedProp.matcher(o, this.a) &&
-          !propKeys.includes(componentProp)
-        ) {
+        if (mappedProp.matcher?.(o, this.a) && !propKeys.includes(componentProp)) {
           let toArray = mappedProp.to
           if (!Array.isArray(mappedProp.to)) {
             toArray = [mappedProp.to]
@@ -331,7 +334,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           for (const to of toArray) {
             log.debug(`Forcing propagation of ${to}={${componentProp}} name='${o.name}'`)
             // Use an existing value (for potential fallback), or fabricate a value to be remapped
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             props[to] = props[to] || undefined
           }
         }
@@ -341,19 +343,19 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
   }
 
   protected getModelPropsName() {
-    return this.options.componentName + 'Props'
+    return `${this.options.componentName}Props`
   }
 
   protected getModelActionName() {
-    return this.options.componentName + 'Action'
+    return `${this.options.componentName}Action`
   }
 
   protected getModelGLTFName() {
-    return this.options.componentName + 'GLTF'
+    return `${this.options.componentName}GLTF`
   }
 
   protected getModelInstancesName() {
-    return this.options.componentName + 'Instances'
+    return `${this.options.componentName}Instances`
   }
 
   protected hasPrimitives() {
@@ -377,8 +379,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     const hasInstances = this.a.hasInstances()
     const dupGeometryValues = this.a.getDuplicateGeometryValues()
     const hasPrimitives = this.hasPrimitives() // bones, lights
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const extras = this.a.gltf.parser.json.asset && this.a.gltf.parser.json.asset.extras
+    const extras = this.a.gltf.parser.json.asset?.extras
 
     // NOTE: for simplicity, opted to just include all potential imports, let eslint sort out unused in userland
     const template = `
@@ -388,7 +389,6 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       ${
         extras
           ? Object.keys(extras as Record<string, any>)
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               .map((key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${extras[key]}`)
               .join('\n')
           : ''
@@ -402,7 +402,7 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       ${
         hasAnimations
           ? `
-        type ${modelActionName}Names = ${this.a.gltf.animations.map((clip, i) => `'${clip.name}'`).join(' | ')}
+        type ${modelActionName}Names = ${this.a.gltf.animations.map((clip, _i) => `'${clip.name}'`).join(' | ')}
         interface ${modelActionName} extends AnimationClip { name: ${modelActionName}Names }
         `
           : ''

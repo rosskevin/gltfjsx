@@ -1,21 +1,21 @@
-import { DRACOLoader, GLTF } from 'node-three-gltf'
+import { DRACOLoader, type GLTF } from 'node-three-gltf'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
-  GenerateOptions,
+  type GenerateOptions,
   GenerateR3F,
   isMesh,
   loadGLTF,
   resolveModelLoadPath,
-} from '../../../src/index.js'
+} from '../../../src/index.ts'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,
   fixtureGenerateOptions,
   resolveFixtureModelFile,
   types,
-} from '../../fixtures.js'
+} from '../../fixtures.ts'
 
 const modelName = 'FlightHelmet'
 describe('exposeProps', () => {
@@ -37,11 +37,11 @@ describe('exposeProps', () => {
             componentName: modelName,
             draco: type.includes('draco'),
             header: 'FOO header',
-            modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+            instanceall: type.includes('instanceall'),
             // types: true,
             keepnames: true,
+            modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
             shadows: true,
-            instanceall: type.includes('instanceall'),
           })
           a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
         })
@@ -53,50 +53,46 @@ describe('exposeProps', () => {
         // })
 
         describe('no matcher', () => {
-          it.concurrent(
-            'should generate to[]',
-            async () => {
-              const mo: GenerateOptions = {
-                ...options,
-                exposeProps: {
-                  shadows: {
-                    to: ['castShadow', 'receiveShadow'],
-                    structure: {
-                      type: 'boolean',
-                      hasQuestionToken: true,
-                    },
+          it.concurrent('should generate to[]', async () => {
+            const mo: GenerateOptions = {
+              ...options,
+              exposeProps: {
+                shadows: {
+                  structure: {
+                    hasQuestionToken: true,
+                    type: 'boolean',
                   },
+                  to: ['castShadow', 'receiveShadow'],
                 },
-              }
-              const g = new GenerateR3F(a, mo)
-              const tsx = await g.toTsx()
-              console.log(tsx)
-              const jsx = await g.toJsx()
+              },
+            }
+            const g = new GenerateR3F(a, mo)
+            const tsx = await g.toTsx()
+            console.log(tsx)
+            const jsx = await g.toJsx()
 
-              for (const code of [tsx, jsx]) {
-                if (type.includes('instanceall')) {
-                  expect(code.match(/<instances/g)?.length).toEqual(6)
-                  expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
-                  expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
-                } else {
-                  expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
-                  expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
-                }
+            for (const code of [tsx, jsx]) {
+              if (type.includes('instanceall')) {
+                expect(code.match(/<instances/g)?.length).toEqual(6)
+                expect(code.match(/.*receiveShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/.*castShadow=\{shadows\}/g)?.length).toEqual(6)
+              } else {
+                expect(code.match(/castShadow=\{shadows\}/g)?.length).toEqual(6)
+                expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
               }
-            },
-            10000, // increase timeout for ci - typical timeout if 5000ms
-          )
+            }
+          }, 10000) // increase timeout for ci - typical timeout if 5000ms
 
           it.concurrent('should generate to (singular)', async () => {
             const mo: GenerateOptions = {
               ...options,
               exposeProps: {
                 shadows: {
-                  to: 'castShadow',
                   structure: {
-                    type: 'boolean',
                     hasQuestionToken: true,
+                    type: 'boolean',
                   },
+                  to: 'castShadow',
                 },
               },
             }
@@ -123,12 +119,12 @@ describe('exposeProps', () => {
               ...options,
               exposeProps: {
                 shadows: {
-                  to: 'castShadow',
-                  structure: {
-                    type: 'boolean',
-                    hasQuestionToken: true,
-                  },
                   matcher: (o) => isMesh(o) && o.name === 'GlassPlastic_low',
+                  structure: {
+                    hasQuestionToken: true,
+                    type: 'boolean',
+                  },
+                  to: 'castShadow',
                 },
               },
             }
@@ -160,12 +156,12 @@ describe('exposeProps', () => {
                 ...options,
                 exposeProps: {
                   hoseVisible: {
-                    to: 'visible',
-                    structure: {
-                      type: 'boolean',
-                      hasQuestionToken: true,
-                    },
                     matcher: (o) => isMesh(o) && o.name === 'Hose_low',
+                    structure: {
+                      hasQuestionToken: true,
+                      type: 'boolean',
+                    },
+                    to: 'visible',
                   },
                 },
               }
@@ -193,11 +189,11 @@ describe('exposeProps', () => {
                 ...options,
                 exposeProps: {
                   hoseMaterial: {
-                    to: 'material',
+                    matcher: (o) => isMesh(o) && o.name === 'Hose_low',
                     structure: {
                       type: 'Material',
                     },
-                    matcher: (o) => isMesh(o) && o.name === 'Hose_low',
+                    to: 'material',
                   },
                 },
               }
@@ -241,12 +237,12 @@ describe('exposeProps', () => {
                   ...options,
                   exposeProps: {
                     hoseMaterial: {
-                      to: 'material',
-                      structure: {
-                        type: 'Material',
-                        hasQuestionToken: true,
-                      },
                       matcher: (o) => isMesh(o) && o.name === 'Hose_low',
+                      structure: {
+                        hasQuestionToken: true,
+                        type: 'Material',
+                      },
+                      to: 'material',
                     },
                   },
                 }
@@ -259,11 +255,11 @@ describe('exposeProps', () => {
                   ...options,
                   exposeProps: {
                     hoseMaterial: {
-                      to: 'material',
+                      matcher: (o) => isMesh(o) && o.name === 'Hose_low',
                       structure: {
                         type: 'Material | undefined',
                       },
-                      matcher: (o) => isMesh(o) && o.name === 'Hose_low',
+                      to: 'material',
                     },
                   },
                 }

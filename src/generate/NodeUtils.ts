@@ -1,7 +1,7 @@
 import { curry } from 'es-toolkit'
-import { InterfaceDeclaration, PropertySignature } from 'ts-morph'
+import type { InterfaceDeclaration, PropertySignature } from 'ts-morph'
 
-import { PropertyUtils } from './PropertyUtils.js'
+import { PropertyUtils } from './PropertyUtils.ts'
 
 export class NodeUtils {
   public static sortPropertySignatures(i: InterfaceDeclaration): InterfaceDeclaration {

@@ -5,12 +5,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { DRACOLoader, GLTF, GLTFLoader } from 'node-three-gltf'
+import { type DRACOLoader, type GLTF, GLTFLoader } from 'node-three-gltf'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js'
 
-import { isObject3D } from '../analyze/index.js'
-import { readFileToArrayBuffer } from '../utils/index.js'
+import { isObject3D } from '../analyze/index.ts'
+import { readFileToArrayBuffer } from '../utils/index.ts'
 
 /**
  * Read a GLTF file and return the GLTF object.
@@ -46,7 +46,7 @@ export async function loadGLTF(modelFilename: string, dracoLoader?: DRACOLoader)
         if (isObject3D(gltf)) {
           console.error('gltf is Object3D, in what case is this?', gltf)
           // Wrap scene in a GLTF Structure
-          gltf = { scene: gltf, animations: [], parser: { json: {} } } as unknown as GLTF
+          gltf = { animations: [], parser: { json: {} }, scene: gltf } as unknown as GLTF
         }
         resolve(gltf)
       },

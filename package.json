@@ -1,52 +1,24 @@
 {
-  "name": "@rosskevin/gltfjsx",
-  "version": "7.2.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "description": "GLTF to JSX converter",
-  "prettier": "@alienfast/prettier-config",
-  "scripts": {
-    "build": "tsup-node && chmod +x dist/cli.js",
-    "build:ide": "echo 'tsc -b' && tsc -b",
-    "lint:fix": "eslint . --cache --fix",
-    "test": "vitest",
-    "release": "yarn auto shipit"
-  },
-  "type": "module",
-  "bin": "./dist/cli.js",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "keywords": [
-    "gltf",
-    "jsx",
-    "react",
-    "fiber",
-    "three",
-    "threejs",
-    "webp"
-  ],
   "author": "Paul Henschel",
-  "maintainers": [
-    "Max Rusan"
-  ],
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rosskevin/gltfjsx.git"
+  "auto": {
+    "plugins": [
+      "npm",
+      "all-contributors",
+      "first-time-contributor",
+      "released"
+    ]
   },
+  "bin": "./dist/cli.mjs",
   "bugs": {
     "url": "https://github.com/rosskevin/gltfjsx/issues"
   },
-  "homepage": "https://github.com/rosskevin/gltfjsx#readme",
-  "engines": {
-    "node": ">=16"
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/react-three-fiber"
   },
   "dependencies": {
+    "@biomejs/js-api": "^6.0.0",
+    "@biomejs/wasm-nodejs": "^2.5.0",
     "@gltf-transform/core": "4.2.1",
     "@gltf-transform/extensions": "4.2.1",
     "@gltf-transform/functions": "4.2.1",
@@ -57,60 +29,77 @@
     "meow": "^13.2.0",
     "meshoptimizer": "^0.24.0",
     "node-three-gltf": "2.0.2",
-    "prettier": "3.5.0",
     "read-pkg-up": "^11.0.0",
     "sharp": "^0.34.3",
     "three": "0.178.0",
     "three-stdlib": "^2.36.0",
     "ts-morph": "^26.0.0"
   },
-  "optionalDependencies": {
-    "libvips": "^0.0.2"
-  },
+  "description": "GLTF to JSX converter",
   "devDependencies": {
-    "@alienfast/eslint-config": "^5.2.8",
-    "@alienfast/prettier-config": "^1.0.2",
-    "@alienfast/tsconfig": "^1.0.4",
+    "@alienfast/biome-config": "^1.0.6",
+    "@alienfast/tsconfig": "^1.0.8",
     "@auto-it/all-contributors": "^11.3.0",
     "@auto-it/first-time-contributor": "^11.3.0",
     "@auto-it/released": "^11.3.0",
+    "@biomejs/biome": "^2.5.0",
     "@types/draco3dgltf": "^1.4.3",
     "@types/node": "^24.1.0",
     "@types/three": "^0.178.1",
     "auto": "^11.3.0",
     "chalk": "^5.4.1",
-    "eslint": "^9.32.0",
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.3.0",
     "jsdom": "^26.1.0",
-    "lint-staged": "^16.1.2",
-    "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
+    "madge": "^8.0.0",
+    "markdownlint-cli2": "^0.22.1",
+    "npm-run-all": "^4.1.5",
+    "tsdown": "^0.22.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0",
     "vitest": "^3.2.4"
   },
-  "lint-staged": {
-    "*.{json,md,gql}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.{ts,tsx,js}": [
-      "eslint . --cache --ext .js,.ts,.tsx --fix",
-      "git add"
-    ]
+  "engines": {
+    "node": ">=18.17.0"
   },
-  "collective": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/react-three-fiber"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
   },
-  "packageManager": "yarn@4.9.2",
-  "auto": {
-    "plugins": [
-      "npm",
-      "all-contributors",
-      "first-time-contributor",
-      "released"
-    ]
-  }
+  "homepage": "https://github.com/rosskevin/gltfjsx#readme",
+  "keywords": [
+    "gltf",
+    "jsx",
+    "react",
+    "fiber",
+    "three",
+    "threejs",
+    "webp"
+  ],
+  "license": "MIT",
+  "name": "@rosskevin/gltfjsx",
+  "optionalDependencies": {
+    "libvips": "^0.0.2"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosskevin/gltfjsx.git"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "check": "run-p -c --aggregate-output check-types check-biome check-circular check-markdown test",
+    "check-biome": "biome check --write",
+    "check-circular": "madge --circular --extensions ts ./src --ts-config ./tsconfig.json",
+    "check-markdown": "markdownlint-cli2 --fix \"**/*.md\"",
+    "check-types": "tsc --noEmit",
+    "release": "auto shipit",
+    "test": "vitest run"
+  },
+  "type": "module",
+  "version": "7.2.0"
 }

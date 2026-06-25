@@ -1,21 +1,21 @@
-import { DRACOLoader, GLTF } from 'node-three-gltf'
+import { DRACOLoader, type GLTF } from 'node-three-gltf'
 import { SyntaxKind } from 'ts-morph'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   AnalyzedGLTF,
-  GenerateOptions,
+  type GenerateOptions,
   GenerateR3F,
   loadGLTF,
   resolveModelLoadPath,
-} from '../../../src/index.js'
+} from '../../../src/index.ts'
 import {
   assertFileExists,
   fixtureAnalyzeOptions,
   fixtureGenerateOptions,
   resolveFixtureModelFile,
   types,
-} from '../../fixtures.js'
+} from '../../fixtures.ts'
 
 const modelName = 'FlightHelmet'
 describe('GenerateR3F', () => {
@@ -36,11 +36,11 @@ describe('GenerateR3F', () => {
             componentName: modelName,
             draco: type.includes('draco'),
             header: 'FOO header',
-            modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
+            instanceall: type.includes('instanceall'),
             // types: true,
             keepnames: true,
+            modelLoadPath: resolveModelLoadPath(modelFile, '/public/models'),
             shadows: true,
-            instanceall: type.includes('instanceall'),
           })
           a = new AnalyzedGLTF(model, fixtureAnalyzeOptions(options))
         })

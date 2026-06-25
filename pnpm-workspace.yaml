@@ -1,0 +1,14 @@
+# Single-package repo. pnpm 11 reads config from this file (not the package.json `pnpm` field).
+
+# Supply-chain cooldown: never install a dependency version published within the last 7 days (10080 min) —
+# a compromised release is usually detected and yanked within hours to days. Keep .ncurc.cjs `cooldown` aligned.
+minimumReleaseAge: 10080
+# First-party @alienfast/* packages are published by us — exempt them from the cooldown.
+minimumReleaseAgeExclude:
+  - '@alienfast/*'
+
+# pnpm 11 blocks dependency build scripts (postinstall, etc.) by default; only packages mapped to `true` here
+# may run them. Seeded with the known native builders; add others pnpm reports during install via `pnpm approve-builds`.
+allowBuilds:
+  esbuild: true
+  sharp: true

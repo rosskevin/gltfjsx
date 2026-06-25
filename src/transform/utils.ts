@@ -1,9 +1,9 @@
-import { ILogger } from '@gltf-transform/core'
-import { SimplifyOptions } from '@gltf-transform/functions'
+import type { ILogger } from '@gltf-transform/core'
+import type { SimplifyOptions } from '@gltf-transform/functions'
 import { MeshoptSimplifier } from 'meshoptimizer'
 
-import { Logger, TransformOptions } from '../options.js'
-import { WithRequired } from '../utils/types.js'
+import type { Logger, TransformOptions } from '../options.ts'
+import type { WithRequired } from '../utils/types.ts'
 
 export class LogAdapter implements ILogger {
   constructor(private log: Logger) {}
@@ -30,9 +30,9 @@ export function resolveSimplifyOptions(
 ): SimplifyOptions {
   if (typeof simplify === 'boolean') {
     return {
-      simplifier: MeshoptSimplifier,
-      ratio: 0.75, // sync with cli defaults if changed
       error: 0.001,
+      ratio: 0.75, // sync with cli defaults if changed
+      simplifier: MeshoptSimplifier,
     }
   } else {
     return {

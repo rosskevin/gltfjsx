@@ -1,0 +1,15 @@
+{
+  // Single source of truth read by both the check-markdown script and the VS Code markdownlint extension.
+  "config": {
+    "default": true,
+    // MD013 (line-length): we wrap prose at ~160, not 80.
+    "MD013": false,
+    // MD024 (no-duplicate-heading): repeated section names are intentional.
+    "MD024": false,
+    // MD041 (first-line-h1): the readme intentionally leads with status badges before the title.
+    "MD041": false,
+    // MD060 (table-column-style): default-on in markdownlint 0.40 with no auto-fixer, so --fix can never repair it. Cosmetic; off.
+    "MD060": false
+  },
+  "ignores": ["**/node_modules/**", "**/CHANGELOG.md", "test/models/**"]
+}

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import { readPackageUpSync } from 'read-pkg-up'
 
-import { CliOptions } from '../options.js'
+import type { CliOptions } from '../options.ts'
 
 const thisDirName = dirname(fileURLToPath(import.meta.url))
 

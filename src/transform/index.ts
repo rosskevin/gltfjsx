@@ -1,2 +1,2 @@
-export * from './gltfTransform.js'
-export * from './utils.js'
+export * from './gltfTransform.ts'
+export * from './utils.ts'
