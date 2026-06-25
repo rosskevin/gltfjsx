@@ -1,3 +1,15 @@
+# v8.0.0 (Thu Jun 25 2026)
+
+#### 💥 Breaking Change
+
+- build(deps): update dependencies; require Node >= 20.19 (breaking) [#16](https://github.com/rosskevin/gltfjsx/pull/16) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.3.0 (Thu Jun 25 2026)
 
 #### 🚀 Enhancement
