@@ -1,3 +1,15 @@
+# v7.3.0 (Thu Jun 25 2026)
+
+#### 🚀 Enhancement
+
+- Migrate tooling to pnpm, Biome, and tsdown [#15](https://github.com/rosskevin/gltfjsx/pull/15) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v7.2.0 (Tue Sep 09 2025)
 
 #### 🚀 Enhancement
