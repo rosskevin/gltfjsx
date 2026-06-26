@@ -1,3 +1,15 @@
+# v8.0.2 (Fri Jun 26 2026)
+
+#### 🐛 Bug Fix
+
+- fix: deterministic ordering of generated R3F interface and JSX tree [#19](https://github.com/rosskevin/gltfjsx/pull/19) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v8.0.1 (Fri Jun 26 2026)
 
 #### 🐛 Bug Fix
