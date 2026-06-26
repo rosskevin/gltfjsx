@@ -73,7 +73,6 @@ describe('GenerateR3F', () => {
           const g = new GenerateR3F(a, options)
 
           const tsx = await g.toTsx()
-          console.log(tsx)
           const jsx = await g.toJsx()
           assertCommon(g)
 

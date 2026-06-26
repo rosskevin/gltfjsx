@@ -19,6 +19,7 @@ import {
   isRemoved,
   isSkinnedMesh,
   isSpotLight,
+  isTargeted,
   isTargetedLight,
 } from './is.ts'
 import { allPruneStrategies, type PruneStrategy } from './pruneStrategies.ts'
@@ -63,6 +64,9 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     this.gltf = gltf
     this.options = options
     this.pruneStrategies = pruneStrategies
+
+    // Canonicalize sibling order before anything reads the graph; see sortSceneGraph().
+    this.sortSceneGraph()
 
     // Collect all objects in the scene
     this.gltf.scene.traverse((child: Object3D) => this.objects.push(child))
@@ -363,6 +367,41 @@ export class AnalyzedGLTF<O extends AnalyzedGLTFOptions = AnalyzedGLTFOptions> {
     if (Object.values(this.dupGeometries).find(({ name }) => name === newAttempt) === undefined)
       return newAttempt
     else return this.uniqueGeometryName(attempt, index + 1)
+  }
+
+  /**
+   * Recursively sort every `children` array into a deterministic, stable order, undoing the
+   * arbitrary sibling order the async GLTFLoader produces (see constructor).
+   *
+   * Canonical key is the glTF source index from `parser.associations` (node index first, then
+   * primitive index for split multi-primitive meshes), which preserves the model's authored
+   * scene-graph child order. Name is a final tiebreaker for any object without an association; it
+   * uses code-unit comparison rather than `localeCompare` to stay locale-independent.
+   *
+   * A light's `target` is a synthetic Object3D the loader appends as children[0]; it carries no glTF
+   * association, so the generic key would sort it last and break `isTargetedLight` (which requires
+   * children[0] === target). It is pinned to the front of its parent's children to preserve that.
+   */
+  private sortSceneGraph() {
+    const associations = this.gltf.parser?.associations as
+      | Map<Object3D, { nodes?: number; primitives?: number }>
+      | undefined
+    const last = Number.MAX_SAFE_INTEGER
+    const compare = (a: Object3D, b: Object3D): number => {
+      const ra = associations?.get(a)
+      const rb = associations?.get(b)
+      return (
+        (ra?.nodes ?? last) - (rb?.nodes ?? last) ||
+        (ra?.primitives ?? last) - (rb?.primitives ?? last) ||
+        (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+      )
+    }
+    const visit = (o: Object3D) => {
+      const target = isLight(o) && isTargeted(o) ? o.target : undefined
+      o.children.sort((a, b) => (a === target ? -1 : b === target ? 1 : compare(a, b)))
+      o.children.forEach(visit)
+    }
+    visit(this.gltf.scene)
   }
 
   private collectDuplicates() {
