@@ -346,6 +346,10 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
     return `${this.options.componentName}Props`
   }
 
+  protected getModelPropsBaseName() {
+    return `${this.options.componentName}PropsBase`
+  }
+
   protected getModelActionName() {
     return `${this.options.componentName}Action`
   }
@@ -394,9 +398,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
           : ''
       }
       import { useAnimations, useGLTF, Merged, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
-      import { GroupProps, MeshProps, useGraph } from '@react-three/fiber'
+      import { type ThreeElements, useGraph } from '@react-three/fiber'
       import * as React from 'react'
-      import { AnimationClip, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
+      import { AnimationClip, Group, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial } from 'three'
       import { GLTF, SkeletonUtils } from 'three-stdlib'
 
       ${
@@ -414,7 +418,9 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
         ${hasAnimations ? `animations: ${modelActionName}[]` : ''}
       }
 
-      export interface ${modelPropsName} extends GroupProps {}
+      type ${this.getModelPropsBaseName()} = ThreeElements['group']
+
+      export interface ${modelPropsName} extends ${this.getModelPropsBaseName()} {}
 
       const modelLoadPath = '<foo>.glb'
       const draco = false
@@ -422,12 +428,12 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       ${
         hasInstances
           ? `
-      type ContextType = Record<string, React.ForwardRefExoticComponent<MeshProps>>
+      type ContextType = Record<string, React.ForwardRefExoticComponent<ThreeElements['mesh']>>
 
       const context = React.createContext<ContextType>({})
 
       export ${exportdefault ? 'default' : ''} function ${modelInstancesName}({ children, ...props }: ${modelPropsName}) {
-        const { nodes } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
+        const { nodes } = useGLTF(modelLoadPath, draco) as unknown as ${modelGLTFName}
         const instances = React.useMemo(() => ({
           ${dupGeometryValues.map((v) => `${v.name}: ${v.node}`).join(', ')}
         }), [nodes])
@@ -444,19 +450,19 @@ export class GenerateR3F<O extends GenerateOptions = GenerateOptions> extends Ab
       export function ${componentName}(props: ${modelPropsName}) {
         ${
           hasInstances
-            ? 'const instances = React.useContext(context)'
+            ? `const instances = React.useContext(context)${hasAnimations ? `\n        const { animations } = useGLTF(modelLoadPath, draco) as unknown as ${modelGLTFName}` : ''}`
             : hasPrimitives
               ? `
-                const { ${hasAnimations ? 'animations, ' : ''}scene } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}
+                const { ${hasAnimations ? 'animations, ' : ''}scene } = useGLTF(modelLoadPath, draco) as unknown as ${modelGLTFName}
                 const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
-                const { nodes, materials } = useGraph(clone) as ${modelGLTFName}
+                const { nodes, materials } = useGraph(clone) as unknown as ${modelGLTFName}
               `
-              : `const { ${hasAnimations ? 'animations, ' : ''}nodes, materials } = useGLTF(modelLoadPath, draco) as ${modelGLTFName}`
+              : `const { ${hasAnimations ? 'animations, ' : ''}nodes, materials } = useGLTF(modelLoadPath, draco) as unknown as ${modelGLTFName}`
         }
         ${
           hasAnimations
             ? `
-          const groupRef = React.useRef<Group>()
+          const groupRef = React.useRef<Group>(null)
           const { actions } = useAnimations(animations, groupRef)
           `
             : ''
