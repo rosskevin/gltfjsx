@@ -1,3 +1,16 @@
+# v8.0.1 (Fri Jun 26 2026)
+
+#### 🐛 Bug Fix
+
+- docs: note that bare gh resolves to upstream for this fork [#18](https://github.com/rosskevin/gltfjsx/pull/18) ([@rosskevin](https://github.com/rosskevin))
+- fix: generate fiber-v9 / drei-v10 / React-19 compatible R3F components [#18](https://github.com/rosskevin/gltfjsx/pull/18) ([@rosskevin](https://github.com/rosskevin))
+
+#### Authors: 1
+
+- Kevin Ross ([@rosskevin](https://github.com/rosskevin))
+
+---
+
 # v8.0.0 (Thu Jun 25 2026)
 
 #### 💥 Breaking Change
