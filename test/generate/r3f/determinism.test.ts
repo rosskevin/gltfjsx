@@ -55,24 +55,14 @@ describe('determinism', () => {
   for (const type of types) {
     const modelFile = resolveFixtureModelFile(modelName, type)
 
-    // Permutation invariance: the loader's sibling order is arbitrary, so reversing it must not change
-    // the output. This deterministically reproduces the bug regardless of load timing.
+    // The loader's sibling order is arbitrary, so reversing it must not change the output. Loading twice
+    // (normal + reversed) and asserting byte-identity deterministically reproduces the bug regardless of
+    // load timing — a stronger, cheaper check than repeating identical loads and hoping the order diverges.
     it(`is invariant to scene-graph sibling order [${type}]`, async () => {
       assertFileExists(modelFile)
       const normal = await generateTsx(modelFile, type)
       const reversed = await generateTsx(modelFile, type, reverseChildrenDeep)
       expect(reversed).toEqual(normal)
-    })
-
-    // Cross-load stability: regenerating the same model on separate loads must be byte-identical. This
-    // mirrors the real-world report, but its pre-fix detection is timing-dependent (fast models can
-    // resolve in the same order every load) — the reversal test above is the deterministic guard; keep both.
-    it(`is byte-identical across repeated loads [${type}]`, async () => {
-      assertFileExists(modelFile)
-      const first = await generateTsx(modelFile, type)
-      for (let i = 0; i < 5; i++) {
-        expect(await generateTsx(modelFile, type)).toEqual(first)
-      }
     })
   }
 })

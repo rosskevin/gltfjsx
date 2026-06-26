@@ -68,7 +68,6 @@ describe('exposeProps', () => {
             }
             const g = new GenerateR3F(a, mo)
             const tsx = await g.toTsx()
-            console.log(tsx)
             const jsx = await g.toJsx()
 
             for (const code of [tsx, jsx]) {
@@ -81,7 +80,7 @@ describe('exposeProps', () => {
                 expect(code.match(/receiveShadow=\{shadows\}/g)?.length).toEqual(6)
               }
             }
-          }, 10000) // increase timeout for ci - typical timeout if 5000ms
+          })
 
           it.concurrent('should generate to (singular)', async () => {
             const mo: GenerateOptions = {
@@ -98,7 +97,6 @@ describe('exposeProps', () => {
             }
             const g = new GenerateR3F(a, mo)
             const tsx = await g.toTsx()
-            console.log(tsx)
             const jsx = await g.toJsx()
 
             for (const code of [tsx, jsx]) {
@@ -130,7 +128,6 @@ describe('exposeProps', () => {
             }
             const g = new GenerateR3F(a, mo)
             const tsx = await g.toTsx()
-            console.log(tsx)
             const jsx = await g.toJsx()
 
             for (const code of [tsx, jsx]) {
@@ -167,7 +164,6 @@ describe('exposeProps', () => {
               }
               const g = new GenerateR3F(a, mo)
               const tsx = await g.toTsx()
-              console.log(tsx)
               const jsx = await g.toJsx()
 
               for (const code of [tsx, jsx]) {
@@ -199,7 +195,6 @@ describe('exposeProps', () => {
               }
               const g = new GenerateR3F(a, mo)
               const tsx = await g.toTsx()
-              console.log(tsx)
               const jsx = await g.toJsx()
 
               for (const code of [tsx, jsx]) {
@@ -216,7 +211,6 @@ describe('exposeProps', () => {
             describe('optional fallback', () => {
               async function assertFallback(g: GenerateR3F) {
                 const tsx = await g.toTsx()
-                console.log(tsx)
                 const jsx = await g.toJsx()
 
                 for (const code of [tsx, jsx]) {
