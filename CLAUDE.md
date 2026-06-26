@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `@rosskevin/gltfjsx` — a CLI + library that converts GLTF/GLB 3D models into React Three Fiber (R3F) component source (`.tsx`/`.jsx`). Published to npm as an ESM-only package; the `bin` is `dist/cli.mjs`. It is a (intended-to-be-temporary) fork of [`pmndrs/gltfjsx`](https://github.com/pmndrs/gltfjsx) — see `README.md`. PRs are expected to include tests.
 
+**GitHub CLI:** no `gh` default repo is set here, so with both `origin` (the fork) and `upstream` (`pmndrs/gltfjsx`) remotes, bare `gh` commands resolve to the upstream parent — e.g. `gh issue view 17` shows the wrong (upstream) issue. Pass `-R rosskevin/gltfjsx` for this fork's issues/PRs (`gh issue view 17 -R rosskevin/gltfjsx`), or set it once with `gh repo set-default rosskevin/gltfjsx`.
+
 ## Commands
 
 - `pnpm build` — bundle with tsdown → `dist/*.mjs` + `.d.mts` (the CLI shebang and executable bit are handled automatically).
